@@ -1090,8 +1090,24 @@ function renderPanel(){
 }
 if(window.addEventListener)window.addEventListener('resize',()=>{if(G)render()});
 
-// グローバル関数の公開（online.jsから使用）
+// グローバル関数の公開（HTMLのonclickやonline.jsから使用）
 window.showTitle = showTitle;
+window.toggleOpt = toggleOpt;
+window.pick = pick;
+window.hideVeil = hideVeil;
+window.toggleSwap = toggleSwap;
+window.toggleLedger = toggleLedger;
+window.openLedger = openLedger;
+window.closeLedger = closeLedger;
+window.confirmPit = confirmPit;
+window.chooseExplorer = chooseExplorer;
+window.confirmRoute = confirmRoute;
+window.startSharpenMad = startSharpenMad;
+window.finishDay = finishDay;
+window.startSharpen = startSharpen;
+window.advanceTick = advanceTick;
+window.confirmNight = confirmNight;
+window.nextFromMorning = nextFromMorning;
 window.newGame = newGame;
 window.render = render;
 window.G = G;
