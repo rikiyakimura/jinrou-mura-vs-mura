@@ -24,9 +24,10 @@
     "vite": "^5.0.0"
   },
   "dependencies": {
-    "@capacitor/core": "^6.0.0",
+    "@capacitor/android": "^6.0.0",
     "@capacitor/cli": "^6.0.0",
+    "@capacitor/core": "^6.0.0",
     "@capacitor/ios": "^6.0.0",
-    "@capacitor/android": "^6.0.0"
+    "@supabase/supabase-js": "^2.111.0"
   }
 }

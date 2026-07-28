@@ -1,3 +1,6 @@
+/* ================= オンライン対戦モジュール ================= */
+import './online.js';
+
 /* ================= 盤面と定数 ================= */
 const HOUSES=['tl','tr','c','bl','br'];
 const HLABEL={tl:'北西',tr:'北東',c:'中央',bl:'南西',br:'南東'};
@@ -118,6 +121,7 @@ function showTitle(){
     <div class="modebtns">
       <button class="primary big" onclick="pick('cpu')">対CPU<span class="note">1人で遊ぶ</span></button>
       <button class="big" onclick="pick('pvp')">2人で対戦<span class="note">1台を交代で使う</span></button>
+      <button class="big" onclick="window.onlineShowMenu()">オンライン対戦<span class="note">インターネット経由で対戦</span></button>
     </div>
   </div>`;
 }
@@ -1086,4 +1090,12 @@ function renderPanel(){
   }
 }
 if(window.addEventListener)window.addEventListener('resize',()=>{if(G)render()});
+
+// グローバル関数の公開（online.jsから使用）
+window.showTitle = showTitle;
+window.newGame = newGame;
+window.render = render;
+window.G = G;
+window.TITLE_OPT = TITLE_OPT;
+
 showTitle();

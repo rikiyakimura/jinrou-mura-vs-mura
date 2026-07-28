@@ -23,3 +23,9 @@ Thumbs.db
 .idea/
 .vscode/
 *.swp
+
+# Claude Code settings (contains secrets)
+.claude/
+
+.vercel
+.env*
