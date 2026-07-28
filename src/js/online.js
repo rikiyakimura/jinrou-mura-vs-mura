@@ -382,6 +382,7 @@ window.onlineCancelRoom = cancelRoom;
 window.onlineShowJoinRoom = showJoinRoom;
 window.onlineJoinRoom = executeJoinRoom;
 window.onlineSyncGameState = syncGameState;
+window.getCurrentRoom = getCurrentRoom;
 
 // 現在のルーム情報を取得する関数（他のモジュールから使用）
 export function getCurrentRoom() {

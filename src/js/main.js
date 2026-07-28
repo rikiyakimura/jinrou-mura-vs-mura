@@ -1,5 +1,5 @@
 /* ================= オンライン対戦モジュール ================= */
-// import './online.js';  // 一時的にコメントアウト - デバッグ中
+import './online.js';
 
 /* ================= 盤面と定数 ================= */
 const HOUSES=['tl','tr','c','bl','br'];
@@ -121,6 +121,7 @@ function showTitle(){
     <div class="modebtns">
       <button class="primary big" onclick="pick('cpu')">対CPU<span class="note">1人で遊ぶ</span></button>
       <button class="big" onclick="pick('pvp')">2人で対戦<span class="note">1台を交代で使う</span></button>
+      <button class="big" onclick="window.onlineShowMenu()">オンライン対戦<span class="note">インターネット経由で対戦</span></button>
     </div>
   </div>`;
 }
@@ -152,6 +153,11 @@ function advance(){
   if(c.day)G.day=c.day;
   if(c.ph==='ticks')G.tickIdx=0;
   sync();
+
+  // オンラインモードの場合、ゲーム状態を同期
+  if(G.mode==='online' && window.onlineSyncGameState){
+    window.onlineSyncGameState();
+  }
 }
 // CPUの手番を自動で消化してから、人の手番で止める
 function sync(){
@@ -174,6 +180,27 @@ function showVeilIfNeeded(){
   const el=document.getElementById('veil');
   const w=who();
   if(G.mode==='cpu'||w===0){hideVeil();return}
+
+  // オンラインモードの場合
+  if(G.mode==='online' && window.getCurrentRoom){
+    const room = window.getCurrentRoom();
+    if(room && room.playerId){
+      // 自分のターンの場合
+      if(w === room.playerId){
+        hideVeil();
+        return;
+      }
+      // 相手のターンの場合、待機画面を表示
+      el.className='veil';el.style.display='flex';
+      document.body.style.overflow='hidden';window.scrollTo(0,0);
+      el.innerHTML=`<div class="inner">
+        <p class="lead">相手の手番です</p>
+        <p>相手がアクションを完了するまでお待ちください...</p>
+      </div>`;
+      return;
+    }
+  }
+
   let prev=null;
   for(let i=G.idx-1;i>=0;i--){if(G.sched[i].who!==0){prev=G.sched[i].who;break}}
   if(w===prev){hideVeil();return}
@@ -747,10 +774,16 @@ function protectReason(v){
 function setAttackTarget(villageId, personId){
   G.V[villageId].attackTarget = personId;
   render();
+  if(G.mode==='online' && window.onlineSyncGameState){
+    window.onlineSyncGameState();
+  }
 }
 function setProtectTarget(villageId, personId){
   G.V[villageId].protectTarget = personId;
   render();
+  if(G.mode==='online' && window.onlineSyncGameState){
+    window.onlineSyncGameState();
+  }
 }
 function confirmNight(){
   if(me().id===1)endOfNight();else advance();   // 1Pの夜が一日の締め
