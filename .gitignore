@@ -1,0 +1,25 @@
+# 環境変数（トークン類）
+.env.local
+.env
+
+# 依存関係
+node_modules/
+
+# ビルド
+dist/
+.vercel/
+
+# Capacitor
+ios/
+android/
+*.apk
+*.ipa
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp

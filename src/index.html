@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>人狼 村vs村</title>
+<link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+
+<div id="veil" class="veil"></div>
+
+<div class="wrap">
+<header>
+  <h1>人狼　村vs村</h1>
+  <div class="sub" id="modeline"></div>
+  <div class="statusbar" id="status"></div>
+</header>
+
+<div class="grid">
+  <div>
+    <div class="stageflip" id="stageflip"></div>
+    <div class="stage" id="stage">
+      <div class="board" id="board-mine">
+        <h2 id="t-mine">自分の村</h2>
+        <div class="hint">神視点。全員の役職と、訪ねてきた探索者の位置が見える。</div>
+        <div class="map" id="map-mine"></div>
+      </div>
+      <div class="board" id="board-foe">
+        <h2 id="t-foe">相手の村</h2>
+        <div class="hint">誰がどの家に住むかは見えるが、役職は分からない。</div>
+        <div class="map" id="map-foe"></div>
+      </div>
+    </div>
+    <div class="panel" id="panel"></div>
+
+    <details>
+      <summary>ルール要約</summary>
+      <ul>
+        <li>各村5人（人狼1／護衛1／村人3）。初日に家を決めたら以後動かせない。探索者はどの家からでも探索を始められる。</li>
+        <li>昼は<b>5ティック</b>。探索者は互いに伏せて選び、両者を開いてから経路を1マスずつ組む。<b>一度選んだ家は戻せない</b>（護衛届はその場で判定されるため、組み直しで在り処を探れてしまう）。</li>
+        <li>爪研ぎは<b>3ティック連続</b>、中断不可。開始できるのはティック1・2・3。</li>
+        <li>研ぎの3ティックのうち<b>2ティック</b>を探索者に居合わせられると、その夜の襲撃ができなくなる（連続でなくてよい）。</li>
+        <li>探索者が<b>人狼</b>で、<b>3ティックすべて</b>に居合わせた場合、相手の人狼を追放して<b>その場で勝ち</b>。生存数は問わない。</li>
+        <li>1回以上居合わせると「どこかで爪を研ぐ音を聞いた」とだけ覚え書きに残る。回数も場所も分からない。居合わせなければ「怪しい音はなかった」と残る。</li>
+        <li>護衛届は毎昼、相手の村のどこかに1つ。取得していて護衛が存命なら、夜に一般村人1人を守れる（護衛自身と人狼は守れない）。</li>
+        <li><b>探索から帰った者は疲れて眠る。その夜、能力は使えない。</b>人狼を送れば襲撃できず、護衛を送れば誰も守れない。一般村人には夜の役目がないので影響がない。護衛は探索先で護衛届を見つけること自体はできる。</li>
+        <li>襲撃が失敗したとき、襲った側には理由が分からない。襲われた側には分かる。</li>
+        <li>3夜を終えて一度も食べられなかった人狼は餓死。最終スコアは人狼を含む生存数。同点あり。</li>
+        <li><b>［狂人＋犬飼い を入れた場合］</b>狂人の爪を相手の村で取ると、その夜、自分の村の狂人が人狼と同じティックで爪を研ぎ、相手の探索者に聞こえる音を撹乱する（狂人が生きていて留守でないとき）。狂人自身は探索者に何ティック聞かれても何も起きない。犬飼いを探索に送ると、狂人の贋物を無視して<b>人狼の爪の音だけ</b>を聞き分ける。</li>
+        <li><b>［霊媒師 を入れた場合］</b>霊媒の札を相手の村で取ると、その夜に倒せた相手がいれば、翌日その正体（役職）が分かる。霊媒師が生きていて留守でないとき働く。取った日限りで、倒せた相手がいなくても札は失う。</li>
+        <li><b>狂人の爪と霊媒の札は、1日目と2日目にしか出ない（3日目は出ない）。護衛届は毎日出る。</b>いずれも護衛届とは別の家に出るので、複数を取るには家を余分に回る必要がある。</li>
+      </ul>
+    </details>
+  </div>
+  <aside id="ledger-aside"><div class="ledger"><h3 id="ledger-title">覚え書き</h3><div id="ledger"></div></div></aside>
+  <div id="ledger-scrim" onclick="closeLedger()"></div>
+  <button id="ledger-tab" onclick="toggleLedger()" aria-label="覚え書き">覚え書き</button>
+</div>
+</div>
+
+<script type="module" src="./js/main.js"></script>
+</body>
+</html>
