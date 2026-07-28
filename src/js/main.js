@@ -744,6 +744,14 @@ function protectReason(v){
   if(!v.permit)return '護衛届を取れなかった。';
   return '守れる一般村人がいない。';
 }
+function setAttackTarget(villageId, personId){
+  G.V[villageId].attackTarget = personId;
+  render();
+}
+function setProtectTarget(villageId, personId){
+  G.V[villageId].protectTarget = personId;
+  render();
+}
 function confirmNight(){
   if(me().id===1)endOfNight();else advance();   // 1Pの夜が一日の締め
 }
@@ -1040,12 +1048,12 @@ function renderPanel(){
     if(canAttack(v)){
       b+=`<p class="lead">爪は研げた。相手の村の誰を襲う？ 下のチップか、相手の村の地図の家をタップして選ぶ。人狼を狙うと空振りになる。</p>
         <div class="chips">${alive(o).map(p=>
-          `<div class="chip ${v.attackTarget===p.id?'sel':''}" onclick="G.V[${v.id}].attackTarget=${p.id};render()">${p.name}<small>${HLABEL[p.house]}の家</small></div>`).join('')}</div>`;
+          `<div class="chip ${v.attackTarget===p.id?'sel':''}" onclick="setAttackTarget(${v.id},${p.id})">${p.name}<small>${HLABEL[p.house]}の家</small></div>`).join('')}</div>`;
     }else b+=`<p class="warn">今夜、こちらから襲撃はできない。${v.spoiled?'研ぎを見られた。':''}</p>`;
     if(canProtect(v)){
       b+=`<p class="good">護衛届がある。味方1人を守れる（護衛自身と人狼は守れない）。</p>
         <div class="chips">${alive(v).filter(p=>p.role!=='guard'&&p.role!=='wolf').map(p=>
-          `<div class="chip ${v.protectTarget===p.id?'sel':''}" onclick="G.V[${v.id}].protectTarget=${p.id};render()">${p.name}<small>${ROLE_LABEL[p.role]}</small></div>`).join('')}</div>`;
+          `<div class="chip ${v.protectTarget===p.id?'sel':''}" onclick="setProtectTarget(${v.id},${p.id})">${p.name}<small>${ROLE_LABEL[p.role]}</small></div>`).join('')}</div>`;
     }else{b+=`<p class="${guardAway(v)?'warn':''}">護衛は使えない。${protectReason(v)}</p>`;v.protectTarget=null}
     const need=canAttack(v)&&v.attackTarget===null;
     b+=`<div class="btnrow"><button class="primary" onclick="confirmNight()" ${need?'disabled':''}>夜を明かす</button></div>`;
@@ -1099,13 +1107,19 @@ window.toggleSwap = toggleSwap;
 window.toggleLedger = toggleLedger;
 window.openLedger = openLedger;
 window.closeLedger = closeLedger;
+window.placeNext = placeNext;
+window.placePit = placePit;
 window.confirmPit = confirmPit;
 window.chooseExplorer = chooseExplorer;
+window.pickRoute = pickRoute;
 window.confirmRoute = confirmRoute;
 window.startSharpenMad = startSharpenMad;
 window.finishDay = finishDay;
 window.startSharpen = startSharpen;
 window.advanceTick = advanceTick;
+window.setAttackTarget = setAttackTarget;
+window.setProtectTarget = setProtectTarget;
+window.pickAttackHouse = pickAttackHouse;
 window.confirmNight = confirmNight;
 window.nextFromMorning = nextFromMorning;
 window.newGame = newGame;
