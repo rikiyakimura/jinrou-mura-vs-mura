@@ -299,8 +299,8 @@ async function startOnlineGame(room) {
 
     // ベールを隠してゲーム画面を表示
     setTimeout(() => {
-      document.getElementById('veil').style.display = 'none';
-      document.body.style.overflow = '';
+      window.hideVeil();
+      window.sync();
     }, 2000);
   }
   // ゲストの場合、DBからゲーム状態を取得
@@ -327,9 +327,8 @@ async function startOnlineGame(room) {
           'オンライン対戦' + (extra.length ? '　／　' + extra.join('・') : '');
 
         // ベールを隠してゲーム画面を表示
-        document.getElementById('veil').style.display = 'none';
-        document.body.style.overflow = '';
-        window.render();
+        window.hideVeil();
+        window.sync();
       } else if (retries < maxRetries) {
         // まだゲーム状態がない場合、500ms後に再試行
         retries++;

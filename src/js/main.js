@@ -204,8 +204,9 @@ function showVeilIfNeeded(){
   const w=who();
   if(G.mode==='cpu'||w===0){hideVeil();return}
 
-  // オンラインモードの場合はonline.jsで制御
+  // オンラインモードの場合は常に表示
   if(G.mode==='online'){
+    hideVeil();
     return;
   }
 
