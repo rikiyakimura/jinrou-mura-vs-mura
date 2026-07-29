@@ -94,8 +94,8 @@ test('オンライン対戦: 落とし穴テスト', async ({ browser }) => {
     const hostPanel = await hostPage.evaluate(() => document.getElementById('panel')?.innerText?.substring(0, 300));
     console.log('Host panel:', hostPanel);
 
-    // 落とし穴の辺を選択（エッジがクリック可能か確認）
-    const hostEdges = await hostPage.$$('#map-mine .edge.pick');
+    // 落とし穴の辺を選択（SVG内のエッジをクリック）
+    const hostEdges = await hostPage.$$('#map-mine svg .edge-pick');
     console.log(`ホスト: 選択可能なエッジ数: ${hostEdges.length}`);
     if (hostEdges.length > 0) {
       await hostEdges[0].click();
@@ -103,7 +103,7 @@ test('オンライン対戦: 落とし穴テスト', async ({ browser }) => {
     }
 
     // 確定ボタンを探す
-    let btn = await hostPage.$('button:has-text("確定")');
+    let btn = await hostPage.$('button:has-text("これでいく")');
     if (btn) {
       await btn.click();
       console.log('ホスト: 落とし穴確定');
@@ -113,14 +113,14 @@ test('オンライン対戦: 落とし穴テスト', async ({ browser }) => {
 
     await hostPage.waitForTimeout(500);
 
-    const guestEdges = await guestPage.$$('#map-mine .edge.pick');
+    const guestEdges = await guestPage.$$('#map-mine svg .edge-pick');
     console.log(`ゲスト: 選択可能なエッジ数: ${guestEdges.length}`);
     if (guestEdges.length > 0) {
       await guestEdges[0].click();
       console.log('ゲスト: 落とし穴の辺を選択');
     }
 
-    btn = await guestPage.$('button:has-text("確定")');
+    btn = await guestPage.$('button:has-text("これでいく")');
     if (btn) {
       await btn.click();
       console.log('ゲスト: 落とし穴確定');

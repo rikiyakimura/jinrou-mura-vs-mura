@@ -32,6 +32,7 @@ export function drawMap(el, village, o) {
     // 辺を選ぶモード
     if (o.edgePick) {
       const hit = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      hit.setAttribute('class', 'edge-pick');
       hit.setAttribute('x1', POS[a][0]); hit.setAttribute('y1', POS[a][1]);
       hit.setAttribute('x2', POS[b][0]); hit.setAttribute('y2', POS[b][1]);
       hit.setAttribute('style', 'cursor:pointer;stroke:rgba(0,0,0,0.001);stroke-width:13;stroke-dasharray:none;stroke-linecap:round');
