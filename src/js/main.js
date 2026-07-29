@@ -133,16 +133,22 @@ function pick(m){document.body.style.overflow='';newGame(m,{...TITLE_OPT})}
 const cur=()=>G.sched[G.idx];
 const who=()=>cur().who;
 const me=()=>{
-  if(G.mode==='online' && window.getCurrentRoom){
-    const room=window.getCurrentRoom();
-    return G.V[room.playerId];
+  if(G.mode==='online' && window.getCurrentRoom && window.isSimultaneousPhase){
+    const c=cur();
+    if(window.isSimultaneousPhase(c.ph)){
+      const room=window.getCurrentRoom();
+      return G.V[room.playerId];
+    }
   }
   return G.V[who()||1];
 };
 const opp=()=>{
-  if(G.mode==='online' && window.getCurrentRoom){
-    const room=window.getCurrentRoom();
-    return G.V[room.playerId===1?2:1];
+  if(G.mode==='online' && window.getCurrentRoom && window.isSimultaneousPhase){
+    const c=cur();
+    if(window.isSimultaneousPhase(c.ph)){
+      const room=window.getCurrentRoom();
+      return G.V[room.playerId===1?2:1];
+    }
   }
   return G.V[other(who()||1)];
 };
@@ -203,9 +209,30 @@ function showVeilIfNeeded(){
   if(G.mode==='cpu'||w===0){hideVeil();return}
 
   // オンラインモードの場合
-  // 同時入力システムで待機画面を管理するため、ここでは何もしない
-  if(G.mode==='online'){
-    hideVeil();
+  if(G.mode==='online' && window.getCurrentRoom && window.isSimultaneousPhase){
+    const c=cur();
+    const room=window.getCurrentRoom();
+
+    // 同時入力フェーズの場合は常に画面を表示
+    if(window.isSimultaneousPhase(c.ph)){
+      hideVeil();
+      return;
+    }
+
+    // 順次実行フェーズで自分の番の場合は画面を表示
+    if(w===room.playerId){
+      hideVeil();
+      return;
+    }
+
+    // 順次実行フェーズで相手の番の場合はveilを表示
+    el.className='veil';
+    el.style.display='flex';
+    document.body.style.overflow='hidden';
+    el.innerHTML=`<div class="inner">
+      <p class="lead">相手の手番</p>
+      <p>相手の入力を待っています...</p>
+    </div>`;
     return;
   }
 
