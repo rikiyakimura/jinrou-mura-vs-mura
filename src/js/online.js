@@ -319,10 +319,16 @@ async function startOnlineGame(room) {
         // ゲーム状態の監視を開始
         subscribeToGameUpdates();
 
-        // ベールを隠してゲーム画面を表示
-        document.getElementById('veil').style.display = 'none';
-        document.body.style.overflow = '';
-        window.render();
+        // 重要: ホスト側と同じようにsync()を呼ぶ
+        // これで showVeilIfNeeded() → hideVeil() → render() が実行される
+        window.sync();
+
+        // モードライン更新
+        const extra = [];
+        if (gameState.game_data.opt.madmanDog) extra.push('狂人＋犬飼い');
+        if (gameState.game_data.opt.medium) extra.push('霊媒師');
+        document.getElementById('modeline').textContent =
+          'オンライン対戦' + (extra.length ? '　／　' + extra.join('・') : '');
       } else if (retries < maxRetries) {
         // まだゲーム状態がない場合、500ms後に再試行
         retries++;
@@ -343,16 +349,40 @@ async function startOnlineGame(room) {
 function subscribeToGameUpdates() {
   gameStateSubscription = subscribeToGameState(currentRoomId, (payload) => {
     if (payload.eventType === 'UPDATE') {
-      // 相手がアクションを実行した
-      const newGameData = payload.new.game_data;
+      const newState = payload.new;
 
-      // 自分のターンではない場合のみ更新
-      if (payload.new.waiting_for_player !== currentPlayerId) {
-        window.G = newGameData;
-        window.render();
+      // 同時入力モードの場合
+      if (newState.simultaneous_mode) {
+        const otherPlayerId = currentPlayerId === 1 ? 2 : 1;
+        const otherReady = newState[`player${otherPlayerId}_ready`];
+        const myReady = newState[`player${currentPlayerId}_ready`];
+
+        // 両者が完了したら次のフェーズへ
+        if (otherReady && myReady) {
+          window.G = newState.game_data;
+          window.hideVeil();
+          window.sync();
+        }
+      }
+      // 順次実行モードの場合（既存ロジック）
+      else {
+        if (newState.waiting_for_player === currentPlayerId) {
+          window.G = newState.game_data;
+          window.hideVeil();
+          window.render();
+        } else if (newState.waiting_for_player !== 0) {
+          window.showVeilIfNeeded();
+        }
       }
     }
   });
+}
+
+/**
+ * フェーズが同時入力可能かを判定
+ */
+function isSimultaneousPhase(phase) {
+  return ['route', 'ticks', 'night'].includes(phase);
 }
 
 /**
@@ -361,17 +391,126 @@ function subscribeToGameUpdates() {
 export async function syncGameState() {
   if (!currentRoomId) return;
 
-  // 現在のプレイヤーを確認
   const currentTurn = window.G.sched[window.G.idx];
-  const waitingFor = currentTurn.who === 0 ? (currentPlayerId === 1 ? 2 : 1) : currentTurn.who;
 
-  await updateGameState(currentRoomId, {
-    game_data: window.G,
-    current_player: currentTurn.who || currentPlayerId,
-    current_phase: currentTurn.ph,
-    current_day: currentTurn.day || null,
-    waiting_for_player: waitingFor
-  });
+  // 同時入力フェーズの場合: データマージで競合を防止
+  if (isSimultaneousPhase(currentTurn.ph)) {
+    // 最新のゲーム状態を取得
+    const latestState = await getGameState(currentRoomId);
+    const latestGameData = latestState.game_data;
+
+    // 相手の村データは最新を維持、自分の村データだけ更新
+    const otherPlayerId = currentPlayerId === 1 ? 2 : 1;
+    const mergedGameData = {
+      ...latestGameData,
+      V: {
+        ...latestGameData.V,
+        [currentPlayerId]: window.G.V[currentPlayerId]
+      }
+    };
+
+    await updateGameState(currentRoomId, {
+      game_data: mergedGameData,
+      simultaneous_mode: true
+    });
+  }
+  // 順次実行フェーズ（既存ロジック）
+  else {
+    const waitingFor = currentTurn.who === 0 ? 0 : currentTurn.who;
+
+    await updateGameState(currentRoomId, {
+      game_data: window.G,
+      current_player: currentTurn.who || currentPlayerId,
+      current_phase: currentTurn.ph,
+      current_day: currentTurn.day || null,
+      waiting_for_player: waitingFor,
+      simultaneous_mode: false,
+      player1_ready: false,
+      player2_ready: false
+    });
+  }
+}
+
+/**
+ * 相手の入力を待っている画面を表示
+ */
+function showWaitingForOpponent() {
+  const el = document.getElementById('veil');
+  el.className = 'veil';
+  el.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  el.innerHTML = `<div class="inner">
+    <p class="lead">入力完了</p>
+    <p>相手の入力を待っています...</p>
+  </div>`;
+}
+
+/**
+ * オンライン対戦用のadvance() - 同時入力に対応
+ */
+export async function onlineAdvance() {
+  const currentPhase = window.G.sched[window.G.idx];
+
+  // 同時入力フェーズの場合
+  if (isSimultaneousPhase(currentPhase.ph)) {
+    // 自分が完了したことをマーク
+    const readyField = `player${currentPlayerId}_ready`;
+    await updateGameState(currentRoomId, {
+      [readyField]: true,
+      game_data: window.G
+    });
+
+    // 相手も完了しているかチェック
+    const gameState = await getGameState(currentRoomId);
+    const otherPlayerId = currentPlayerId === 1 ? 2 : 1;
+    const otherReady = gameState[`player${otherPlayerId}_ready`];
+
+    if (otherReady) {
+      // 両者完了 → resolveDay/resolveNightの処理
+      if (currentPhase.ph === 'ticks' && currentPhase.who === 2) {
+        window.resolveDay();
+        if (window.G.done) return;
+      }
+      if (currentPhase.ph === 'night' && currentPhase.who === 1) {
+        window.resolveNight();
+        if (window.G.done) return;
+        const DAYS = 3;
+        if (window.G.day < DAYS) window.startDay();
+      }
+
+      // フェーズを進める
+      window.G.idx++;
+      const c = window.G.sched[window.G.idx];
+      if (c.day) window.G.day = c.day;
+      if (c.ph === 'ticks') window.G.tickIdx = 0;
+
+      // 完了フラグをリセット
+      await updateGameState(currentRoomId, {
+        game_data: window.G,
+        current_player: c.who || currentPlayerId,
+        current_phase: c.ph,
+        waiting_for_player: c.who === 0 ? 0 : c.who,
+        player1_ready: false,
+        player2_ready: false,
+        simultaneous_mode: isSimultaneousPhase(c.ph)
+      });
+
+      window.sync();
+    } else {
+      // 相手待ち
+      showWaitingForOpponent();
+    }
+  }
+  // 順次実行フェーズ（既存ロジック）
+  else {
+    window.G.idx++;
+    const c = window.G.sched[window.G.idx];
+    if (c.day) window.G.day = c.day;
+    if (c.ph === 'ticks') window.G.tickIdx = 0;
+    window.sync();
+
+    await syncGameState();
+  }
 }
 
 // window オブジェクトに関数を公開
@@ -382,6 +521,8 @@ window.onlineCancelRoom = cancelRoom;
 window.onlineShowJoinRoom = showJoinRoom;
 window.onlineJoinRoom = executeJoinRoom;
 window.onlineSyncGameState = syncGameState;
+window.onlineAdvance = onlineAdvance;
+window.isSimultaneousPhase = isSimultaneousPhase;
 window.getCurrentRoom = getCurrentRoom;
 
 // 現在のルーム情報を取得する関数（他のモジュールから使用）

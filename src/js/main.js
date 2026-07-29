@@ -697,7 +697,14 @@ function pickRoute(h){
   if(v.route.length>=TICKS)v.routeDone=true;   // 即進まず、確認画面を出す
   render();
 }
-function confirmRoute(){me().routeDone=false;advance();}
+function confirmRoute(){
+  me().routeDone=false;
+  if(G.mode==='online' && window.onlineAdvance){
+    window.onlineAdvance();
+  } else {
+    advance();
+  }
+}
 function pickAttackHouse(h){
   const v=me(),o=opp();
   const p=personAt(o,h);
@@ -752,8 +759,13 @@ function advanceTick(){
 }
 function finishDay(){                     // 「昼を終える」で呼ぶ
   const v=me();v.tickDone=false;
-  if(v.id===2){resolveDay();if(G.done)return}
-  advance();
+
+  if(G.mode==='online' && window.onlineAdvance){
+    window.onlineAdvance();
+  } else {
+    if(v.id===2){resolveDay();if(G.done)return}
+    advance();
+  }
 }
 
 /* ================= 夜 ================= */
@@ -787,7 +799,11 @@ function setProtectTarget(villageId, personId){
   }
 }
 function confirmNight(){
-  if(me().id===1)endOfNight();else advance();   // 1Pの夜が一日の締め
+  if(G.mode==='online' && window.onlineAdvance){
+    window.onlineAdvance();
+  } else {
+    if(me().id===1)endOfNight();else advance();   // 1Pの夜が一日の締め
+  }
 }
 function endOfNight(){
   resolveNight();
