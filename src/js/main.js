@@ -547,7 +547,11 @@ function render(){
   if(!G)return;
   const c=cur(),w=who();
   if(G._shown!==G.idx){G.swap=false;G._shown=G.idx;if(document.body.classList)document.body.classList.remove('ledger-open')}   // フェーズが変わったら主従を既定に戻し、覚え書きの引き出しも閉じる
-  const pub=(w===0), revealAll=(c.ph==='end');
+  // オンラインモードでは同時入力フェーズは常に非公開（pub=false）
+  const pub = (G.mode === 'online' && window.isSimultaneousPhase && window.isSimultaneousPhase(c.ph))
+    ? false
+    : (w === 0);
+  const revealAll=(c.ph==='end');
   const M=pub?G.V[G.endView]:me(), F=pub?G.V[other(G.endView)]:opp();
 
   document.getElementById('t-mine').textContent=
