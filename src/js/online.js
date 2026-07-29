@@ -18,6 +18,7 @@ let currentRoomCode = null;
 let currentPlayerId = null; // 1=ホスト, 2=ゲスト
 let gameStateSubscription = null;
 let roomSubscription = null;
+let isAdvancing = false; // 自分が現在advance中かを示すフラグ
 
 /**
  * オンライン対戦のモード選択画面を表示
@@ -358,8 +359,20 @@ function subscribeToGameUpdates() {
         const otherReady = newState[`player${otherPlayerId}_ready`];
         const myReady = newState[`player${currentPlayerId}_ready`];
 
-        // 両者が完了したら次のフェーズへ
-        if (otherReady && myReady) {
+        // 自分がadvance中の場合は、subscriptionの処理をスキップ
+        if (isAdvancing) {
+          return;
+        }
+
+        // 相手がreadyになった = 相手のアクションデータを取り込む
+        if (otherReady && !myReady) {
+          // 相手の村データだけ更新
+          window.G.V[otherPlayerId] = newState.game_data.V[otherPlayerId];
+        }
+
+        // ready flagsがリセットされた = 相手がadvance完了した
+        // この時点でgame_dataは最新の状態になっている
+        if (!otherReady && !myReady) {
           window.G = newState.game_data;
           window.hideVeil();
           window.sync();
@@ -367,11 +380,16 @@ function subscribeToGameUpdates() {
       }
       // 順次実行モードの場合（既存ロジック）
       else {
-        if (newState.waiting_for_player === currentPlayerId) {
+        // waiting_for_player が null = 公開フェーズ（morningなど）、両方がアクセス可能
+        if (newState.waiting_for_player === null) {
           window.G = newState.game_data;
           window.hideVeil();
           window.render();
-        } else if (newState.waiting_for_player !== 0) {
+        } else if (newState.waiting_for_player === currentPlayerId) {
+          window.G = newState.game_data;
+          window.hideVeil();
+          window.render();
+        } else {
           window.showVeilIfNeeded();
         }
       }
@@ -381,11 +399,11 @@ function subscribeToGameUpdates() {
 
 /**
  * フェーズが同時入力可能かを判定
- * オンラインモードでは全フェーズで同時入力可能（morning/end以外）
+ * オンラインモードでは全フェーズで同時入力可能（end以外）
  */
 function isSimultaneousPhase(phase) {
-  // morning（夜明け）とend（終了）以外は全て同時入力
-  return !['morning', 'end'].includes(phase);
+  // end（終了）以外は全て同時入力
+  return phase !== 'end';
 }
 
 /**
@@ -419,7 +437,8 @@ export async function syncGameState() {
   }
   // 順次実行フェーズ（既存ロジック）
   else {
-    const waitingFor = currentTurn.who === 0 ? 0 : currentTurn.who;
+    // who=0の場合はnull、それ以外はwhoを設定
+    const waitingFor = currentTurn.who === 0 ? null : currentTurn.who;
 
     await updateGameState(currentRoomId, {
       game_data: window.G,
@@ -452,6 +471,7 @@ function showWaitingForOpponent() {
  * オンライン対戦用のadvance() - 同時入力に対応
  */
 export async function onlineAdvance() {
+  isAdvancing = true; // advance処理を開始
   const currentPhase = window.G.sched[window.G.idx];
 
   // 同時入力フェーズの場合
@@ -460,7 +480,8 @@ export async function onlineAdvance() {
     const readyField = `player${currentPlayerId}_ready`;
     await updateGameState(currentRoomId, {
       [readyField]: true,
-      game_data: window.G
+      game_data: window.G,
+      simultaneous_mode: true
     });
 
     // 相手も完了しているかチェック
@@ -469,6 +490,18 @@ export async function onlineAdvance() {
     const otherReady = gameState[`player${otherPlayerId}_ready`];
 
     if (otherReady) {
+      // 最新のゲーム状態を取得して、相手のアクションを反映
+      const latestState = await getGameState(currentRoomId);
+      const latestGameData = latestState.game_data;
+      // 自分のアクションは最新、相手のアクションはDBから取得
+      window.G = {
+        ...latestGameData,
+        V: {
+          ...latestGameData.V,
+          [currentPlayerId]: window.G.V[currentPlayerId]
+        }
+      };
+
       // 両者完了 → 同じフェーズの最後まで進む
       while (window.G.idx + 1 < window.G.sched.length &&
              window.G.sched[window.G.idx + 1].ph === currentPhase.ph) {
@@ -481,11 +514,17 @@ export async function onlineAdvance() {
       // resolveDay/resolveNightの処理
       if (lastPhaseEntry.ph === 'ticks' && lastPhaseEntry.who === 2) {
         window.resolveDay();
-        if (window.G.done) return;
+        if (window.G.done) {
+          isAdvancing = false;
+          return;
+        }
       }
       if (lastPhaseEntry.ph === 'night' && lastPhaseEntry.who === 1) {
         window.resolveNight();
-        if (window.G.done) return;
+        if (window.G.done) {
+          isAdvancing = false;
+          return;
+        }
         const DAYS = 3;
         if (window.G.day < DAYS) window.startDay();
       }
@@ -497,20 +536,23 @@ export async function onlineAdvance() {
       if (c.ph === 'ticks') window.G.tickIdx = 0;
 
       // 完了フラグをリセット
+      // who=0の場合はnull、それ以外はwhoを設定
       await updateGameState(currentRoomId, {
         game_data: window.G,
         current_player: c.who || currentPlayerId,
         current_phase: c.ph,
-        waiting_for_player: c.who === 0 ? 0 : c.who,
+        waiting_for_player: c.who === 0 ? null : c.who,
         player1_ready: false,
         player2_ready: false,
         simultaneous_mode: isSimultaneousPhase(c.ph)
       });
 
       window.sync();
+      isAdvancing = false; // advance処理完了
     } else {
       // 相手待ち
       showWaitingForOpponent();
+      isAdvancing = false; // advance処理完了
     }
   }
   // 順次実行フェーズ（既存ロジック）
@@ -522,6 +564,7 @@ export async function onlineAdvance() {
     window.sync();
 
     await syncGameState();
+    isAdvancing = false; // advance処理完了
   }
 }
 

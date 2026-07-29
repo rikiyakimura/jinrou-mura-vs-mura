@@ -161,6 +161,10 @@ function vname(v){
 
 /* ================= 進行 ================= */
 function advance(){
+  // window.Gとモジュールローカル変数Gを同期
+  if(window.G && G!==window.G){
+    G=window.G;
+  }
   G.idx++;
   const c=cur();
   if(c.day)G.day=c.day;
@@ -174,6 +178,10 @@ function advance(){
 }
 // CPUの手番を自動で消化してから、人の手番で止める
 function sync(){
+  // window.Gとモジュールローカル変数Gを同期
+  if(window.G && G!==window.G){
+    G=window.G;
+  }
   let guard=0;
   while(guard++<400){
     const c=cur();
