@@ -132,8 +132,20 @@ function pick(m){document.body.style.overflow='';newGame(m,{...TITLE_OPT})}
 /* ================= 参照 ================= */
 const cur=()=>G.sched[G.idx];
 const who=()=>cur().who;
-const me=()=>G.V[who()||1];
-const opp=()=>G.V[other(who()||1)];
+const me=()=>{
+  if(G.mode==='online' && window.getCurrentRoom){
+    const room=window.getCurrentRoom();
+    return G.V[room.playerId];
+  }
+  return G.V[who()||1];
+};
+const opp=()=>{
+  if(G.mode==='online' && window.getCurrentRoom){
+    const room=window.getCurrentRoom();
+    return G.V[room.playerId===1?2:1];
+  }
+  return G.V[other(who()||1)];
+};
 const wolfOf=v=>v.people.find(p=>p.role==='wolf');
 const guardOf=v=>v.people.find(p=>p.role==='guard');
 const alive=v=>v.people.filter(p=>p.alive);
@@ -520,6 +532,10 @@ function applyStage(c,pub){
 
 /* ================= 描画 ================= */
 function render(){
+  // window.Gとモジュールローカル変数Gを同期
+  if(window.G && G!==window.G){
+    G=window.G;
+  }
   if(!G)return;
   const c=cur(),w=who();
   if(G._shown!==G.idx){G.swap=false;G._shown=G.idx;if(document.body.classList)document.body.classList.remove('ledger-open')}   // フェーズが変わったら主従を既定に戻し、覚え書きの引き出しも閉じる
@@ -527,22 +543,24 @@ function render(){
   const M=pub?G.V[G.endView]:me(), F=pub?G.V[other(G.endView)]:opp();
 
   document.getElementById('t-mine').textContent=
-    pub?`${vname(M)}の地図`:(G.mode==='cpu'?'自分の村の地図':`自分の村の地図（${M.id}P）`);
+    pub?`${vname(M)}の地図`:'自分の村の地図';
   document.getElementById('t-foe').textContent=
-    pub?`${vname(F)}の地図`:(G.mode==='cpu'?'相手の村の地図':`相手の村の地図（${F.id}P）`);
+    pub?`${vname(F)}の地図`:'相手の村の地図';
   document.getElementById('ledger-title').textContent=pub?`覚え書き（${vname(M)}）`:'覚え書き';
 
   const st=document.getElementById('status');
   st.innerHTML=`<span><b>${G.day}</b>日目 / ${DAYS}</span>`+
-    (G.mode==='cpu'
-      ? `<span>自村 <b>${alive(G.V[1]).length}</b>人</span><span>敵村 <b>${alive(G.V[2]).length}</b>人</span>`
-      : `<span>1P <b>${alive(G.V[1]).length}</b>人</span><span>2P <b>${alive(G.V[2]).length}</b>人</span>`)+
+    (G.mode==='online'
+      ? `<span>自村 <b>${alive(M).length}</b>人</span><span>敵村 <b>${alive(F).length}</b>人</span>`
+      : (G.mode==='cpu'
+        ? `<span>自村 <b>${alive(G.V[1]).length}</b>人</span><span>敵村 <b>${alive(G.V[2]).length}</b>人</span>`
+        : `<span>1P <b>${alive(G.V[1]).length}</b>人</span><span>2P <b>${alive(G.V[2]).length}</b>人</span>`))+
     (pub
-      ? `<span class="turnbadge pub">${G.mode==='cpu'?'結果':'1P・2P とも観覧可'}</span>`
+      ? `<span class="turnbadge pub">${G.mode==='cpu'?'結果':'結果'}</span>`
       : `<span class="${M.permit?'on':''}">護衛届 ${M.permit?'取得':'—'}</span>`+
         (M.explorer!==null&&guardAway(M)?`<span style="color:var(--akane-glow)">護衛は探索中</span>`:'')+
         `<span>狼の食事 ${M.fed?'済':'まだ'}</span>`+
-        (G.mode==='cpu'?'':`<span class="turnbadge p${w}">${w}P の手番</span>`));
+        (G.mode==='cpu'||G.mode==='online'?'':`<span class="turnbadge p${w}">${w}P の手番</span>`));
 
   const wl=wolfOf(M);
   const sharpH=(!pub&&M.sharpenStart!==null&&wl.alive)?wl.house:null;
