@@ -183,23 +183,10 @@ function showVeilIfNeeded(){
   if(G.mode==='cpu'||w===0){hideVeil();return}
 
   // オンラインモードの場合
-  if(G.mode==='online' && window.getCurrentRoom){
-    const room = window.getCurrentRoom();
-    if(room && room.playerId){
-      // 自分のターンの場合
-      if(w === room.playerId){
-        hideVeil();
-        return;
-      }
-      // 相手のターンの場合、待機画面を表示
-      el.className='veil';el.style.display='flex';
-      document.body.style.overflow='hidden';window.scrollTo(0,0);
-      el.innerHTML=`<div class="inner">
-        <p class="lead">相手の手番です</p>
-        <p>相手がアクションを完了するまでお待ちください...</p>
-      </div>`;
-      return;
-    }
+  // 同時入力システムで待機画面を管理するため、ここでは何もしない
+  if(G.mode==='online'){
+    hideVeil();
+    return;
   }
 
   let prev=null;
@@ -633,12 +620,33 @@ function startDay(){
 function placePit(key){
   const v=me();v.pitEdge=key;render();
 }
-function confirmPit(){advance();}
+function confirmPit(){
+  if(G.mode==='online' && window.onlineAdvance){
+    window.onlineAdvance();
+  } else {
+    advance();
+  }
+}
 function placeNext(h){
   const v=me();v.people[v.placeIdx].house=h;v.placeIdx++;
-  if(v.placeIdx>=5)advance();else render();
+  if(v.placeIdx>=5){
+    if(G.mode==='online' && window.onlineAdvance){
+      window.onlineAdvance();
+    } else {
+      advance();
+    }
+  } else {
+    render();
+  }
 }
-function chooseExplorer(id){const v=me();v.explorer=id;v.mediumResult=null;advance()}
+function chooseExplorer(id){
+  const v=me();v.explorer=id;v.mediumResult=null;
+  if(G.mode==='online' && window.onlineAdvance){
+    window.onlineAdvance();
+  } else {
+    advance();
+  }
+}
 function routeValid(h){
   const r=me().route;
   if(r.length>=TICKS)return false;
@@ -960,7 +968,16 @@ function finish(){
   G.done=true;G.idx=G.sched.length-1;
   hideVeil();
 }
-function nextFromMorning(){ if(G.day>=DAYS)finish(); else advance() }
+function nextFromMorning(){
+  if(G.day>=DAYS)finish();
+  else {
+    if(G.mode==='online' && window.onlineAdvance){
+      window.onlineAdvance();
+    } else {
+      advance();
+    }
+  }
+}
 
 /* ================= パネル ================= */
 function renderPanel(){

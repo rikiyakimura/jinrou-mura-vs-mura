@@ -381,9 +381,11 @@ function subscribeToGameUpdates() {
 
 /**
  * フェーズが同時入力可能かを判定
+ * オンラインモードでは全フェーズで同時入力可能（morning/end以外）
  */
 function isSimultaneousPhase(phase) {
-  return ['route', 'ticks', 'night'].includes(phase);
+  // morning（夜明け）とend（終了）以外は全て同時入力
+  return !['morning', 'end'].includes(phase);
 }
 
 /**
@@ -467,19 +469,28 @@ export async function onlineAdvance() {
     const otherReady = gameState[`player${otherPlayerId}_ready`];
 
     if (otherReady) {
-      // 両者完了 → resolveDay/resolveNightの処理
-      if (currentPhase.ph === 'ticks' && currentPhase.who === 2) {
+      // 両者完了 → 同じフェーズの最後まで進む
+      while (window.G.idx + 1 < window.G.sched.length &&
+             window.G.sched[window.G.idx + 1].ph === currentPhase.ph) {
+        window.G.idx++;
+      }
+
+      // この時点でG.idxは同じphaseの最後を指している
+      const lastPhaseEntry = window.G.sched[window.G.idx];
+
+      // resolveDay/resolveNightの処理
+      if (lastPhaseEntry.ph === 'ticks' && lastPhaseEntry.who === 2) {
         window.resolveDay();
         if (window.G.done) return;
       }
-      if (currentPhase.ph === 'night' && currentPhase.who === 1) {
+      if (lastPhaseEntry.ph === 'night' && lastPhaseEntry.who === 1) {
         window.resolveNight();
         if (window.G.done) return;
         const DAYS = 3;
         if (window.G.day < DAYS) window.startDay();
       }
 
-      // フェーズを進める
+      // 次のフェーズへ進める
       window.G.idx++;
       const c = window.G.sched[window.G.idx];
       if (c.day) window.G.day = c.day;
