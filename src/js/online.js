@@ -402,8 +402,7 @@ function subscribeToGameUpdates() {
  * オンラインモードでは全フェーズで同時入力可能（end以外）
  */
 function isSimultaneousPhase(phase) {
-  // end（終了）以外は全て同時入力
-  return phase !== 'end';
+  return ['route', 'ticks', 'night'].includes(phase);
 }
 
 /**
@@ -502,40 +501,26 @@ export async function onlineAdvance() {
         }
       };
 
-      // 両者完了 → 同じフェーズの最後を探す
-      // dayがある場合は同じday内で、ない場合は全体から探す
-      let lastIdxOfPhase = window.G.idx;
-      const currentDay = currentPhase.day;
-
-      for (let i = window.G.idx + 1; i < window.G.sched.length; i++) {
-        const entry = window.G.sched[i];
-        // phaseが一致し、かつdayがある場合は同じdayであることを確認
-        if (entry.ph === currentPhase.ph) {
-          if (currentDay !== undefined) {
-            // dayがある場合は同じdayの中で探す
-            if (entry.day === currentDay) {
-              lastIdxOfPhase = i;
-            }
-          } else {
-            // dayがない場合（place, pit）は全体から探す
-            lastIdxOfPhase = i;
-          }
-        }
+      // 両者完了 → ペアをスキップ
+      // 次のphaseが同じタイプかチェック
+      const nextPhase = window.G.sched[window.G.idx + 1];
+      if (nextPhase && nextPhase.ph === currentPhase.ph && nextPhase.day === currentPhase.day) {
+        // ペアの2つ目なので、両方スキップ
+        window.G.idx++;
       }
-      window.G.idx = lastIdxOfPhase;
-
-      // この時点でG.idxは同じphaseの最後を指している
-      const lastPhaseEntry = window.G.sched[window.G.idx];
+      // else: ペアの1つ目にいる場合、何もしない（後でG.idx++で進む）
 
       // resolveDay/resolveNightの処理
-      if (lastPhaseEntry.ph === 'ticks' && lastPhaseEntry.who === 2) {
+      // ticksフェーズ完了後にresolveDayを呼ぶ
+      if (currentPhase.ph === 'ticks') {
         window.resolveDay();
         if (window.G.done) {
           isAdvancing = false;
           return;
         }
       }
-      if (lastPhaseEntry.ph === 'night' && lastPhaseEntry.who === 1) {
+      // nightフェーズ完了後にresolveNightを呼ぶ
+      if (currentPhase.ph === 'night') {
         window.resolveNight();
         if (window.G.done) {
           isAdvancing = false;
