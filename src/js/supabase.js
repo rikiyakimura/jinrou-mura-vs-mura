@@ -5,7 +5,7 @@ import { createClient } from '@supabase/supabase-js';
 // Supabase設定
 // 本番環境では環境変数から取得すべきだが、開発中は直接記載
 const SUPABASE_URL = 'https://zdrdpiikttpjxztcvgrk.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpkcmRwaWlrdHRwanh6dGN2Z3JrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgxNTE4NTksImV4cCI6MjA1MzcyNzg1OX0.7KvVv7iJoEQfPXnGqk3_mf0oyY8NzNxVWqS0q0s4H5I';
+const SUPABASE_ANON_KEY = 'sb_publishable_H0c1j956NYT2EZ4Bgw1Lxg_5ClkCU2q';
 
 // Supabaseクライアントを作成
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
