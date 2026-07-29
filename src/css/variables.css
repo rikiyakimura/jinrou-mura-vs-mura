@@ -1,0 +1,9 @@
+:root{
+  --indigo-deep:#0F131C; --indigo:#191F2C; --indigo-lift:#252F41; --indigo-edge:#3A4A66;
+  --kinari:#F3EEE2; --kinari-dim:#C7C0AD; --kinari-faint:#98A0AF;
+  --akane:#C24A32; --akane-glow:#EE7150; --kuchiba:#DCB169; --moon:#9DBAD9; --midori:#86C08E;
+  --p1:#7FB2E0; --p2:#E0A87F;
+  --mincho:"Hiragino Mincho ProN","Yu Mincho","YuMincho","Noto Serif JP",serif;
+  --gothic:"Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,monospace;
+}

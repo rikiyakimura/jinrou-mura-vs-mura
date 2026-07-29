@@ -1,0 +1,49 @@
+.stage{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:16px;align-items:start;margin-bottom:16px}
+.stage.solo{grid-template-columns:1fr}
+.stage.equal{grid-template-columns:1fr 1fr}
+
+.board{background:var(--indigo);border:1px solid var(--indigo-edge);border-radius:3px;padding:15px 15px 10px}
+.board h2{font-family:var(--mincho);font-size:16px;font-weight:600;letter-spacing:.14em;margin:0 0 2px}
+.board .hint{font-size:11.5px;color:var(--kinari-faint);margin-bottom:8px;line-height:1.55}
+.board.is-main{order:1} .board.is-sub{order:2} .board.is-hidden{display:none}
+/* 従の村：小さく、触らせない */
+.board.is-sub{padding:11px 11px 6px;opacity:.85}
+.board.is-sub h2{font-size:13px;letter-spacing:.1em}
+.board.is-sub .hint{display:none}
+.board.is-sub .house{width:58px;padding:5px 3px 4px}
+.board.is-sub .house .hname{font-size:9px}
+.board.is-sub .house .occ{font-size:11px;min-height:16px}
+.board.is-sub .house .role,.board.is-sub .house .badge{font-size:8.5px;min-height:11px}
+.board.is-sub .token{font-size:9px;padding:1px 6px}
+.stageflip{margin:0 0 12px}
+.stageflip button.flip{width:100%;justify-content:center;background:var(--indigo);border-color:var(--indigo-edge);color:var(--kinari-dim);font-size:13px;padding:11px 14px}
+.stageflip button.flip:hover{color:var(--kinari)}
+
+.map{position:relative;width:100%;aspect-ratio:1/0.94}
+.map svg{position:absolute;inset:0;width:100%;height:100%}
+.map svg line{stroke:var(--indigo-edge);stroke-width:1.6;stroke-dasharray:5 6}
+
+.house{position:absolute;transform:translate(-50%,-50%);width:76px;padding:7px 4px 6px;background:var(--indigo-lift);border:1px solid var(--indigo-edge);border-radius:2px;text-align:center;transition:border-color .18s,background .18s,box-shadow .3s}
+.house .hname{font-size:10.5px;color:var(--kinari-faint);letter-spacing:.06em;display:block}
+.house .occ{font-family:var(--mincho);font-size:13.5px;display:block;margin-top:1px;min-height:20px;color:var(--kinari)}
+.house .role{font-size:9.5px;letter-spacing:.08em;display:block;min-height:14px}
+.house .badge{display:block;font-size:9px;line-height:1.5;color:var(--kuchiba);letter-spacing:.04em}
+.role-wolf{color:var(--akane-glow)} .role-guard{color:var(--moon)} .role-villager{color:var(--kinari-faint)}
+.role-dead{color:var(--akane-glow);font-weight:700} .role-away{color:var(--moon)}
+.occ-dead{color:var(--kinari-faint)}
+.house.pick{cursor:pointer;border-color:var(--kuchiba)} .house.pick:hover{background:#2F3B51}
+.house.disabled{opacity:.42}
+.house.sharpening{border-color:var(--akane);background:#33201D;box-shadow:0 0 0 1px var(--akane),0 0 22px -4px var(--akane-glow);animation:breathe 1.7s ease-in-out infinite}
+.house.spoiled{animation:none;border-color:var(--moon);box-shadow:0 0 0 1px var(--moon);background:#1E2A3A}
+.house.permitfound{border-color:var(--kuchiba);box-shadow:0 0 0 1px var(--kuchiba)}
+.house.attacksel{border-color:var(--akane-glow);box-shadow:0 0 0 2px var(--akane-glow),0 0 20px -4px var(--akane-glow);background:#3A211C}
+.ticknum{position:absolute;top:-7px;right:-7px;min-width:17px;height:17px;padding:0 3px;
+  background:var(--kuchiba);color:#1A1206;font-size:10px;font-weight:700;line-height:17px;
+  text-align:center;border-radius:9px;box-shadow:0 1px 4px rgba(0,0,0,.5)}
+.ticknum.mine{background:var(--moon);color:#0B1018}
+@keyframes breathe{50%{box-shadow:0 0 0 1px var(--akane-glow),0 0 34px -2px var(--akane-glow)}}
+@media (prefers-reduced-motion:reduce){.house.sharpening{animation:none}}
+
+.token{position:absolute;transform:translate(-50%,-50%);background:var(--kinari);color:#0F131C;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:20px;z-index:5;white-space:nowrap;transition:left .42s cubic-bezier(.4,0,.2,1),top .42s cubic-bezier(.4,0,.2,1);box-shadow:0 2px 10px rgba(0,0,0,.55)}
+.token.mine{background:var(--moon);color:#0B1018}
+@media (prefers-reduced-motion:reduce){.token{transition:none}}

@@ -1,8 +1,7 @@
 {
-  "appId": "com.jinrou.mura",
+  "appId": "com.antigravity.jinrou",
   "appName": "人狼 村vs村",
   "webDir": "dist",
-  "bundledWebRuntime": false,
   "server": {
     "androidScheme": "https"
   }

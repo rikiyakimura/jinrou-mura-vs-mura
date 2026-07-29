@@ -1,0 +1,8 @@
+.ledger{background:var(--indigo);border:1px solid var(--indigo-edge);border-radius:3px;padding:15px 18px;position:sticky;top:16px}
+.ledger h3{font-family:var(--mincho);font-size:14.5px;letter-spacing:.14em;margin:0 0 9px;font-weight:600}
+.ledger .dayhead{font-family:var(--mono);font-size:10.5px;color:var(--kuchiba);letter-spacing:.16em;margin:14px 0 3px;padding-bottom:3px;border-bottom:1px solid var(--indigo-edge)}
+.ledger .dayblock:first-child .dayhead{margin-top:0}
+.ledger .entry{font-family:var(--mincho);font-size:13.5px;line-height:1.85;padding:5px 0;color:var(--kinari-dim)}
+.ledger .kill{color:var(--akane-glow)} .ledger .hintline{color:var(--kuchiba)}
+.ledger .reveal-line{color:var(--midori)} .ledger .none{color:var(--kinari-faint)}
+.ledger .route{color:var(--kinari-faint);font-size:12.5px;font-family:var(--gothic);line-height:1.7}
