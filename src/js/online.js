@@ -503,11 +503,23 @@ export async function onlineAdvance() {
       };
 
       // 両者完了 → 同じフェーズの最後を探す
-      // フェーズが連続していない場合もあるので、全スケジュールから同じphを探す
+      // dayがある場合は同じday内で、ない場合は全体から探す
       let lastIdxOfPhase = window.G.idx;
+      const currentDay = currentPhase.day;
+
       for (let i = window.G.idx + 1; i < window.G.sched.length; i++) {
-        if (window.G.sched[i].ph === currentPhase.ph) {
-          lastIdxOfPhase = i;
+        const entry = window.G.sched[i];
+        // phaseが一致し、かつdayがある場合は同じdayであることを確認
+        if (entry.ph === currentPhase.ph) {
+          if (currentDay !== undefined) {
+            // dayがある場合は同じdayの中で探す
+            if (entry.day === currentDay) {
+              lastIdxOfPhase = i;
+            }
+          } else {
+            // dayがない場合（place, pit）は全体から探す
+            lastIdxOfPhase = i;
+          }
         }
       }
       window.G.idx = lastIdxOfPhase;
