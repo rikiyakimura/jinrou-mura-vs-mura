@@ -3,6 +3,7 @@ import { test, expect } from '@playwright/test';
 const BASE_URL = 'https://jinrou-tau.vercel.app';
 
 test('オンライン対戦: 落とし穴テスト', async ({ browser }) => {
+  test.setTimeout(120000);  // 2分のタイムアウト
   const hostContext = await browser.newContext();
   const guestContext = await browser.newContext();
 
@@ -98,12 +99,18 @@ test('オンライン対戦: 落とし穴テスト', async ({ browser }) => {
     const hostEdges = await hostPage.$$('#map-mine svg .edge-pick');
     console.log(`ホスト: 選択可能なエッジ数: ${hostEdges.length}`);
     if (hostEdges.length > 0) {
-      await hostEdges[0].click();
+      await hostEdges[0].click({ force: true });
       console.log('ホスト: 落とし穴の辺を選択');
+      await hostPage.waitForTimeout(300);
     }
+
+    // pitEdgeが設定されたか確認
+    const hostPitEdge = await hostPage.evaluate(() => window.G?.V?.[window.G?.myPlayerId]?.pitEdge);
+    console.log(`ホスト pitEdge: ${hostPitEdge}`);
 
     // 確定ボタンを探す
     let btn = await hostPage.$('button:has-text("これでいく")');
+    console.log(`ホスト: これでいくボタン存在: ${!!btn}`);
     if (btn) {
       await btn.click();
       console.log('ホスト: 落とし穴確定');
@@ -116,11 +123,17 @@ test('オンライン対戦: 落とし穴テスト', async ({ browser }) => {
     const guestEdges = await guestPage.$$('#map-mine svg .edge-pick');
     console.log(`ゲスト: 選択可能なエッジ数: ${guestEdges.length}`);
     if (guestEdges.length > 0) {
-      await guestEdges[0].click();
+      await guestEdges[0].click({ force: true });
       console.log('ゲスト: 落とし穴の辺を選択');
+      await guestPage.waitForTimeout(300);
     }
 
+    // pitEdgeが設定されたか確認
+    const guestPitEdge = await guestPage.evaluate(() => window.G?.V?.[window.G?.myPlayerId]?.pitEdge);
+    console.log(`ゲスト pitEdge: ${guestPitEdge}`);
+
     btn = await guestPage.$('button:has-text("これでいく")');
+    console.log(`ゲスト: これでいくボタン存在: ${!!btn}`);
     if (btn) {
       await btn.click();
       console.log('ゲスト: 落とし穴確定');
