@@ -1174,6 +1174,11 @@ window.confirmNight = confirmNight;
 window.nextFromMorning = nextFromMorning;
 window.newGame = newGame;
 window.render = render;
+window.sync = sync;
+window.resolveDay = resolveDay;
+window.resolveNight = resolveNight;
+window.startDay = startDay;
+window.showVeilIfNeeded = showVeilIfNeeded;
 window.G = G;
 window.TITLE_OPT = TITLE_OPT;
 

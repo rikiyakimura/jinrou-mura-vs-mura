@@ -319,16 +319,17 @@ async function startOnlineGame(room) {
         // ゲーム状態の監視を開始
         subscribeToGameUpdates();
 
-        // 重要: ホスト側と同じようにsync()を呼ぶ
-        // これで showVeilIfNeeded() → hideVeil() → render() が実行される
-        window.sync();
-
         // モードライン更新
         const extra = [];
         if (gameState.game_data.opt.madmanDog) extra.push('狂人＋犬飼い');
         if (gameState.game_data.opt.medium) extra.push('霊媒師');
         document.getElementById('modeline').textContent =
           'オンライン対戦' + (extra.length ? '　／　' + extra.join('・') : '');
+
+        // ベールを隠してゲーム画面を表示
+        document.getElementById('veil').style.display = 'none';
+        document.body.style.overflow = '';
+        window.render();
       } else if (retries < maxRetries) {
         // まだゲーム状態がない場合、500ms後に再試行
         retries++;
