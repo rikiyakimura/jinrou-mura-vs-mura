@@ -353,6 +353,11 @@ function subscribeToGameUpdates() {
 
       // ready flagsが両方falseになったら、相手がadvance完了
       if (!newState.player1_ready && !newState.player2_ready) {
+        // デバッグ：データの確認
+        console.log('Subscription: 両者完了、データ更新');
+        console.log('  newState.game_data.V[1]:', newState.game_data.V[1] ? 'あり' : 'なし');
+        console.log('  newState.game_data.V[2]:', newState.game_data.V[2] ? 'あり' : 'なし');
+
         window.G = newState.game_data;
         window.hideVeil();
         window.sync();
@@ -387,22 +392,34 @@ function showWaitingForOpponent() {
  * オンラインモードでのadvance処理
  */
 export async function handleOnlineAdvance() {
+  // 最新のゲーム状態を取得
+  const gameState = await getGameState(currentRoomId);
+  const otherPlayerId = currentPlayerId === 1 ? 2 : 1;
+
+  // 相手のデータを保持しつつ、自分のデータだけ更新
+  const mergedGameData = {
+    ...gameState.game_data,
+    V: {
+      ...gameState.game_data.V,
+      [currentPlayerId]: window.G.V[currentPlayerId]
+    }
+  };
+
   // 自分のアクションをDBに保存
   const readyField = `player${currentPlayerId}_ready`;
   await updateGameState(currentRoomId, {
     [readyField]: true,
-    game_data: window.G
+    game_data: mergedGameData
   });
 
   // 相手も完了しているかチェック
-  const gameState = await getGameState(currentRoomId);
-  const otherPlayerId = currentPlayerId === 1 ? 2 : 1;
-  const otherReady = gameState[`player${otherPlayerId}_ready`];
+  const updatedState = await getGameState(currentRoomId);
+  const otherReady = updatedState[`player${otherPlayerId}_ready`];
 
   if (otherReady) {
-    // 両者完了：相手のデータをマージして次へ進む
-    const latestGameData = gameState.game_data;
-    window.G.V[otherPlayerId] = latestGameData.V[otherPlayerId];
+    // 両者完了：最新データを取得
+    const latestGameData = updatedState.game_data;
+    window.G = latestGameData;
 
     // ticksフェーズ完了後にresolveDay
     const c = window.G.sched[window.G.idx];
