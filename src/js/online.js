@@ -502,11 +502,15 @@ export async function onlineAdvance() {
         }
       };
 
-      // 両者完了 → 同じフェーズの最後まで進む
-      while (window.G.idx + 1 < window.G.sched.length &&
-             window.G.sched[window.G.idx + 1].ph === currentPhase.ph) {
-        window.G.idx++;
+      // 両者完了 → 同じフェーズの最後を探す
+      // フェーズが連続していない場合もあるので、全スケジュールから同じphを探す
+      let lastIdxOfPhase = window.G.idx;
+      for (let i = window.G.idx + 1; i < window.G.sched.length; i++) {
+        if (window.G.sched[i].ph === currentPhase.ph) {
+          lastIdxOfPhase = i;
+        }
       }
+      window.G.idx = lastIdxOfPhase;
 
       // この時点でG.idxは同じphaseの最後を指している
       const lastPhaseEntry = window.G.sched[window.G.idx];
