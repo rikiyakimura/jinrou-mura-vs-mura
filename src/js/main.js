@@ -130,28 +130,21 @@ function toggleOpt(k){TITLE_OPT[k]=!TITLE_OPT[k];showTitle()}
 function pick(m){document.body.style.overflow='';newGame(m,{...TITLE_OPT})}
 
 /* ================= 参照 ================= */
-const cur=()=>G.sched[G.idx];
+const cur=()=>{
+  if(G.mode==='online' && window.getCurrentRoom){
+    const room=window.getCurrentRoom();
+    const c=G.sched[G.idx];
+    // 自分のwhoと一致するか、who:0（公開）なら返す
+    if(c.who===room.playerId||c.who===0)return c;
+    // 次のフェーズが自分のwhoなら返す（同時入力のペア）
+    const next=G.sched[G.idx+1];
+    if(next&&next.who===room.playerId)return next;
+  }
+  return G.sched[G.idx];
+};
 const who=()=>cur().who;
-const me=()=>{
-  if(G.mode==='online' && window.getCurrentRoom && window.isSimultaneousPhase){
-    const c=cur();
-    if(window.isSimultaneousPhase(c.ph)){
-      const room=window.getCurrentRoom();
-      return G.V[room.playerId];
-    }
-  }
-  return G.V[who()||1];
-};
-const opp=()=>{
-  if(G.mode==='online' && window.getCurrentRoom && window.isSimultaneousPhase){
-    const c=cur();
-    if(window.isSimultaneousPhase(c.ph)){
-      const room=window.getCurrentRoom();
-      return G.V[room.playerId===1?2:1];
-    }
-  }
-  return G.V[other(who()||1)];
-};
+const me=()=>G.V[who()||1];
+const opp=()=>G.V[other(who()||1)];
 const wolfOf=v=>v.people.find(p=>p.role==='wolf');
 const guardOf=v=>v.people.find(p=>p.role==='guard');
 const alive=v=>v.people.filter(p=>p.alive);
@@ -171,16 +164,19 @@ function advance(){
   if(window.G && G!==window.G){
     G=window.G;
   }
+
+  // オンラインモード: ready flag + DB保存
+  if(G.mode==='online' && window.handleOnlineAdvance){
+    window.handleOnlineAdvance();
+    return;
+  }
+
+  // 既存ロジック（CPU/PVP）
   G.idx++;
   const c=cur();
   if(c.day)G.day=c.day;
   if(c.ph==='ticks')G.tickIdx=0;
   sync();
-
-  // オンラインモードの場合、ゲーム状態を同期
-  if(G.mode==='online' && window.onlineSyncGameState){
-    window.onlineSyncGameState();
-  }
 }
 // CPUの手番を自動で消化してから、人の手番で止める
 function sync(){
@@ -208,31 +204,8 @@ function showVeilIfNeeded(){
   const w=who();
   if(G.mode==='cpu'||w===0){hideVeil();return}
 
-  // オンラインモードの場合
-  if(G.mode==='online' && window.getCurrentRoom && window.isSimultaneousPhase){
-    const c=cur();
-    const room=window.getCurrentRoom();
-
-    // 同時入力フェーズの場合は常に画面を表示
-    if(window.isSimultaneousPhase(c.ph)){
-      hideVeil();
-      return;
-    }
-
-    // 順次実行フェーズで自分の番の場合は画面を表示
-    if(w===room.playerId){
-      hideVeil();
-      return;
-    }
-
-    // 順次実行フェーズで相手の番の場合はveilを表示
-    el.className='veil';
-    el.style.display='flex';
-    document.body.style.overflow='hidden';
-    el.innerHTML=`<div class="inner">
-      <p class="lead">相手の手番</p>
-      <p>相手の入力を待っています...</p>
-    </div>`;
+  // オンラインモードの場合はonline.jsで制御
+  if(G.mode==='online'){
     return;
   }
 
@@ -574,10 +547,7 @@ function render(){
   if(!G)return;
   const c=cur(),w=who();
   if(G._shown!==G.idx){G.swap=false;G._shown=G.idx;if(document.body.classList)document.body.classList.remove('ledger-open')}   // フェーズが変わったら主従を既定に戻し、覚え書きの引き出しも閉じる
-  // オンラインモードでは同時入力フェーズは常に非公開（pub=false）
-  const pub = (G.mode === 'online' && window.isSimultaneousPhase && window.isSimultaneousPhase(c.ph))
-    ? false
-    : (w === 0);
+  const pub=(w===0);
   const revealAll=(c.ph==='end');
   const M=pub?G.V[G.endView]:me(), F=pub?G.V[other(G.endView)]:opp();
 
@@ -678,31 +648,19 @@ function placePit(key){
   const v=me();v.pitEdge=key;render();
 }
 function confirmPit(){
-  if(G.mode==='online' && window.onlineAdvance){
-    window.onlineAdvance();
-  } else {
-    advance();
-  }
+  advance();
 }
 function placeNext(h){
   const v=me();v.people[v.placeIdx].house=h;v.placeIdx++;
   if(v.placeIdx>=5){
-    if(G.mode==='online' && window.onlineAdvance){
-      window.onlineAdvance();
-    } else {
-      advance();
-    }
+    advance();
   } else {
     render();
   }
 }
 function chooseExplorer(id){
   const v=me();v.explorer=id;v.mediumResult=null;
-  if(G.mode==='online' && window.onlineAdvance){
-    window.onlineAdvance();
-  } else {
-    advance();
-  }
+  advance();
 }
 function routeValid(h){
   const r=me().route;
@@ -764,11 +722,7 @@ function pickRoute(h){
 }
 function confirmRoute(){
   me().routeDone=false;
-  if(G.mode==='online' && window.onlineAdvance){
-    window.onlineAdvance();
-  } else {
-    advance();
-  }
+  advance();
 }
 function pickAttackHouse(h){
   const v=me(),o=opp();
@@ -824,13 +778,8 @@ function advanceTick(){
 }
 function finishDay(){                     // 「昼を終える」で呼ぶ
   const v=me();v.tickDone=false;
-
-  if(G.mode==='online' && window.onlineAdvance){
-    window.onlineAdvance();
-  } else {
-    if(v.id===2){resolveDay();if(G.done)return}
-    advance();
-  }
+  if(G.mode!=='online' && v.id===2){resolveDay();if(G.done)return}
+  advance();
 }
 
 /* ================= 夜 ================= */
@@ -852,23 +801,13 @@ function protectReason(v){
 function setAttackTarget(villageId, personId){
   G.V[villageId].attackTarget = personId;
   render();
-  if(G.mode==='online' && window.onlineSyncGameState){
-    window.onlineSyncGameState();
-  }
 }
 function setProtectTarget(villageId, personId){
   G.V[villageId].protectTarget = personId;
   render();
-  if(G.mode==='online' && window.onlineSyncGameState){
-    window.onlineSyncGameState();
-  }
 }
 function confirmNight(){
-  if(G.mode==='online' && window.onlineAdvance){
-    window.onlineAdvance();
-  } else {
-    if(me().id===1)endOfNight();else advance();   // 1Pの夜が一日の締め
-  }
+  if(G.mode!=='online' && me().id===1)endOfNight();else advance();
 }
 function endOfNight(){
   resolveNight();
@@ -1027,13 +966,7 @@ function finish(){
 }
 function nextFromMorning(){
   if(G.day>=DAYS)finish();
-  else {
-    if(G.mode==='online' && window.onlineAdvance){
-      window.onlineAdvance();
-    } else {
-      advance();
-    }
-  }
+  else advance();
 }
 
 /* ================= パネル ================= */
