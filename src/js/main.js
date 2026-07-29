@@ -76,10 +76,11 @@ function newGame(mode,opt){
   if(opt.madmanDog)extra.push('狂人＋犬飼い');
   if(opt.medium)extra.push('霊媒師');
   document.getElementById('modeline').textContent =
-    (mode==='cpu'?'対CPU':'1台を交代で使う2人対戦 ／ ホットシート')+
+    (mode==='cpu'?'対CPU':mode==='online'?'オンライン対戦':'1台を交代で使う2人対戦 ／ ホットシート')+
     (extra.length?'　／　'+extra.join('・'):'');
   startDay();
   sync();
+  window.G = G; // オンライン対戦のためにwindow.Gを更新
 }
 let TITLE_OPT={madmanDog:false,medium:false,pit:false};
 function toggleLedger(){document.body.classList.toggle('ledger-open')}
