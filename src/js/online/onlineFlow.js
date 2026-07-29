@@ -212,8 +212,23 @@ async function onBothPlayersReady(state) {
 
     // 同時入力フェーズの場合、両者分のスケジュールをスキップ
     if (SIMULTANEOUS_PHASES.includes(currentPhase)) {
-      // 1Pと2Pの分をスキップ（place, pit, explorer, route, ticks, night - すべて2エントリ）
-      G.idx += 2;
+      // place/pitフェーズは特殊処理（スケジュールが1P→2P交互になっているため）
+      if (currentPhase === 'place') {
+        if (G.opt?.pit) {
+          // pitがある場合：placeの次のpitフェーズへ（idx 1）
+          G.idx = 1;
+        } else {
+          // pitがない場合：explorerフェーズへ（idx 2）
+          G.idx = 2;
+        }
+      } else if (currentPhase === 'pit') {
+        // pitの後はexplorerフェーズへ（スケジュールを検索）
+        const explorerIdx = G.sched.findIndex(e => e.ph === 'explorer');
+        G.idx = explorerIdx >= 0 ? explorerIdx : G.idx + 2;
+      } else {
+        // explorer, route, ticks, night - 2エントリをスキップ
+        G.idx += 2;
+      }
 
       // ticksフェーズ終了後の解決処理
       if (currentPhase === 'ticks') {
@@ -377,6 +392,9 @@ export function advanceOnline() {
  * 自分のターンかどうか
  */
 export function isMyTurn() {
+  const c = cur();
+  // place/pitは常に同時入力（スケジュールの who に関係なく両者が操作可能）
+  if (c.ph === 'place' || c.ph === 'pit') return true;
   const w = who();
   return w === onlineState.myPlayerId || w === 0;
 }
