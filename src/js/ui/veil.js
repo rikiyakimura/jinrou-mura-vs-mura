@@ -50,11 +50,10 @@ export function showTitle() {
 
   const el = document.getElementById('veil');
   el.style.display = 'flex';
+  el.classList.add('title-screen');
   document.body.style.overflow = 'hidden';
 
   el.innerHTML = `<div class="inner">
-    <div class="title">人狼　村vs村</div>
-    <div class="tagline">1対1の対戦型人狼 ／ 議論なし、読み合い勝負</div>
     <div class="modebtns">
       <button class="primary big" onclick="window._selectMode('cpu')">対CPU<span class="note">1人で遊ぶ</span></button>
       <button class="big" onclick="window._selectMode('pvp')">2人で対戦<span class="note">1台を交代で使う</span></button>
@@ -77,6 +76,7 @@ export function selectMode(m) {
 export function showOptions() {
   const el = document.getElementById('veil');
   el.style.display = 'flex';
+  el.classList.remove('title-screen');
   document.body.style.overflow = 'hidden';
 
   const chip = (key, label, desc) =>
@@ -154,6 +154,7 @@ export function showOnlineMenu() {
   onlineScreen = 'menu';
   selectedMode = 'online';
   const el = document.getElementById('veil');
+  el.classList.remove('title-screen');
   const savedName = getPlayerName();
 
   el.innerHTML = `<div class="inner online-menu">
@@ -453,6 +454,7 @@ export function showVeilIfNeeded(render) {
 
   G.handoffs++;
   el.className = 'veil';
+  el.classList.remove('title-screen');
   el.style.display = 'flex';
   document.body.style.overflow = 'hidden';
   window.scrollTo(0, 0);
@@ -469,7 +471,9 @@ export function showVeilIfNeeded(render) {
  * ベールを非表示
  */
 export function hideVeil(render) {
-  document.getElementById('veil').style.display = 'none';
+  const el = document.getElementById('veil');
+  el.style.display = 'none';
+  el.classList.remove('title-screen');
   document.body.style.overflow = '';
   if (render) render();
 }
