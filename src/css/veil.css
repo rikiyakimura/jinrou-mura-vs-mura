@@ -1,5 +1,5 @@
 .veil{position:fixed;top:0;left:0;right:0;bottom:0;width:100vw;height:100vh;background:#0A0D13;z-index:9999;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;overflow:auto}
-.veil.title-screen{background:url('../assets/BG/topBG.jpg') center top/cover no-repeat;align-items:flex-start;padding-top:60vh}
+.veil.title-screen{background:url('../assets/BG/topBG.jpg') center top/cover no-repeat;align-items:flex-start;padding-top:55vh}
 .veil.title-screen .inner{transform:translateY(-50%)}
 .veil .inner{max-width:520px}
 .veil .to{font-family:var(--mincho);font-size:46px;letter-spacing:.16em;margin:0 0 6px}
