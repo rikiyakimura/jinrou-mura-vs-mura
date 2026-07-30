@@ -174,24 +174,25 @@ function setupSync() {
  * ゲーム状態変更時
  */
 function onGameStateChange(newState) {
-  // リスタート検出：ゲストが待機中に新しいゲーム状態が来た場合
-  if (onlineState.waitingForRestart && newState.game_data) {
-    const gameData = newState.game_data;
-    // 新しいゲーム（idx=0, done=false）の場合、リスタート
-    if (gameData.idx === 0 && !gameData.done) {
-      onlineState.waitingForRestart = false;
+  if (!newState.game_data) return;
 
-      // ゲーム状態を復元
-      const savedG = gameData;
-      savedG.roomId = onlineState.roomId;
-      savedG.myPlayerId = onlineState.myPlayerId;
-      savedG.opponentName = onlineState.opponentName;
-      setG(savedG);
+  const gameData = newState.game_data;
 
-      // ベールを非表示にして描画
-      if (_hideVeil) _hideVeil();
-      if (_render) _render();
-    }
+  // リスタート検出：現在ゲーム終了中で、新しいゲーム状態（idx=0, done=false）が来た場合
+  if (G && G.done && gameData.idx === 0 && !gameData.done) {
+    // 相手がリスタートした
+    const savedG = { ...gameData };
+    savedG.roomId = onlineState.roomId;
+    savedG.myPlayerId = onlineState.myPlayerId;
+    savedG.opponentName = onlineState.opponentName;
+    setG(savedG);
+
+    // 最初の日の初期化
+    startOnlineDay();
+
+    // ベールを非表示にして描画
+    if (_hideVeil) _hideVeil();
+    if (_render) _render();
   }
 }
 
@@ -441,6 +442,7 @@ export function endOnlineGame() {
 
 /**
  * 同じルームでオンラインゲームを再開始（リマッチ）
+ * どちらのプレイヤーからでも開始可能
  * @param {function} renderCallback - 描画コールバック
  */
 export async function restartOnlineGame(renderCallback) {
@@ -449,55 +451,53 @@ export async function restartOnlineGame(renderCallback) {
     return;
   }
 
-  if (onlineState.isHost) {
-    // ホスト：新しいゲーム状態を作成
-    const opt = { ...G.opt };
-    const pool = shuf(NAMES);
+  // 新しいゲーム状態を作成（どちらのプレイヤーからでもOK）
+  const opt = { ...G.opt };
+  const pool = shuf(NAMES);
+  const myPlayerId = onlineState.myPlayerId;
 
-    const newG = {
-      mode: 'online',
-      opt,
-      V: {
-        1: mkVillage(1, pool.slice(0, 5), false, opt),
-        2: mkVillage(2, pool.slice(5, 10), false, opt)
-      },
-      sched: buildSchedule(opt),
-      idx: 0,
-      day: 1,
-      tickIdx: 0,
-      instantWin: null,
-      permitHouse: { 1: null, 2: null },
-      madHouse: { 1: null, 2: null },
-      mediumHouse: { 1: null, 2: null },
-      handoffs: 0,
-      endView: 1,
-      publicLog: [],
-      done: false,
-      swap: false,
-      _shown: -1,
-      roomId: onlineState.roomId,
-      myPlayerId: 1,
-      opponentName: onlineState.opponentName
-    };
+  const newG = {
+    mode: 'online',
+    opt,
+    V: {
+      1: mkVillage(1, pool.slice(0, 5), false, opt),
+      2: mkVillage(2, pool.slice(5, 10), false, opt)
+    },
+    sched: buildSchedule(opt),
+    idx: 0,
+    day: 1,
+    tickIdx: 0,
+    instantWin: null,
+    permitHouse: { 1: null, 2: null },
+    madHouse: { 1: null, 2: null },
+    mediumHouse: { 1: null, 2: null },
+    handoffs: 0,
+    endView: 1,
+    publicLog: [],
+    done: false,
+    swap: false,
+    _shown: -1,
+    roomId: onlineState.roomId,
+    myPlayerId: myPlayerId,
+    opponentName: onlineState.opponentName
+  };
 
-    setG(newG);
-    G.totalHandoffs = countHandoffs(G.sched);
+  setG(newG);
+  G.totalHandoffs = countHandoffs(G.sched);
 
-    // DBに新しいゲーム状態を保存
-    await initGameState(onlineState.roomId, newG);
+  // DBに新しいゲーム状態を保存
+  await updateGameState(onlineState.roomId, {
+    game_data: newG,
+    current_phase: 'place',
+    current_day: 1,
+    current_player: 1
+  });
 
-    // ready状態をリセット
-    await resetBothReady(onlineState.roomId);
+  // ready状態をリセット
+  await resetBothReady(onlineState.roomId);
 
-    // 最初の日の初期化
-    startOnlineDay();
+  // 最初の日の初期化
+  startOnlineDay();
 
-    if (renderCallback) renderCallback();
-  } else {
-    // ゲスト：ホストが再開始するのを待つ
-    onlineState.waitingForRestart = true;
-    if (_showOnlineWaiting) {
-      _showOnlineWaiting('ホストの再開始を待っています...');
-    }
-  }
+  if (renderCallback) renderCallback();
 }
