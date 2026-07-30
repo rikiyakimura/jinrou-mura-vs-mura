@@ -14,7 +14,8 @@ import {
 } from '../online/room.js';
 import {
   startOnlineGameAsHost,
-  startOnlineGameAsGuest
+  startOnlineGameAsGuest,
+  restartOnlineGame
 } from '../online/onlineFlow.js';
 
 // タイトル画面のオプション
@@ -82,6 +83,27 @@ export function toggleOpt(k) {
 export function pick(m) {
   document.body.style.overflow = '';
   if (_newGame) _newGame(m, { ...TITLE_OPT });
+}
+
+/**
+ * 同じ設定でゲームを再開始（リマッチ）
+ */
+export function restartGame() {
+  if (!G) {
+    showTitle();
+    return;
+  }
+
+  if (G.mode === 'online') {
+    // オンライン：同じルームで再戦
+    restartOnlineGame(_render);
+  } else {
+    // オフライン：同じモードとオプションで再スタート
+    const mode = G.mode;
+    const opt = { ...G.opt };
+    document.body.style.overflow = '';
+    if (_newGame) _newGame(mode, opt);
+  }
 }
 
 /**

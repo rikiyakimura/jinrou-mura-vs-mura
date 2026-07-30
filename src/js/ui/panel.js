@@ -256,7 +256,7 @@ export function renderPanel() {
       <div class="btnrow" style="justify-content:center;margin-top:18px">
         <button onclick="G.endView=1;window._render()">${nm(1)}の覚え書き</button>
         <button onclick="G.endView=2;window._render()">${nm(2)}の覚え書き</button>
-        <button class="primary" onclick="window._showTitle()">もう一度</button>
+        <button class="primary" onclick="window._restartGame()">もう一度</button>
       </div>
       <div class="reveal">
         ${nm(1)}の村：${G.V[1].people.map(p => `${p.name}（${ROLE_LABEL[p.role]}${p.alive ? '' : '・死亡'}）`).join('　')}<br>

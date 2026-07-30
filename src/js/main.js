@@ -19,7 +19,8 @@ import { renderPanel, setPanelCallbacks } from './ui/panel.js';
 import {
   showTitle, toggleOpt, pick, showVeilIfNeeded, hideVeil, setVeilCallbacks,
   showOnlineMenu, showCreateRoom, showJoinRoom, doJoinRoom,
-  startMatchmaking, cancelRoom, cancelMatchmakingAction, showOnlineWaiting
+  startMatchmaking, cancelRoom, cancelMatchmakingAction, showOnlineWaiting,
+  restartGame
 } from './ui/veil.js';
 import { toggleLedger, openLedger, closeLedger, initLedgerSwipe } from './ui/ledger.js';
 
@@ -327,6 +328,7 @@ window._finishDay = finishDayOnline;
 window._confirmNight = confirmNightOnline;
 window._nextFromMorning = nextFromMorning;
 window._showTitle = showTitle;
+window._restartGame = restartGame;
 window._render = render;
 
 // 覚え書き用
