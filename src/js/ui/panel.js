@@ -49,7 +49,7 @@ export function renderPanel() {
     const p = v.people[v.placeIdx];
     el.innerHTML = H(`${tag}配置`, `
       <p class="lead"><b>${p.name}（${ROLE_LABEL[p.role]}）</b>をどの家に住まわせる？ <b>${myMapLabel}</b>で選ぶ。</p>
-      <p>一度決めたら3夜のあいだ動かせない。</p>
+      <p>一度決めたら${getConfig().DAYS}夜のあいだ動かせない。</p>
       <p style="color:var(--kinari-faint)">残り ${getConfig().VILLAGERS - v.placeIdx} 人</p>`);
     return;
   }
@@ -133,7 +133,7 @@ export function renderPanel() {
       if (st.includes(i)) cl += ' claw';
       if (i <= G.tickIdx && st.includes(i) && o.route[i - 1] === wl.house) cl += ' seen';
       if (i === G.tickIdx + 1) cl += ' now';
-      const nm = i <= G.tickIdx ? (personAt(v, o.route[i - 1]) ? personAt(v, o.route[i - 1]).name : HLABEL[o.route[i - 1]]) : '—';
+      const nm = i <= G.tickIdx ? (personAt(v, o.route[i - 1]) ? personAt(v, o.route[i - 1]).name : getConfig().HLABEL[o.route[i - 1]]) : '—';
       return `<div class="${cl}"><b>${i}</b><span>${nm}</span></div>`;
     }).join('');
 
@@ -164,7 +164,7 @@ export function renderPanel() {
         if (i === G.tickIdx + 1) cl += ' now';
         return `<div class="${cl}">${i}</div>`;
       }).join('');
-      const madHouseName = md ? (personAt(v, md.house) ? personAt(v, md.house).name : HLABEL[md.house]) : '';
+      const madHouseName = md ? (personAt(v, md.house) ? personAt(v, md.house).name : getConfig().HLABEL[md.house]) : '';
       b += `<div class="madsec">
         <div class="madhead"><b>狂人の爪</b>（${madHouseName}）
           <button class="mini" onclick="G._madHelp=!G._madHelp;window._render()">${G._madHelp ? '閉じる' : '？'}</button></div>`;
@@ -209,7 +209,7 @@ export function renderPanel() {
     if (canAttack(v)) {
       b += `<p class="lead">爪は研げた。相手の村の誰を襲う？ 下のチップか、相手の村の地図の家をタップして選ぶ。人狼を狙うと空振りになる。</p>
         <div class="chips">${alive(o).map(p =>
-        `<div class="chip ${v.attackTarget === p.id ? 'sel' : ''}" onclick="G.V[${v.id}].attackTarget=${p.id};window._render()">${p.name}<small>${HLABEL[p.house]}の家</small></div>`).join('')}</div>`;
+        `<div class="chip ${v.attackTarget === p.id ? 'sel' : ''}" onclick="G.V[${v.id}].attackTarget=${p.id};window._render()">${p.name}<small>${getConfig().HLABEL[p.house]}の家</small></div>`).join('')}</div>`;
     } else {
       b += `<p class="warn">今夜、こちらから襲撃はできない。${v.spoiled ? '研ぎを見られた。' : ''}</p>`;
     }
@@ -269,7 +269,7 @@ export function renderPanel() {
         note = `${nm(other(G.instantWin))}の人狼が暴かれた。生存数は問わない。`;
       }
     } else {
-      head = '3夜が明けた';
+      head = `${getConfig().DAYS}夜が明けた`;
       if (G.mode === 'cpu' || G.mode === 'online') {
         verdict = myAlive > oppAlive ? '勝ち' : myAlive < oppAlive ? '負け' : '引き分け';
       } else {
@@ -298,4 +298,12 @@ export function renderPanel() {
       </div></div>`;
     return;
   }
+
+  // どのフェーズにも該当しない場合（デバッグ用フォールバック）
+  console.error('Unknown phase:', c?.ph, 'idx:', G.idx, 'sched length:', G.sched?.length);
+  el.innerHTML = `<div class="error" style="padding:20px;color:var(--akane-glow)">
+    <p>予期しない状態が発生しました</p>
+    <p style="font-size:12px;color:var(--kinari-faint)">フェーズ: ${c?.ph || '不明'} / idx: ${G.idx}</p>
+    <button class="primary" onclick="window._showTitle()">タイトルに戻る</button>
+  </div>`;
 }

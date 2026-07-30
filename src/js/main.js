@@ -220,11 +220,24 @@ function startSharpenMad() {
  * ティック進行
  */
 function advanceTick() {
-  G.tickIdx++;
-  const v = me();
-  if (overlapSoFar(v, opp().route) >= SPOIL) v.spoiled = true;
-  if (G.tickIdx >= TICKS) v.tickDone = true;
-  render();
+  try {
+    G.tickIdx++;
+    const v = me();
+    if (!v) {
+      console.error('advanceTick: me() returned undefined');
+      return;
+    }
+    const o = opp();
+    if (!o || !o.route) {
+      console.error('advanceTick: opp() or opp().route undefined', { o, route: o?.route });
+      return;
+    }
+    if (overlapSoFar(v, o.route) >= SPOIL) v.spoiled = true;
+    if (G.tickIdx >= TICKS) v.tickDone = true;
+    render();
+  } catch (e) {
+    console.error('advanceTick error:', e);
+  }
 }
 
 /**

@@ -1,5 +1,5 @@
 import { other } from './utils.js';
-import { HLABEL } from './constants.js';
+import { HLABEL, getConfig } from './constants.js';
 
 // ゲーム状態（グローバル）
 // オブジェクトのプロパティとして保持し、参照を維持する
@@ -32,7 +32,15 @@ export const G = new Proxy({}, {
 });
 
 // 参照関数
-export const cur = () => state.G.sched[state.G.idx];
+export const cur = () => {
+  if (!state.G?.sched) return { ph: 'unknown', who: 0 };
+  const idx = state.G.idx;
+  if (idx < 0 || idx >= state.G.sched.length) {
+    console.error('G.idx out of bounds:', idx, 'sched length:', state.G.sched.length);
+    return { ph: 'unknown', who: 0 };
+  }
+  return state.G.sched[idx];
+};
 export const who = () => cur().who;
 
 // オンラインモードでは自分のプレイヤーIDを使用
@@ -66,7 +74,7 @@ export const freeHouse = (v, h) => !personAt(v, h);
 
 export function houseName(v, h) {
   const p = v.people.find(x => x.house === h);
-  return p ? `${p.name}の家` : `${HLABEL[h]}の家`;
+  return p ? `${p.name}の家` : `${getConfig().HLABEL[h]}の家`;
 }
 
 // ログ追加

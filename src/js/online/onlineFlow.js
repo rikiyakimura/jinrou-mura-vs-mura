@@ -46,6 +46,10 @@ let _showOnlineWaiting = null;
 let _onTimeout = null;
 let _onOpponentLeft = null;
 
+// ポーリング用
+let pollIntervalId = null;
+const POLL_INTERVAL_MS = 3000;
+
 /**
  * コールバック設定
  */
@@ -222,16 +226,28 @@ async function onBothPlayersReady(state) {
   if (!onlineState.waitingForOpponent) return;
 
   onlineState.waitingForOpponent = false;
+  stopReadyPolling();
   clearTimeoutTimer();
 
   const c = cur();
   const currentPhase = c.ph;
 
-  // 両者のアクションを取得して適用（最新の2件のみ使用）
-  const { data: allActions } = await fetchPhaseActions(onlineState.roomId, currentPhase);
+  // 両者のアクションを取得（リトライ付き）
+  let actions = [];
+  for (let retry = 0; retry < 5; retry++) {
+    const { data: allActions } = await fetchPhaseActions(onlineState.roomId, currentPhase);
+    actions = allActions ? allActions.slice(-2) : [];
+    if (actions.length >= 2) break;
+    await new Promise(r => setTimeout(r, 300)); // 300ms待機
+  }
 
-  // 最新の2件（現在のターンのアクション）のみ取得
-  const actions = allActions ? allActions.slice(-2) : [];
+  if (actions.length < 2) {
+    console.error('Failed to fetch both actions after retries');
+    // 待機状態に戻す（ポーリングが再検出する）
+    onlineState.waitingForOpponent = true;
+    startReadyPolling();
+    return;
+  }
 
   if (actions && actions.length >= 2) {
     // 両者のアクションを適用
@@ -382,12 +398,25 @@ export async function submitOnlineAction(action) {
   if (SIMULTANEOUS_PHASES.includes(c.ph)) {
     // 同時入力フェーズ → ready状態にして相手を待つ
     await setPlayerReady(roomId, myPlayerId, true);
+
+    // 即座にDBを確認（後からreadyにした方はここで検出できる）
+    const { data: immediateCheck } = await fetchGameState(roomId);
+    if (immediateCheck?.player1_ready && immediateCheck?.player2_ready) {
+      // 両者ready → 即座に進行
+      onBothPlayersReady(immediateCheck);
+      return;
+    }
+
+    // まだ相手が未完了 → 待機モードへ
     onlineState.waitingForOpponent = true;
 
     // 待機中表示
     if (_showOnlineWaiting) {
       _showOnlineWaiting('相手の操作を待っています...');
     }
+
+    // ポーリング開始（Realtime欠落時のフォールバック）
+    startReadyPolling();
 
     // タイムアウト開始（相手の操作待ち）
     startTimeout(() => {
@@ -396,6 +425,34 @@ export async function submitOnlineAction(action) {
   } else {
     // 順次入力フェーズ → 即座に次へ
     advanceOnline();
+  }
+}
+
+/**
+ * 両者ready状態をポーリングで確認
+ */
+function startReadyPolling() {
+  stopReadyPolling(); // 既存のポーリングをクリア
+  pollIntervalId = setInterval(async () => {
+    if (!onlineState.waitingForOpponent) {
+      stopReadyPolling();
+      return;
+    }
+    const { data } = await fetchGameState(onlineState.roomId);
+    if (data?.player1_ready && data?.player2_ready) {
+      stopReadyPolling();
+      onBothPlayersReady(data);
+    }
+  }, POLL_INTERVAL_MS);
+}
+
+/**
+ * ポーリングを停止
+ */
+function stopReadyPolling() {
+  if (pollIntervalId) {
+    clearInterval(pollIntervalId);
+    pollIntervalId = null;
   }
 }
 
@@ -452,6 +509,7 @@ export function getOnlineState() {
 export function endOnlineGame() {
   unsubscribeAll();
   clearTimeoutTimer();
+  stopReadyPolling();
   onlineState = {
     roomId: null,
     myPlayerId: null,

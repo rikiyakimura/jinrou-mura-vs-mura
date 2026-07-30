@@ -109,20 +109,27 @@ export function resolveDay(hideVeil) {
   const A = G.V[1], B = G.V[2];
   [A, B].forEach(v => {
     const e = G.V[other(v.id)];
-    if (overlapFull(v, e.route) >= SPOIL) v.spoiled = true;
+    if (overlapFull(v, e.route || []) >= SPOIL) v.spoiled = true;
   });
 
-  const path = (v, r) => r.map(h => houseName(v, h)).join(' → ');
-  log(A, `自分の探索者 ${A.people[A.explorer].name}：${path(B, A.route)}`, 'route');
-  log(A, `相手の探索者 ${B.people[B.explorer].name}：${path(A, B.route)}`, 'route');
-  log(B, `自分の探索者 ${B.people[B.explorer].name}：${path(A, B.route)}`, 'route');
-  log(B, `相手の探索者 ${A.people[A.explorer].name}：${path(B, A.route)}`, 'route');
+  // 安全な探索者名取得
+  const safeExplorerName = (v) => {
+    if (v.explorer === null || v.explorer === undefined) return '(未選択)';
+    const p = v.people[v.explorer];
+    return p ? p.name : '(不明)';
+  };
+
+  const path = (v, r) => (r || []).map(h => houseName(v, h)).join(' → ');
+  log(A, `自分の探索者 ${safeExplorerName(A)}：${path(B, A.route)}`, 'route');
+  log(A, `相手の探索者 ${safeExplorerName(B)}：${path(A, B.route)}`, 'route');
+  log(B, `自分の探索者 ${safeExplorerName(B)}：${path(A, B.route)}`, 'route');
+  log(B, `相手の探索者 ${safeExplorerName(A)}：${path(B, A.route)}`, 'route');
 
   function hearing(att, def) {
-    const isDog = att.explorer !== null && def === G.V[other(att.id)] &&
-      att.people[att.explorer] && att.people[att.explorer].role === 'dog';
-    const wolfHit = overlapFull(def, att.route);
-    const madHit = madActive(def) ? overlapMad(def, att.route) : 0;
+    const explorerPerson = (att.explorer !== null && att.explorer !== undefined) ? att.people[att.explorer] : null;
+    const isDog = explorerPerson && def === G.V[other(att.id)] && explorerPerson.role === 'dog';
+    const wolfHit = overlapFull(def, att.route || []);
+    const madHit = madActive(def) ? overlapMad(def, att.route || []) : 0;
     return { isDog, wolfHit, madHit };
   }
 
@@ -142,13 +149,13 @@ export function resolveDay(hideVeil) {
     G.instantWin = (aWin && bWin) ? 'draw' : (aWin ? 1 : 2);
     if (aWin) {
       wolfOf(B).alive = false;
-      log(A, `${A.people[A.explorer].name}が、相手の人狼${wolfOf(B).name}を暴き追放した。`, 'kill');
-      log(B, `訪ねてきた${A.people[A.explorer].name}に、自村の人狼${wolfOf(B).name}を暴かれた。`, 'kill');
+      log(A, `${safeExplorerName(A)}が、相手の人狼${wolfOf(B).name}を暴き追放した。`, 'kill');
+      log(B, `訪ねてきた${safeExplorerName(A)}に、自村の人狼${wolfOf(B).name}を暴かれた。`, 'kill');
     }
     if (bWin) {
       wolfOf(A).alive = false;
-      log(B, `${B.people[B.explorer].name}が、相手の人狼${wolfOf(A).name}を暴き追放した。`, 'kill');
-      log(A, `訪ねてきた${B.people[B.explorer].name}に、自村の人狼${wolfOf(A).name}を暴かれた。`, 'kill');
+      log(B, `${safeExplorerName(B)}が、相手の人狼${wolfOf(A).name}を暴き追放した。`, 'kill');
+      log(A, `訪ねてきた${safeExplorerName(B)}に、自村の人狼${wolfOf(A).name}を暴かれた。`, 'kill');
     }
     [A, B].forEach(v => {
       const e = G.V[other(v.id)];

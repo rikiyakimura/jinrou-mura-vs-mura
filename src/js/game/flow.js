@@ -91,15 +91,20 @@ export function sync() {
   let guard = 0;
   while (guard++ < 400) {
     const c = cur();
-    if (c.who === 0) break;
+    if (!c || c.who === 0) break;
     const v = G.V[c.who];
-    if (!v.isCPU) break;
-    if (_runCPU) _runCPU(c, v);
+    if (!v || !v.isCPU) break;
+    try {
+      if (_runCPU) _runCPU(c, v);
+    } catch (e) {
+      console.error('CPU error in phase', c.ph, ':', e);
+      break;
+    }
     if (G.done) return;
     G.idx++;
     const n = cur();
-    if (n.day) G.day = n.day;
-    if (n.ph === 'ticks') G.tickIdx = 0;
+    if (n && n.day) G.day = n.day;
+    if (n && n.ph === 'ticks') G.tickIdx = 0;
   }
   if (_showVeilIfNeeded) _showVeilIfNeeded();
 }

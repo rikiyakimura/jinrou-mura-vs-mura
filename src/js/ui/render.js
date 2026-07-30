@@ -99,7 +99,7 @@ export function render() {
   document.getElementById('ledger-title').textContent = pub ? `覚え書き（${vname(M)}）` : '覚え書き';
 
   const st = document.getElementById('status');
-  st.innerHTML = `<span><b>${G.day}</b>日目 / 3</span>` +
+  st.innerHTML = `<span><b>${G.day}</b>日目 / ${getConfig().DAYS}</span>` +
     (G.mode === 'cpu'
       ? `<span>自村 <b>${alive(G.V[1]).length}</b>人</span><span>敵村 <b>${alive(G.V[2]).length}</b>人</span>`
       : (G.mode === 'online'

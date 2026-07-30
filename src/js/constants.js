@@ -86,8 +86,10 @@ export function getConfig() {
 
 // プリセットを切り替え
 export function setPreset(name) {
+  console.log('[DEBUG] setPreset called with:', name);
   if (PRESETS[name]) {
     activePreset = name;
+    console.log('[DEBUG] activePreset set to:', activePreset);
   }
 }
 

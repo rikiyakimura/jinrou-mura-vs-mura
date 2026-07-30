@@ -12,6 +12,7 @@ import { getConfig } from '../constants.js';
 export function buildSchedule(opt) {
   opt = opt || {};
   const config = getConfig();
+  console.log('[DEBUG] buildSchedule - opt.large:', opt.large, 'config.DAYS:', config.DAYS, 'config.VILLAGERS:', config.VILLAGERS);
   const s = [{ who: 1, ph: 'place' }];
   if (opt.pit) s.push({ who: 1, ph: 'pit' });
   s.push({ who: 2, ph: 'place' });
