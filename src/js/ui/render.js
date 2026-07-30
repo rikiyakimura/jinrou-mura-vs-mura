@@ -3,7 +3,7 @@
  */
 
 import { G, cur, who, me, opp, wolfOf, guardOf, alive, vname, freeHouse, personAt, guardAway } from '../state.js';
-import { TICKS, ADJ } from '../constants.js';
+import { TICKS, getPreset, getConfig } from '../constants.js';
 import { other } from '../utils.js';
 import { drawMap } from './map.js';
 import { renderLedger } from './ledger.js';
@@ -133,7 +133,14 @@ export function render() {
 
   const pitPicking = (!pub && c.ph === 'pit');
 
-  drawMap(document.getElementById('map-mine'), M, {
+  // 9件モードのクラス設定
+  const isLarge = getPreset() === 'large';
+  const mapMine = document.getElementById('map-mine');
+  const mapFoe = document.getElementById('map-foe');
+  mapMine.classList.toggle('large', isLarge);
+  mapFoe.classList.toggle('large', isLarge);
+
+  drawMap(mapMine, M, {
     omniscient: pub ? revealAll : true,
     sharpenHouse: sharpH,
     tokens: mineTokens,
@@ -147,7 +154,7 @@ export function render() {
   });
 
   const nightPick = (!pub && c.ph === 'night' && canAttack(M));
-  drawMap(document.getElementById('map-foe'), F, {
+  drawMap(mapFoe, F, {
     omniscient: pub ? revealAll : false,
     showExplorer: !pub && ['route', 'ticks', 'night'].includes(c.ph),
     itemHouses: pub ? null : {
@@ -158,7 +165,7 @@ export function render() {
     tokens: foeTokens,
     routePath: myRoutePath,
     routeMine: true,
-    pitEdge: (pub ? (revealAll ? F.pitEdge : null) : (F.pitSeen ? F.pitEdge : null)),
+    pitEdge: (pub ? (revealAll ? F.pitEdge : null) : (F.pitSeen && F.pitSeen.length > 0 ? F.pitSeen : null)),
     attackTargetHouse: (nightPick && M.attackTarget !== null) ? F.people[M.attackTarget].house : null,
     pickable: (!pub && c.ph === 'route') ? routeValidWrapper : (nightPick ? (h => !!personAt(F, h)) : null),
     onPick: (!pub && c.ph === 'route') ? _pickRoute : (nightPick ? _pickAttackHouse : null)
@@ -179,6 +186,7 @@ export function render() {
 function routeValidWrapper(h) {
   const v = me();
   const r = v.route;
+  const { ADJ } = getConfig();
   if (r.length >= TICKS) return false;
   if (r.length === 0) return true;
   const last = r[r.length - 1];

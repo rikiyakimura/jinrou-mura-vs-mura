@@ -2,7 +2,7 @@
  * 地図描画
  */
 
-import { HOUSES, EDGES, POS, HLABEL, ROLE_LABEL, edgeKey } from '../constants.js';
+import { ROLE_LABEL, edgeKey, getConfig } from '../constants.js';
 import { personAt } from '../state.js';
 
 /**
@@ -12,20 +12,25 @@ import { personAt } from '../state.js';
  * @param {object} o - オプション
  */
 export function drawMap(el, village, o) {
+  const config = getConfig();
+  const { HOUSES, EDGES, POS, HLABEL } = config;
+
   el.innerHTML = '';
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('viewBox', '0 0 100 100');
   svg.setAttribute('preserveAspectRatio', 'none');
 
   // 道（辺）を描画
+  const pitEdges = []; // 落とし穴マークは後で描画
   EDGES.forEach(([a, b]) => {
     const key = edgeKey(a, b);
-    const isPit = (o.pitEdge === key);
+    const isPit = (o.pitEdge && o.pitEdge.includes(key));
     const l = document.createElementNS('http://www.w3.org/2000/svg', 'line');
     l.setAttribute('x1', POS[a][0]); l.setAttribute('y1', POS[a][1]);
     l.setAttribute('x2', POS[b][0]); l.setAttribute('y2', POS[b][1]);
     if (isPit) {
       l.setAttribute('style', 'stroke:var(--akane-glow);stroke-width:2.4;stroke-dasharray:none;opacity:0.9');
+      pitEdges.push([a, b]); // 後で描画するために保存
     }
     svg.appendChild(l);
 
@@ -38,25 +43,6 @@ export function drawMap(el, village, o) {
       hit.setAttribute('style', 'cursor:pointer;stroke:rgba(0,0,0,0.001);stroke-width:13;stroke-dasharray:none;stroke-linecap:round');
       hit.addEventListener('click', () => o.onEdgePick(key));
       svg.appendChild(hit);
-    }
-
-    // 落とし穴マーク
-    if (isPit) {
-      const mx = (POS[a][0] + POS[b][0]) / 2, my = (POS[a][1] + POS[b][1]) / 2;
-      const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      const circ = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      circ.setAttribute('cx', mx); circ.setAttribute('cy', my); circ.setAttribute('r', '5.5');
-      circ.setAttribute('fill', 'var(--akane)');
-      circ.setAttribute('stroke', 'var(--kinari)');
-      circ.setAttribute('stroke-width', '0.6');
-      const tx = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      tx.setAttribute('x', mx); tx.setAttribute('y', my);
-      tx.setAttribute('text-anchor', 'middle');
-      tx.setAttribute('dominant-baseline', 'central');
-      tx.setAttribute('fill', 'var(--kinari)');
-      tx.setAttribute('font-size', '8'); tx.setAttribute('font-weight', '700');
-      tx.textContent = '!';
-      g.appendChild(circ); g.appendChild(tx); svg.appendChild(g);
     }
   });
 
@@ -95,6 +81,32 @@ export function drawMap(el, village, o) {
     });
     svg.appendChild(defs);
   }
+
+  // 落とし穴マーク（ルート矢印の上に描画）
+  pitEdges.forEach(([a, b]) => {
+    const key = edgeKey(a, b);
+    const mx = (POS[a][0] + POS[b][0]) / 2, my = (POS[a][1] + POS[b][1]) / 2;
+    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    const circ = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circ.setAttribute('cx', mx); circ.setAttribute('cy', my); circ.setAttribute('r', '5.5');
+    circ.setAttribute('fill', 'var(--akane)');
+    circ.setAttribute('stroke', 'var(--kinari)');
+    circ.setAttribute('stroke-width', '0.6');
+    const tx = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    tx.setAttribute('x', mx); tx.setAttribute('y', my);
+    tx.setAttribute('text-anchor', 'middle');
+    tx.setAttribute('dominant-baseline', 'central');
+    tx.setAttribute('fill', 'var(--kinari)');
+    tx.setAttribute('font-size', '8'); tx.setAttribute('font-weight', '700');
+    tx.textContent = '!';
+    g.appendChild(circ); g.appendChild(tx);
+    // 配置モードではクリックで解除可能
+    if (o.edgePick) {
+      g.style.cursor = 'pointer';
+      g.addEventListener('click', () => o.onEdgePick(key));
+    }
+    svg.appendChild(g);
+  });
 
   // ティック番号を集める
   const tickNums = {};

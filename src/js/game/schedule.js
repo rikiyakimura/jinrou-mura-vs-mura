@@ -2,7 +2,7 @@
  * スケジュール生成
  */
 
-import { DAYS } from '../constants.js';
+import { getConfig } from '../constants.js';
 
 /**
  * ゲームスケジュールを生成
@@ -11,12 +11,13 @@ import { DAYS } from '../constants.js';
  */
 export function buildSchedule(opt) {
   opt = opt || {};
+  const config = getConfig();
   const s = [{ who: 1, ph: 'place' }];
   if (opt.pit) s.push({ who: 1, ph: 'pit' });
   s.push({ who: 2, ph: 'place' });
   if (opt.pit) s.push({ who: 2, ph: 'pit' });
 
-  for (let d = 1; d <= DAYS; d++) {
+  for (let d = 1; d <= config.DAYS; d++) {
     s.push(
       { who: 1, ph: 'explorer', day: d },
       { who: 2, ph: 'explorer', day: d },

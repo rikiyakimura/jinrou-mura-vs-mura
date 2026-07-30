@@ -3,7 +3,7 @@
  */
 
 import { G, wolfOf, guardOf, mediumOf, madActive, log, houseName, alive } from '../state.js';
-import { TICKS, SHARPEN, SPOIL as SPOIL_CONST, EXPOSE, DAYS, ROLE_LABEL, ADJ } from '../constants.js';
+import { TICKS, SHARPEN, SPOIL as SPOIL_CONST, EXPOSE, ROLE_LABEL, getConfig } from '../constants.js';
 
 // SPOILをエクスポート
 export const SPOIL = SPOIL_CONST;
@@ -40,6 +40,7 @@ export function overlapMad(v, route) {
 
 // 経路が有効か
 export function routeValid(v, h) {
+  const { ADJ } = getConfig();
   const r = v.route;
   if (r.length >= TICKS) return false;
   if (r.length === 0) return true;

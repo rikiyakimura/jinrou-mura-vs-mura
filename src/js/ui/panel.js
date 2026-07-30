@@ -3,7 +3,7 @@
  */
 
 import { G, cur, who, me, opp, wolfOf, personAt, houseName, alive, guardAway } from '../state.js';
-import { TICKS, SHARPEN, ROLE_LABEL, HLABEL, DAYS } from '../constants.js';
+import { TICKS, SHARPEN, ROLE_LABEL, HLABEL, getConfig } from '../constants.js';
 import { other } from '../utils.js';
 import { sharpenTicks, overlapSoFar, madSharpenTicks, canSharpen, canSharpenMad, madManualNeeded, canAttack, canProtect, protectReason } from '../game/resolve.js';
 
@@ -50,21 +50,26 @@ export function renderPanel() {
     el.innerHTML = H(`${tag}配置`, `
       <p class="lead"><b>${p.name}（${ROLE_LABEL[p.role]}）</b>をどの家に住まわせる？ <b>${myMapLabel}</b>で選ぶ。</p>
       <p>一度決めたら3夜のあいだ動かせない。</p>
-      <p style="color:var(--kinari-faint)">残り ${5 - v.placeIdx} 人</p>`);
+      <p style="color:var(--kinari-faint)">残り ${getConfig().VILLAGERS - v.placeIdx} 人</p>`);
     return;
   }
 
   if (c.ph === 'pit') {
-    const placed = !!v.pitEdge;
-    const pitLabel = placed ? (function () {
-      const [a, b] = v.pitEdge.split('-');
+    const config = getConfig();
+    const pitCount = config.PITS;
+    const placedCount = v.pitEdge ? v.pitEdge.length : 0;
+    const allPlaced = placedCount >= pitCount;
+    const pitLabels = v.pitEdge.map(edge => {
+      const [a, b] = edge.split('-');
       return houseName(v, a) + '〜' + houseName(v, b);
-    })() : '';
+    });
+    const remaining = pitCount - placedCount;
     el.innerHTML = H(`${tag}落とし穴を仕掛ける`, `
-      <p class="lead"><b>${myMapLabel}</b>で、道を1本選んで落とし穴を仕掛ける。相手の探索者がその道を通ると、<b>その時持っている護衛届・狂人の爪・霊媒の札を全部落とす</b>。</p>
+      <p class="lead"><b>${myMapLabel}</b>で、道を${pitCount}本選んで落とし穴を仕掛ける。相手の探索者がその道を通ると、<b>その時持っている護衛届・狂人の爪・霊媒の札を全部落とす</b>。</p>
       <p>相手は一度その道を通るまで、落とし穴の場所を知らない。落ちた後は相手にも見える。アイテムを取る前に通られると落とせないので、<b>アイテムのある家から出る道</b>に仕掛けると効きやすい。一度決めたら変えられない。</p>
-      ${placed ? `<p class="good">${pitLabel}の道に仕掛けた。</p>` : `<p style="color:var(--kinari-faint)">道（点線）をタップして選ぶ。</p>`}
-      <div class="btnrow"><button class="primary" onclick="window._confirmPit()" ${placed ? '' : 'disabled'}>これでいく</button></div>`);
+      ${placedCount > 0 ? `<p class="good">${pitLabels.join('、')}の道に仕掛けた。</p>` : ''}
+      ${allPlaced ? '' : `<p style="color:var(--kinari-faint)">道（点線）をタップして選ぶ。残り${remaining}本</p>`}
+      <div class="btnrow"><button class="primary" onclick="window._confirmPit()" ${allPlaced ? '' : 'disabled'}>これでいく</button></div>`);
     return;
   }
 
@@ -236,7 +241,7 @@ export function renderPanel() {
       <p class="lead">${n1}：${ra ? `<b>${ra}</b>が死んだ。` : '誰も欠けていない。'}</p>
       <p class="lead">${n2}：${rb ? `<b>${rb}</b>が死んだ。` : '誰も欠けていない。'}</p>
       <p>失敗の理由は、襲われた側にしか分からない。</p>
-      <div class="btnrow"><button class="primary" onclick="window._nextFromMorning()">${G.day >= DAYS ? '決着を見る' : '次の日へ'}</button></div>`);
+      <div class="btnrow"><button class="primary" onclick="window._nextFromMorning()">${G.day >= getConfig().DAYS ? '決着を見る' : '次の日へ'}</button></div>`);
     return;
   }
 

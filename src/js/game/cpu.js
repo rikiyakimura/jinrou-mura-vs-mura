@@ -3,7 +3,7 @@
  */
 
 import { G, wolfOf, guardOf, dogOf, madActive, alive } from '../state.js';
-import { HOUSES, TICKS, SHARPEN, EDGE_KEYS, edgeKey } from '../constants.js';
+import { TICKS, SHARPEN, edgeKey, getConfig } from '../constants.js';
 import { rnd, shuf, other } from '../utils.js';
 import { placeVillagers, placePit, selectExplorer, setRoute, setSharpenTiming, setMadSharpenTiming, setAttackTarget, setProtectTarget } from '../actions.js';
 import { resolveDay, overlapFull, SPOIL, canAttack, canProtect, madSharpenTicks } from './resolve.js';
@@ -12,13 +12,8 @@ import { resolveDay, overlapFull, SPOIL, canAttack, canProtect, madSharpenTicks 
  * ランダムな5軒巡回ルートを生成
  */
 function tour() {
-  const ADJ = {
-    tl: ['tr', 'bl', 'c'],
-    tr: ['tl', 'br', 'c'],
-    bl: ['tl', 'br', 'c'],
-    br: ['tr', 'bl', 'c'],
-    c: ['tl', 'tr', 'bl', 'br']
-  };
+  const config = getConfig();
+  const { HOUSES, ADJ } = config;
   for (let k = 0; k < 400; k++) {
     const r = [rnd(HOUSES)];
     while (r.length < TICKS) {
@@ -28,20 +23,15 @@ function tour() {
     }
     if (r.length === TICKS) return r;
   }
-  return ['tl', 'tr', 'br', 'bl', 'c'];
+  // フォールバック：最初のTICKS個の家を返す
+  return HOUSES.slice(0, TICKS);
 }
 
 /**
  * 2ティック張り込みルート
  */
 function stake2(t) {
-  const ADJ = {
-    tl: ['tr', 'bl', 'c'],
-    tr: ['tl', 'br', 'c'],
-    bl: ['tl', 'br', 'c'],
-    br: ['tr', 'bl', 'c'],
-    c: ['tl', 'tr', 'bl', 'br']
-  };
+  const { ADJ } = getConfig();
   const a = rnd(ADJ[t]);
   return [t, t, a, a, rnd(ADJ[a].concat([a]))];
 }
@@ -50,13 +40,7 @@ function stake2(t) {
  * 3ティック張り込みルート
  */
 function stake3(t) {
-  const ADJ = {
-    tl: ['tr', 'bl', 'c'],
-    tr: ['tl', 'br', 'c'],
-    bl: ['tl', 'br', 'c'],
-    br: ['tr', 'bl', 'c'],
-    c: ['tl', 'tr', 'bl', 'br']
-  };
+  const { ADJ } = getConfig();
   const a = rnd(ADJ[t]), b = rnd(ADJ[t]), pat = Math.floor(Math.random() * 3);
   if (pat === 0) return [t, t, t, a, rnd(ADJ[a].concat([a]))];
   if (pat === 1) return [a, t, t, t, b];
@@ -118,6 +102,8 @@ function cpuUpdateSuspicion(v, foe) {
  */
 export function runCPU(c, v) {
   const o = G.V[other(v.id)];
+  const config = getConfig();
+  const { HOUSES, EDGE_KEYS } = config;
 
   if (c.ph === 'place') {
     placeVillagers(v.id, shuf(HOUSES));
@@ -125,9 +111,12 @@ export function runCPU(c, v) {
   }
 
   if (c.ph === 'pit') {
+    const config = getConfig();
     const w = wolfOf(v);
     const cand = EDGE_KEYS.filter(k => k.split('-').includes(w.house));
-    placePit(v.id, rnd(cand.length ? cand : EDGE_KEYS));
+    const pool = shuf(cand.length ? cand : EDGE_KEYS);
+    const edges = pool.slice(0, config.PITS);
+    placePit(v.id, edges);
     return;
   }
 
@@ -160,12 +149,12 @@ export function runCPU(c, v) {
     else if (Math.random() < 0.42) r = tour();
     else r = stake2(rnd(HOUSES));
 
-    // 落とし穴を避ける
-    if (o.pitEdge && o.pitSeen) {
+    // 落とし穴を避ける（見えているものだけ）
+    if (o.pitSeen && o.pitSeen.length > 0) {
       for (let tryn = 0; tryn < 12; tryn++) {
         let bad = false;
         for (let i = 0; i < r.length - 1; i++) {
-          if (r[i] !== r[i + 1] && o.pitEdge === edgeKey(r[i], r[i + 1])) { bad = true; break; }
+          if (r[i] !== r[i + 1] && o.pitSeen.includes(edgeKey(r[i], r[i + 1]))) { bad = true; break; }
         }
         if (!bad) break;
         if (v._sendWolf && v.memo.length) r = stake3(rnd(v.memo));

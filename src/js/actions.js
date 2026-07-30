@@ -7,7 +7,7 @@
  */
 
 import { G, houseName, log, madmanOf, mediumOf } from './state.js';
-import { edgeKey } from './constants.js';
+import { edgeKey, getConfig } from './constants.js';
 import { other } from './utils.js';
 
 // ========== 配置フェーズ ==========
@@ -23,7 +23,7 @@ export function placeVillagers(playerId, houses) {
   houses.forEach((h, i) => {
     v.people[i].house = h;
   });
-  v.placeIdx = 5;
+  v.placeIdx = getConfig().VILLAGERS;
 
   return {
     playerId,
@@ -35,17 +35,17 @@ export function placeVillagers(playerId, houses) {
 /**
  * 落とし穴を配置
  * @param {number} playerId - プレイヤーID
- * @param {string} edge - 道のキー（例: 'tl-tr'）
+ * @param {string[]} edges - 道のキーの配列（例: ['tl-tr', 'c-bl']）
  * @returns {object} DB送信用データ
  */
-export function placePit(playerId, edge) {
+export function placePit(playerId, edges) {
   const v = G.V[playerId];
-  v.pitEdge = edge;
+  v.pitEdge = edges;
 
   return {
     playerId,
     phase: 'pit',
-    data: { edge }
+    data: { edges }
   };
 }
 
@@ -88,9 +88,10 @@ export function setRoute(playerId, route) {
 
   for (let i = 0; i < route.length; i++) {
     // 落とし穴チェック
-    if (i > 0 && route[i - 1] !== route[i] && o.pitEdge === edgeKey(route[i - 1], route[i])) {
-      if (held.permit || held.mad || held.medium) o.pitSeen = true;
-      else if (o.pitEdge) o.pitSeen = true;
+    const pitKey = i > 0 && route[i - 1] !== route[i] ? edgeKey(route[i - 1], route[i]) : null;
+    if (pitKey && o.pitEdge && o.pitEdge.includes(pitKey)) {
+      if (!o.pitSeen) o.pitSeen = [];
+      if (!o.pitSeen.includes(pitKey)) o.pitSeen.push(pitKey);
       held = { permit: false, mad: false, medium: false };
     }
 
@@ -209,7 +210,7 @@ export function applyAction(action) {
       placeVillagers(playerId, data.houses);
       break;
     case 'pit':
-      placePit(playerId, data.edge);
+      placePit(playerId, data.edges);
       break;
     case 'explorer':
       selectExplorer(playerId, data.personId);

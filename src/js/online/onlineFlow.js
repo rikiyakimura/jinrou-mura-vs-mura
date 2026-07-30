@@ -4,7 +4,7 @@
 
 import { G, setG, getG, cur, who } from '../state.js';
 import { applyAction } from '../actions.js';
-import { NAMES, HOUSES, DAYS } from '../constants.js';
+import { NAMES, setPreset, getConfig } from '../constants.js';
 import { shuf } from '../utils.js';
 import { mkVillage } from '../game/village.js';
 import { buildSchedule, countHandoffs } from '../game/schedule.js';
@@ -69,6 +69,11 @@ export async function startOnlineGameAsHost(room, opt) {
   onlineState.opponentName = room.guest_player_name;
   onlineState.isHost = true;
 
+  // プリセットを設定
+  setPreset(opt.large ? 'large' : 'classic');
+  const config = getConfig();
+  const villagerCount = config.VILLAGERS;
+
   // 名前プールからランダムに選択
   const pool = shuf(NAMES);
 
@@ -77,8 +82,8 @@ export async function startOnlineGameAsHost(room, opt) {
     mode: 'online',
     opt,
     V: {
-      1: mkVillage(1, pool.slice(0, 5), false, opt),
-      2: mkVillage(2, pool.slice(5, 10), false, opt)
+      1: mkVillage(1, pool.slice(0, villagerCount), false, opt),
+      2: mkVillage(2, pool.slice(villagerCount, villagerCount * 2), false, opt)
     },
     sched: buildSchedule(opt),
     idx: 0,
@@ -154,6 +159,9 @@ export async function startOnlineGameAsGuest(room) {
   savedG.myPlayerName = onlineState.myPlayerName;
   savedG.opponentName = room.host_player_name;
 
+  // プリセットを設定（ホストの設定に合わせる）
+  setPreset(savedG.opt.large ? 'large' : 'classic');
+
   setG(savedG);
 
   // 同期を開始
@@ -192,6 +200,10 @@ function onGameStateChange(newState) {
     savedG.myPlayerId = onlineState.myPlayerId;
     savedG.myPlayerName = onlineState.myPlayerName;
     savedG.opponentName = onlineState.opponentName;
+
+    // プリセットを設定（ホストの設定に合わせる）
+    setPreset(savedG.opt.large ? 'large' : 'classic');
+
     setG(savedG);
 
     // 最初の日の初期化
@@ -271,7 +283,8 @@ async function onBothPlayersReady(state) {
           return;
         }
         // 次の日の開始
-        if (G.day < DAYS) {
+        const config = getConfig();
+        if (G.day < config.DAYS) {
           startOnlineDay();
         }
       }
@@ -340,6 +353,9 @@ export function startOnlineDay() {
     v.tickDone = false;
   });
   G.tickIdx = 0;
+
+  const config = getConfig();
+  const HOUSES = config.HOUSES;
 
   [1, 2].forEach(p => {
     const ph = shuf(HOUSES)[0];
@@ -461,6 +477,9 @@ export async function restartOnlineGame(renderCallback) {
 
   // 新しいゲーム状態を作成（どちらのプレイヤーからでもOK）
   const opt = { ...G.opt };
+  setPreset(opt.large ? 'large' : 'classic');
+  const config = getConfig();
+  const villagerCount = config.VILLAGERS;
   const pool = shuf(NAMES);
   const myPlayerId = onlineState.myPlayerId;
 
@@ -468,8 +487,8 @@ export async function restartOnlineGame(renderCallback) {
     mode: 'online',
     opt,
     V: {
-      1: mkVillage(1, pool.slice(0, 5), false, opt),
-      2: mkVillage(2, pool.slice(5, 10), false, opt)
+      1: mkVillage(1, pool.slice(0, villagerCount), false, opt),
+      2: mkVillage(2, pool.slice(villagerCount, villagerCount * 2), false, opt)
     },
     sched: buildSchedule(opt),
     idx: 0,

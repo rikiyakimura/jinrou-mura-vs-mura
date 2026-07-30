@@ -19,7 +19,10 @@ import {
 } from '../online/onlineFlow.js';
 
 // タイトル画面のオプション
-export let TITLE_OPT = { madmanDog: false, medium: false, pit: false };
+export let TITLE_OPT = { madmanDog: false, medium: false, pit: false, large: false };
+
+// 選択中のモード（オプション画面で使用）
+let selectedMode = null;
 
 // オンライン状態
 let onlineScreen = null; // 'menu' | 'create' | 'join' | 'matchmaking' | 'waiting'
@@ -38,12 +41,40 @@ export function setVeilCallbacks({ newGame, render }) {
 }
 
 /**
- * タイトル画面を表示
+ * タイトル画面を表示（モード選択のみ）
  */
 export function showTitle() {
   onlineScreen = null;
+  selectedMode = null;
   cleanupOnlineSubscriptions();
 
+  const el = document.getElementById('veil');
+  el.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+
+  el.innerHTML = `<div class="inner">
+    <div class="title">人狼　村vs村</div>
+    <div class="tagline">1対1の対戦型人狼 ／ 議論なし、読み合い勝負</div>
+    <div class="modebtns">
+      <button class="primary big" onclick="window._selectMode('cpu')">対CPU<span class="note">1人で遊ぶ</span></button>
+      <button class="big" onclick="window._selectMode('pvp')">2人で対戦<span class="note">1台を交代で使う</span></button>
+      <button class="big online" onclick="window._showOnlineMenu()">オンライン対戦<span class="note">遠くの相手と</span></button>
+    </div>
+  </div>`;
+}
+
+/**
+ * モードを選択してオプション画面へ
+ */
+export function selectMode(m) {
+  selectedMode = m;
+  showOptions();
+}
+
+/**
+ * オプション画面を表示
+ */
+export function showOptions() {
   const el = document.getElementById('veil');
   el.style.display = 'flex';
   document.body.style.overflow = 'hidden';
@@ -52,20 +83,22 @@ export function showTitle() {
     '<button class="optchip ' + (TITLE_OPT[key] ? 'on' : '') + '" onclick="window._toggleOpt(\'' + key + '\')"><span class="ck">' +
     (TITLE_OPT[key] ? '✓' : '') + '</span>' + label + '<small>' + desc + '</small></button>';
 
+  const modeLabel = selectedMode === 'cpu' ? '対CPU' : selectedMode === 'pvp' ? '2人で対戦' : 'オンライン対戦';
+
   el.innerHTML = `<div class="inner">
-    <div class="title">人狼　村vs村</div>
-    <div class="tagline">1対1の対戦型人狼 ／ 議論なし、3日3夜の読み合い</div>
+    <div class="title-sm">${modeLabel}</div>
     <div class="opts">
       <div class="optlabel">追加の役職（任意）</div>
       ${chip('madmanDog', '狂人 ＋ 犬飼い', '狂人の爪で研ぎ音を撹乱／犬飼いは本物の音を聞き分ける')}
       ${chip('medium', '霊媒師', '霊媒の札で、倒した相手の役職が分かる')}
-      ${chip('pit', '落とし穴', '自分の村の道に1つ仕掛ける。通った相手は持ち物を全部落とす')}
+      ${chip('pit', '落とし穴', '自分の村の道に仕掛ける。通った相手は持ち物を全部落とす')}
+      <div class="optlabel" style="margin-top:12px">マップサイズ</div>
+      ${chip('large', '9件5日', '広い村（3×3）で、5日5夜の長期戦')}
     </div>
     <div class="modebtns">
-      <button class="primary big" onclick="window._pick('cpu')">対CPU<span class="note">1人で遊ぶ</span></button>
-      <button class="big" onclick="window._pick('pvp')">2人で対戦<span class="note">1台を交代で使う</span></button>
-      <button class="big online" onclick="window._showOnlineMenu()">オンライン対戦<span class="note">遠くの相手と</span></button>
+      <button class="primary big" onclick="window._startGame()">ゲーム開始</button>
     </div>
+    <button class="back" onclick="window._showTitle()">← 戻る</button>
   </div>`;
 }
 
@@ -74,15 +107,23 @@ export function showTitle() {
  */
 export function toggleOpt(k) {
   TITLE_OPT[k] = !TITLE_OPT[k];
-  showTitle();
+  showOptions();
 }
 
 /**
- * モードを選択してゲーム開始
+ * ゲームを開始
+ */
+export function startGame() {
+  document.body.style.overflow = '';
+  if (_newGame) _newGame(selectedMode, { ...TITLE_OPT });
+}
+
+/**
+ * モードを選択してゲーム開始（後方互換性のため維持）
  */
 export function pick(m) {
-  document.body.style.overflow = '';
-  if (_newGame) _newGame(m, { ...TITLE_OPT });
+  selectedMode = m;
+  startGame();
 }
 
 /**
@@ -111,6 +152,7 @@ export function restartGame() {
  */
 export function showOnlineMenu() {
   onlineScreen = 'menu';
+  selectedMode = 'online';
   const el = document.getElementById('veil');
   const savedName = getPlayerName();
 
@@ -121,20 +163,64 @@ export function showOnlineMenu() {
       <input type="text" id="player-name" value="${savedName}" placeholder="ニックネーム" maxlength="10">
     </div>
     <div class="online-btns">
-      <button class="primary big" onclick="window._showCreateRoom()">ルームを作る<span class="note">コードを相手に伝える</span></button>
+      <button class="primary big" onclick="window._showOnlineOptions('create')">ルームを作る<span class="note">コードを相手に伝える</span></button>
       <button class="big" onclick="window._showJoinRoom()">ルームに参加<span class="note">コードを入力する</span></button>
-      <button class="big match" onclick="window._startMatchmaking()">対戦相手を探す<span class="note">自動マッチング</span></button>
+      <button class="big match" onclick="window._showOnlineOptions('match')">対戦相手を探す<span class="note">自動マッチング</span></button>
     </div>
     <button class="back" onclick="window._showTitle()">← 戻る</button>
   </div>`;
 }
 
 /**
+ * オンラインオプション画面を表示（ルーム作成/マッチング前）
+ */
+export function showOnlineOptions(action) {
+  const playerName = document.getElementById('player-name')?.value.trim() || '名無し';
+  setPlayerName(playerName);
+
+  onlineScreen = 'options';
+  const el = document.getElementById('veil');
+
+  const chip = (key, label, desc) =>
+    '<button class="optchip ' + (TITLE_OPT[key] ? 'on' : '') + '" onclick="window._toggleOptOnline(\'' + key + '\')"><span class="ck">' +
+    (TITLE_OPT[key] ? '✓' : '') + '</span>' + label + '<small>' + desc + '</small></button>';
+
+  const actionLabel = action === 'create' ? 'ルームを作る' : '対戦相手を探す';
+  const onStart = action === 'create' ? 'window._showCreateRoom()' : 'window._startMatchmaking()';
+
+  el.innerHTML = `<div class="inner">
+    <div class="title-sm">${actionLabel}</div>
+    <div class="opts">
+      <div class="optlabel">追加の役職（任意）</div>
+      ${chip('madmanDog', '狂人 ＋ 犬飼い', '狂人の爪で研ぎ音を撹乱／犬飼いは本物の音を聞き分ける')}
+      ${chip('medium', '霊媒師', '霊媒の札で、倒した相手の役職が分かる')}
+      ${chip('pit', '落とし穴', '自分の村の道に仕掛ける。通った相手は持ち物を全部落とす')}
+      <div class="optlabel" style="margin-top:12px">マップサイズ</div>
+      ${chip('large', '9件5日', '広い村（3×3）で、5日5夜の長期戦')}
+    </div>
+    <div class="modebtns">
+      <button class="primary big" onclick="${onStart}">開始</button>
+    </div>
+    <button class="back" onclick="window._showOnlineMenu()">← 戻る</button>
+  </div>`;
+}
+
+/**
+ * オンラインオプション画面でのトグル
+ */
+export function toggleOptOnline(k) {
+  TITLE_OPT[k] = !TITLE_OPT[k];
+  // 現在の画面を再描画
+  const el = document.getElementById('veil');
+  const isCreate = el.innerHTML.includes('ルームを作る');
+  showOnlineOptions(isCreate ? 'create' : 'match');
+}
+
+/**
  * ルーム作成画面
  */
 export async function showCreateRoom() {
-  const playerName = document.getElementById('player-name')?.value.trim() || '名無し';
-  setPlayerName(playerName);
+  const playerName = getPlayerName() || '名無し';
 
   onlineScreen = 'create';
   const el = document.getElementById('veil');
@@ -235,8 +321,7 @@ export async function doJoinRoom() {
  * 自動マッチング開始
  */
 export async function startMatchmaking() {
-  const playerName = document.getElementById('player-name')?.value.trim() || '名無し';
-  setPlayerName(playerName);
+  const playerName = getPlayerName() || '名無し';
 
   onlineScreen = 'matchmaking';
   const el = document.getElementById('veil');

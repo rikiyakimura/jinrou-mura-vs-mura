@@ -3,6 +3,7 @@
  */
 
 import { shuf } from '../utils.js';
+import { getConfig } from '../constants.js';
 
 /**
  * 役職の配列を生成
@@ -10,10 +11,11 @@ import { shuf } from '../utils.js';
  * @returns {string[]} シャッフルされた役職配列
  */
 export function rolesFor(opt) {
+  const config = getConfig();
   const r = ['wolf', 'guard'];
   if (opt.madmanDog) r.push('madman', 'dog');
   if (opt.medium) r.push('medium');
-  while (r.length < 5) r.push('villager');
+  while (r.length < config.VILLAGERS) r.push('villager');
   return shuf(r);
 }
 
@@ -57,8 +59,8 @@ export function mkVillage(id, names, isCPU, opt) {
     madStart: null,
     mediumFound: false,
     mediumResult: null,
-    pitEdge: null,
-    pitSeen: false,
+    pitEdge: [],
+    pitSeen: [],
     gotPermit: false,
     gotClaw: false,
     gotMedium: false,

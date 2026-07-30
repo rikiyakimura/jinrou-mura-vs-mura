@@ -6,7 +6,7 @@
 
 // 状態
 import { G, me, opp, cur, who, houseName, log, madmanOf, mediumOf } from './state.js';
-import { TICKS, ADJ, edgeKey, ROLE_LABEL, HLABEL } from './constants.js';
+import { TICKS, ADJ, edgeKey, ROLE_LABEL, HLABEL, getConfig } from './constants.js';
 
 // ゲームロジック
 import { newGame, advance, startDay, finishDay, confirmNight, nextFromMorning, setFlowCallbacks } from './game/flow.js';
@@ -17,8 +17,9 @@ import { overlapSoFar, SPOIL } from './game/resolve.js';
 import { render, toggleSwap, setRenderCallbacks } from './ui/render.js';
 import { renderPanel, setPanelCallbacks } from './ui/panel.js';
 import {
-  showTitle, toggleOpt, pick, showVeilIfNeeded, hideVeil, setVeilCallbacks,
-  showOnlineMenu, showCreateRoom, showJoinRoom, doJoinRoom,
+  showTitle, selectMode, showOptions, toggleOpt, pick, startGame,
+  showVeilIfNeeded, hideVeil, setVeilCallbacks,
+  showOnlineMenu, showOnlineOptions, toggleOptOnline, showCreateRoom, showJoinRoom, doJoinRoom,
   startMatchmaking, cancelRoom, cancelMatchmakingAction, showOnlineWaiting,
   restartGame
 } from './ui/veil.js';
@@ -37,7 +38,7 @@ function placeNext(h) {
   v.people[v.placeIdx].house = h;
   v.placeIdx++;
 
-  if (v.placeIdx >= 5) {
+  if (v.placeIdx >= getConfig().VILLAGERS) {
     if (G.mode === 'online') {
       // オンラインモード：配置完了をDBに送信して相手を待つ
       const houses = v.people.map(p => p.house);
@@ -59,7 +60,16 @@ function placeNext(h) {
  */
 function placePit(key) {
   const v = me();
-  v.pitEdge = key;
+  const config = getConfig();
+  if (!v.pitEdge) v.pitEdge = [];
+
+  // 既に選択済みならトグルで解除
+  const idx = v.pitEdge.indexOf(key);
+  if (idx >= 0) {
+    v.pitEdge.splice(idx, 1);
+  } else if (v.pitEdge.length < config.PITS) {
+    v.pitEdge.push(key);
+  }
   render();
 }
 
@@ -72,7 +82,7 @@ function confirmPit() {
     submitOnlineAction({
       playerId: G.myPlayerId,
       phase: 'pit',
-      data: { edge: v.pitEdge }
+      data: { edges: v.pitEdge }
     });
   } else {
     advance();
@@ -108,12 +118,14 @@ function pickRoute(h) {
   v.notice = null;
 
   // 落とし穴チェック
-  if (prev !== null && prev !== h && o.pitEdge === edgeKey(prev, h)) {
+  const pitKey = prev !== null && prev !== h ? edgeKey(prev, h) : null;
+  if (pitKey && o.pitEdge && o.pitEdge.includes(pitKey)) {
     const had = [];
     if (v.permit) had.push('護衛届');
     if (v.madClaw) had.push('狂人の爪');
     if (v.mediumFound) had.push('霊媒の札');
-    o.pitSeen = true;
+    if (!o.pitSeen) o.pitSeen = [];
+    if (!o.pitSeen.includes(pitKey)) o.pitSeen.push(pitKey);
     if (had.length) {
       v.permit = false; v.permitFound = null;
       v.madClaw = false; v.madClawFound = null;
@@ -307,11 +319,16 @@ setPanelCallbacks({
 
 window._toggleOpt = toggleOpt;
 window._pick = pick;
+window._selectMode = selectMode;
+window._showOptions = showOptions;
+window._startGame = startGame;
 window._hideVeil = () => hideVeil(render);
 window._toggleSwap = toggleSwap;
 
 // オンライン用
 window._showOnlineMenu = showOnlineMenu;
+window._showOnlineOptions = showOnlineOptions;
+window._toggleOptOnline = toggleOptOnline;
 window._showCreateRoom = showCreateRoom;
 window._showJoinRoom = showJoinRoom;
 window._joinRoom = doJoinRoom;

@@ -3,7 +3,7 @@
  */
 
 import { G, setG, cur, who, me, opp } from '../state.js';
-import { NAMES, HOUSES, DAYS } from '../constants.js';
+import { NAMES, setPreset, getConfig } from '../constants.js';
 import { shuf, other } from '../utils.js';
 import { mkVillage } from './village.js';
 import { buildSchedule, countHandoffs } from './schedule.js';
@@ -26,15 +26,21 @@ export function setFlowCallbacks({ render, hideVeil, showVeilIfNeeded, runCPU })
  * 新しいゲームを開始
  */
 export function newGame(mode, opt) {
-  opt = opt || { madmanDog: false, medium: false };
+  opt = opt || { madmanDog: false, medium: false, large: false };
+
+  // プリセットを設定
+  setPreset(opt.large ? 'large' : 'classic');
+  const config = getConfig();
+
   const pool = shuf(NAMES);
+  const villagerCount = config.VILLAGERS;
 
   const newG = {
     mode,
     opt,
     V: {
-      1: mkVillage(1, pool.slice(0, 5), false, opt),
-      2: mkVillage(2, pool.slice(5, 10), mode === 'cpu', opt)
+      1: mkVillage(1, pool.slice(0, villagerCount), false, opt),
+      2: mkVillage(2, pool.slice(villagerCount, villagerCount * 2), mode === 'cpu', opt)
     },
     sched: buildSchedule(opt),
     idx: 0,
@@ -128,6 +134,9 @@ export function startDay() {
   });
   G.tickIdx = 0;
 
+  const config = getConfig();
+  const HOUSES = config.HOUSES;
+
   [1, 2].forEach(p => {
     const ph = shuf(HOUSES)[0];
     G.permitHouse[p] = ph;
@@ -162,9 +171,10 @@ export function confirmNight() {
  * 夜の終了処理
  */
 export function endOfNight() {
+  const config = getConfig();
   resolveNight();
   if (G.done) return;
-  if (G.day < DAYS) startDay();
+  if (G.day < config.DAYS) startDay();
   advance();
 }
 
@@ -172,6 +182,7 @@ export function endOfNight() {
  * 朝の表示から進む
  */
 export function nextFromMorning() {
-  if (G.day >= DAYS) finish(_hideVeil);
+  const config = getConfig();
+  if (G.day >= config.DAYS) finish(_hideVeil);
   else advance();
 }
