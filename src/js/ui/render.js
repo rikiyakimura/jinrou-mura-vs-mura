@@ -82,22 +82,26 @@ export function render() {
   const M = pub ? G.V[G.endView] : me(), F = pub ? G.V[other(G.endView)] : opp();
 
   document.getElementById('t-mine').textContent =
-    pub ? `${vname(M)}の地図` : (G.mode === 'cpu' ? '自分の村の地図' : `自分の村の地図（${M.id}P）`);
+    pub ? `${vname(M)}の地図` : '自分の村の地図';
   document.getElementById('t-foe').textContent =
-    pub ? `${vname(F)}の地図` : (G.mode === 'cpu' ? '相手の村の地図' : `相手の村の地図（${F.id}P）`);
+    pub ? `${vname(F)}の地図` : '相手の村の地図';
   document.getElementById('ledger-title').textContent = pub ? `覚え書き（${vname(M)}）` : '覚え書き';
 
   const st = document.getElementById('status');
+  const myId = G.myPlayerId || 1;
+  const oppId = myId === 1 ? 2 : 1;
   st.innerHTML = `<span><b>${G.day}</b>日目 / 3</span>` +
     (G.mode === 'cpu'
       ? `<span>自村 <b>${alive(G.V[1]).length}</b>人</span><span>敵村 <b>${alive(G.V[2]).length}</b>人</span>`
-      : `<span>1P <b>${alive(G.V[1]).length}</b>人</span><span>2P <b>${alive(G.V[2]).length}</b>人</span>`) +
+      : (G.mode === 'online'
+        ? `<span>自分 <b>${alive(G.V[myId]).length}</b>人</span><span>相手 <b>${alive(G.V[oppId]).length}</b>人</span>`
+        : `<span>1P <b>${alive(G.V[1]).length}</b>人</span><span>2P <b>${alive(G.V[2]).length}</b>人</span>`)) +
     (pub
-      ? `<span class="turnbadge pub">${G.mode === 'cpu' ? '結果' : '1P・2P とも観覧可'}</span>`
+      ? `<span class="turnbadge pub">${G.mode === 'pvp' ? '1P・2P とも観覧可' : '結果'}</span>`
       : `<span class="${M.permit ? 'on' : ''}">護衛届 ${M.permit ? '取得' : '—'}</span>` +
       (M.explorer !== null && guardAway(M) ? `<span style="color:var(--akane-glow)">護衛は探索中</span>` : '') +
       `<span>狼の食事 ${M.fed ? '済' : 'まだ'}</span>` +
-      (G.mode === 'cpu' ? '' : (G.mode === 'online' ? `<span class="turnbadge p${G.myPlayerId}">${G.myPlayerId}P</span>` : `<span class="turnbadge p${w}">${w}P の手番</span>`)));
+      (G.mode === 'cpu' ? '' : (G.mode === 'online' ? `<span class="turnbadge p${myId}">自分</span>` : `<span class="turnbadge p${w}">${w}P の手番</span>`)));
 
   const wl = wolfOf(M);
   const sharpH = (!pub && M.sharpenStart !== null && wl.alive) ? wl.house : null;

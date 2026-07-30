@@ -41,7 +41,7 @@ export function renderPanel() {
   const el = document.getElementById('panel'), c = cur(), w = who();
   const H = (h, b) => `<h3>${h}</h3>${b}`;
   const v = w ? me() : null, o = w ? opp() : null;
-  const tag = G.mode === 'cpu' ? '' : `${v ? v.id : ''}P・`;
+  const tag = (G.mode === 'cpu' || G.mode === 'online') ? '' : `${v ? v.id : ''}P・`;
 
   if (c.ph === 'place') {
     const p = v.people[v.placeIdx];
@@ -216,51 +216,74 @@ export function renderPanel() {
     }
     const need = canAttack(v) && v.attackTarget === null;
     b += `<div class="btnrow"><button class="primary" onclick="window._confirmNight()" ${need ? 'disabled' : ''}>夜を明かす</button></div>`;
-    el.innerHTML = H(`${G.day}日目・夜${G.mode === 'cpu' ? '' : `　（${v.id}P）`}`, b);
+    el.innerHTML = H(`${G.day}日目・夜${(G.mode === 'cpu' || G.mode === 'online') ? '' : `　（${v.id}P）`}`, b);
     return;
   }
 
   if (c.ph === 'morning') {
     const r = G.publicLog.find(x => x.day === G.day) || {};
-    const n1 = G.mode === 'cpu' ? '自分の村' : '1Pの村', n2 = G.mode === 'cpu' ? '相手の村' : '2Pの村';
+    const myId = G.myPlayerId || 1;
+    const oppId = myId === 1 ? 2 : 1;
+    const n1 = (G.mode === 'cpu' || G.mode === 'online') ? '自分の村' : '1Pの村';
+    const n2 = (G.mode === 'cpu' || G.mode === 'online') ? '相手の村' : '2Pの村';
+    const ra = G.mode === 'online' ? r[myId === 1 ? 'a' : 'b'] : r.a;
+    const rb = G.mode === 'online' ? r[myId === 1 ? 'b' : 'a'] : r.b;
     el.innerHTML = H(`${G.day}日目・夜明け`, `
-      <p class="lead">${n1}：${r.a ? `<b>${r.a}</b>が死んだ。` : '誰も欠けていない。'}</p>
-      <p class="lead">${n2}：${r.b ? `<b>${r.b}</b>が死んだ。` : '誰も欠けていない。'}</p>
+      <p class="lead">${n1}：${ra ? `<b>${ra}</b>が死んだ。` : '誰も欠けていない。'}</p>
+      <p class="lead">${n2}：${rb ? `<b>${rb}</b>が死んだ。` : '誰も欠けていない。'}</p>
       <p>失敗の理由は、襲われた側にしか分からない。</p>
       <div class="btnrow"><button class="primary" onclick="window._nextFromMorning()">${G.day >= DAYS ? '決着を見る' : '次の日へ'}</button></div>`);
     return;
   }
 
   if (c.ph === 'end') {
+    const myId = G.myPlayerId || 1;
+    const oppId = myId === 1 ? 2 : 1;
     const a = alive(G.V[1]).length, f = alive(G.V[2]).length;
-    const nm = p => G.mode === 'cpu' ? (p === 1 ? 'あなた' : 'CPU') : `${p}P`;
+    const myAlive = alive(G.V[myId]).length, oppAlive = alive(G.V[oppId]).length;
+    const nm = p => {
+      if (G.mode === 'cpu') return p === 1 ? 'あなた' : 'CPU';
+      if (G.mode === 'online') return p === myId ? '自分' : '相手';
+      return `${p}P`;
+    };
     let verdict, head, note = '';
     if (G.instantWin) {
       head = `${G.day}日目の昼、決着した`;
       if (G.instantWin === 'draw') { verdict = '引き分け'; note = '双方の人狼が同時に暴かれた。'; }
       else {
-        verdict = G.mode === 'cpu' ? (G.instantWin === 1 ? '勝ち' : '負け') : `${G.instantWin}P の勝ち`;
+        const won = (G.mode === 'cpu' || G.mode === 'online') ? (G.instantWin === myId) : null;
+        verdict = G.mode === 'cpu' ? (won ? '勝ち' : '負け')
+          : G.mode === 'online' ? (won ? '勝ち' : '負け')
+          : `${G.instantWin}P の勝ち`;
         note = `${nm(other(G.instantWin))}の人狼が暴かれた。生存数は問わない。`;
       }
     } else {
       head = '3夜が明けた';
-      verdict = G.mode === 'cpu' ? (a > f ? '勝ち' : a < f ? '負け' : '引き分け')
-        : (a > f ? '1P の勝ち' : a < f ? '2P の勝ち' : '引き分け');
+      if (G.mode === 'cpu' || G.mode === 'online') {
+        verdict = myAlive > oppAlive ? '勝ち' : myAlive < oppAlive ? '負け' : '引き分け';
+      } else {
+        verdict = a > f ? '1P の勝ち' : a < f ? '2P の勝ち' : '引き分け';
+      }
     }
+    // オンライン・CPUモードでは自分→相手の順、pvpモードでは1P→2Pの順
+    const first = (G.mode === 'cpu' || G.mode === 'online') ? myId : 1;
+    const second = (G.mode === 'cpu' || G.mode === 'online') ? oppId : 2;
+    const scoreLeft = (G.mode === 'cpu' || G.mode === 'online') ? myAlive : a;
+    const scoreRight = (G.mode === 'cpu' || G.mode === 'online') ? oppAlive : f;
     el.innerHTML = `<div class="final">
       <div class="sub">${head}</div>
-      <div class="score">${a} — ${f}</div>
+      <div class="score">${scoreLeft} — ${scoreRight}</div>
       <div class="verdict">${verdict}</div>
       ${note ? `<p style="color:var(--kinari-dim);margin-top:8px">${note}</p>` : ''}
       <p style="color:var(--midori);margin-top:6px;font-size:13px">覚え書きに、伏せられていたことを書き足した。</p>
       <div class="btnrow" style="justify-content:center;margin-top:18px">
-        <button onclick="G.endView=1;window._render()">${nm(1)}の覚え書き</button>
-        <button onclick="G.endView=2;window._render()">${nm(2)}の覚え書き</button>
+        <button onclick="G.endView=${first};window._render()">${nm(first)}の覚え書き</button>
+        <button onclick="G.endView=${second};window._render()">${nm(second)}の覚え書き</button>
         <button class="primary" onclick="window._restartGame()">もう一度</button>
       </div>
       <div class="reveal">
-        ${nm(1)}の村：${G.V[1].people.map(p => `${p.name}（${ROLE_LABEL[p.role]}${p.alive ? '' : '・死亡'}）`).join('　')}<br>
-        ${nm(2)}の村：${G.V[2].people.map(p => `${p.name}（${ROLE_LABEL[p.role]}${p.alive ? '' : '・死亡'}）`).join('　')}
+        ${nm(first)}の村：${G.V[first].people.map(p => `${p.name}（${ROLE_LABEL[p.role]}${p.alive ? '' : '・死亡'}）`).join('　')}<br>
+        ${nm(second)}の村：${G.V[second].people.map(p => `${p.name}（${ROLE_LABEL[p.role]}${p.alive ? '' : '・死亡'}）`).join('　')}
       </div></div>`;
     return;
   }
