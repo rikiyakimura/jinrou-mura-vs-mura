@@ -33,4 +33,10 @@ Thumbs.db
 # Test files
 test-*.png
 test-results/
+playwright-report/
+playwright/.cache/
 nul
+
+# Logs
+*.log
+npm-debug.log*
