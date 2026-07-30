@@ -79,26 +79,59 @@ test('オンライン: リマッチテスト', async ({ browser }) => {
     expect(hostModeAfter).toBe('online');
     expect(hostOptAfter).toBe(true);
 
-    // ===== ゲストが「もう一度」をクリック =====
-    console.log('\n===== STEP 4: ゲストがリマッチ =====');
-    await guestPage.click('button:has-text("もう一度")');
-    await guestPage.waitForTimeout(500);
+    // ===== ゲストの状態を確認（ホストのリスタートが同期されるはず） =====
+    console.log('\n===== STEP 4: ゲストの同期確認 =====');
 
-    // ゲストに待機画面が表示されるか、ゲームが再開されることを確認
-    // （ホストがすでに再開しているので、すぐに同期される可能性がある）
-    const guestWaiting = await guestPage.$('.waiting-indicator');
-    if (guestWaiting) {
-      console.log('ゲスト: 待機画面が表示されています');
-      // ゲーム再開を待つ
-      await guestPage.waitForSelector('#map-mine .house', { timeout: 10000 });
-    }
+    // ホストがリスタートしたので、ゲストにも同期されるのを待つ
+    await guestPage.waitForSelector('#map-mine .house', { timeout: 10000 });
 
     const guestModeAfter = await guestPage.evaluate(() => window.G?.mode);
     const guestOptAfter = await guestPage.evaluate(() => window.G?.opt?.madmanDog);
-    console.log(`Guest mode after: ${guestModeAfter}, opt.madmanDog: ${guestOptAfter}`);
+    const guestDone = await guestPage.evaluate(() => window.G?.done);
+    console.log(`Guest mode: ${guestModeAfter}, opt.madmanDog: ${guestOptAfter}, done: ${guestDone}`);
     expect(guestModeAfter).toBe('online');
+    expect(guestDone).toBe(false);  // ゲームが再開されている
 
     console.log('\n===== リマッチ成功！ =====');
+
+    // ===== ゲストからリマッチを開始するテスト =====
+    console.log('\n===== STEP 5: ゲストからリマッチ =====');
+
+    // 再度ゲームを終了させる
+    await hostPage.evaluate(() => {
+      window.G.done = true;
+      window.G.idx = window.G.sched.length - 1;
+      window._render();
+    });
+    await guestPage.evaluate(() => {
+      window.G.done = true;
+      window.G.idx = window.G.sched.length - 1;
+      window._render();
+    });
+
+    await hostPage.waitForSelector('.final', { timeout: 5000 });
+    await guestPage.waitForSelector('.final', { timeout: 5000 });
+    console.log('再度終了画面が表示されました');
+
+    // 今度はゲストが「もう一度」をクリック
+    await guestPage.click('button:has-text("もう一度")');
+    await guestPage.waitForTimeout(500);
+
+    // ゲストのゲームが再開されることを確認
+    await guestPage.waitForSelector('#map-mine .house', { timeout: 5000 });
+    const guestModeAfter2 = await guestPage.evaluate(() => window.G?.mode);
+    const guestDone2 = await guestPage.evaluate(() => window.G?.done);
+    console.log(`Guest after restart: mode=${guestModeAfter2}, done=${guestDone2}`);
+    expect(guestModeAfter2).toBe('online');
+    expect(guestDone2).toBe(false);
+
+    // ホストにも同期されることを確認
+    await hostPage.waitForSelector('#map-mine .house', { timeout: 10000 });
+    const hostDone2 = await hostPage.evaluate(() => window.G?.done);
+    console.log(`Host after guest restart: done=${hostDone2}`);
+    expect(hostDone2).toBe(false);
+
+    console.log('\n===== ゲストからのリマッチも成功！ =====');
 
   } finally {
     await hostContext.close();
