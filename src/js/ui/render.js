@@ -80,18 +80,18 @@ export function render() {
   }
   const pub = (w === 0), revealAll = (c.ph === 'end');
   const M = pub ? G.V[G.endView] : me(), F = pub ? G.V[other(G.endView)] : opp();
-
-  document.getElementById('t-mine').textContent =
-    pub ? `${vname(M)}の地図` : '自分の村の地図';
-  document.getElementById('t-foe').textContent =
-    pub ? `${vname(F)}の地図` : '相手の村の地図';
-  document.getElementById('ledger-title').textContent = pub ? `覚え書き（${vname(M)}）` : '覚え書き';
-
-  const st = document.getElementById('status');
   const myId = G.myPlayerId || 1;
   const oppId = myId === 1 ? 2 : 1;
   const myName = G.myPlayerName || '自分';
   const oppName = G.opponentName || '相手';
+
+  document.getElementById('t-mine').textContent =
+    pub ? `${vname(M)}の地図` : (G.mode === 'online' ? `${myName}の村の地図` : '自分の村の地図');
+  document.getElementById('t-foe').textContent =
+    pub ? `${vname(F)}の地図` : (G.mode === 'online' ? `${oppName}の村の地図` : '相手の村の地図');
+  document.getElementById('ledger-title').textContent = pub ? `覚え書き（${vname(M)}）` : '覚え書き';
+
+  const st = document.getElementById('status');
   st.innerHTML = `<span><b>${G.day}</b>日目 / 3</span>` +
     (G.mode === 'cpu'
       ? `<span>自村 <b>${alive(G.V[1]).length}</b>人</span><span>敵村 <b>${alive(G.V[2]).length}</b>人</span>`

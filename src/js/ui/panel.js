@@ -42,11 +42,13 @@ export function renderPanel() {
   const H = (h, b) => `<h3>${h}</h3>${b}`;
   const v = w ? me() : null, o = w ? opp() : null;
   const tag = (G.mode === 'cpu' || G.mode === 'online') ? '' : `${v ? v.id : ''}P・`;
+  const myName = G.myPlayerName || '自分';
+  const myMapLabel = G.mode === 'online' ? `${myName}の村の地図` : '自分の村の地図';
 
   if (c.ph === 'place') {
     const p = v.people[v.placeIdx];
     el.innerHTML = H(`${tag}配置`, `
-      <p class="lead"><b>${p.name}（${ROLE_LABEL[p.role]}）</b>をどの家に住まわせる？ <b>自分の村の地図</b>で選ぶ。</p>
+      <p class="lead"><b>${p.name}（${ROLE_LABEL[p.role]}）</b>をどの家に住まわせる？ <b>${myMapLabel}</b>で選ぶ。</p>
       <p>一度決めたら3夜のあいだ動かせない。</p>
       <p style="color:var(--kinari-faint)">残り ${5 - v.placeIdx} 人</p>`);
     return;
@@ -59,7 +61,7 @@ export function renderPanel() {
       return houseName(v, a) + '〜' + houseName(v, b);
     })() : '';
     el.innerHTML = H(`${tag}落とし穴を仕掛ける`, `
-      <p class="lead"><b>自分の村の地図</b>で、道を1本選んで落とし穴を仕掛ける。相手の探索者がその道を通ると、<b>その時持っている護衛届・狂人の爪・霊媒の札を全部落とす</b>。</p>
+      <p class="lead"><b>${myMapLabel}</b>で、道を1本選んで落とし穴を仕掛ける。相手の探索者がその道を通ると、<b>その時持っている護衛届・狂人の爪・霊媒の札を全部落とす</b>。</p>
       <p>相手は一度その道を通るまで、落とし穴の場所を知らない。落ちた後は相手にも見える。アイテムを取る前に通られると落とせないので、<b>アイテムのある家から出る道</b>に仕掛けると効きやすい。一度決めたら変えられない。</p>
       ${placed ? `<p class="good">${pitLabel}の道に仕掛けた。</p>` : `<p style="color:var(--kinari-faint)">道（点線）をタップして選ぶ。</p>`}
       <div class="btnrow"><button class="primary" onclick="window._confirmPit()" ${placed ? '' : 'disabled'}>これでいく</button></div>`);
