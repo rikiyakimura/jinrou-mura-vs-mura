@@ -224,8 +224,10 @@ export function renderPanel() {
     const r = G.publicLog.find(x => x.day === G.day) || {};
     const myId = G.myPlayerId || 1;
     const oppId = myId === 1 ? 2 : 1;
-    const n1 = (G.mode === 'cpu' || G.mode === 'online') ? '自分の村' : '1Pの村';
-    const n2 = (G.mode === 'cpu' || G.mode === 'online') ? '相手の村' : '2Pの村';
+    const myName = G.myPlayerName || '自分';
+    const oppName = G.opponentName || '相手';
+    const n1 = G.mode === 'cpu' ? '自分の村' : G.mode === 'online' ? `${myName}の村` : '1Pの村';
+    const n2 = G.mode === 'cpu' ? '相手の村' : G.mode === 'online' ? `${oppName}の村` : '2Pの村';
     const ra = G.mode === 'online' ? r[myId === 1 ? 'a' : 'b'] : r.a;
     const rb = G.mode === 'online' ? r[myId === 1 ? 'b' : 'a'] : r.b;
     el.innerHTML = H(`${G.day}日目・夜明け`, `
@@ -239,11 +241,13 @@ export function renderPanel() {
   if (c.ph === 'end') {
     const myId = G.myPlayerId || 1;
     const oppId = myId === 1 ? 2 : 1;
+    const myName = G.myPlayerName || '自分';
+    const oppName = G.opponentName || '相手';
     const a = alive(G.V[1]).length, f = alive(G.V[2]).length;
     const myAlive = alive(G.V[myId]).length, oppAlive = alive(G.V[oppId]).length;
     const nm = p => {
       if (G.mode === 'cpu') return p === 1 ? 'あなた' : 'CPU';
-      if (G.mode === 'online') return p === myId ? '自分' : '相手';
+      if (G.mode === 'online') return p === myId ? myName : oppName;
       return `${p}P`;
     };
     let verdict, head, note = '';

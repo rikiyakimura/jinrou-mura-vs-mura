@@ -22,6 +22,7 @@ import {
 } from './sync.js';
 import { initGameState } from './room.js';
 import { startTimeout, clearTimeoutTimer } from './timeout.js';
+import { getPlayerName } from './supabase.js';
 
 // 同時入力が必要なフェーズ
 const SIMULTANEOUS_PHASES = ['place', 'pit', 'explorer', 'route', 'ticks', 'night'];
@@ -30,6 +31,7 @@ const SIMULTANEOUS_PHASES = ['place', 'pit', 'explorer', 'route', 'ticks', 'nigh
 let onlineState = {
   roomId: null,
   myPlayerId: null,   // 1 or 2
+  myPlayerName: null,
   opponentName: null,
   isHost: false,
   pendingAction: null,
@@ -63,6 +65,7 @@ export function setOnlineFlowCallbacks(callbacks) {
 export async function startOnlineGameAsHost(room, opt) {
   onlineState.roomId = room.id;
   onlineState.myPlayerId = 1;
+  onlineState.myPlayerName = getPlayerName() || room.host_player_name;
   onlineState.opponentName = room.guest_player_name;
   onlineState.isHost = true;
 
@@ -94,6 +97,7 @@ export async function startOnlineGameAsHost(room, opt) {
     // オンライン固有
     roomId: room.id,
     myPlayerId: 1,
+    myPlayerName: onlineState.myPlayerName,
     opponentName: room.guest_player_name
   };
 
@@ -119,6 +123,7 @@ export async function startOnlineGameAsHost(room, opt) {
 export async function startOnlineGameAsGuest(room) {
   onlineState.roomId = room.id;
   onlineState.myPlayerId = 2;
+  onlineState.myPlayerName = getPlayerName() || room.guest_player_name;
   onlineState.opponentName = room.host_player_name;
   onlineState.isHost = false;
 
@@ -146,6 +151,7 @@ export async function startOnlineGameAsGuest(room) {
   const savedG = gameState.game_data;
   savedG.roomId = room.id;
   savedG.myPlayerId = 2;
+  savedG.myPlayerName = onlineState.myPlayerName;
   savedG.opponentName = room.host_player_name;
 
   setG(savedG);
@@ -184,6 +190,7 @@ function onGameStateChange(newState) {
     const savedG = { ...gameData };
     savedG.roomId = onlineState.roomId;
     savedG.myPlayerId = onlineState.myPlayerId;
+    savedG.myPlayerName = onlineState.myPlayerName;
     savedG.opponentName = onlineState.opponentName;
     setG(savedG);
 
@@ -432,6 +439,7 @@ export function endOnlineGame() {
   onlineState = {
     roomId: null,
     myPlayerId: null,
+    myPlayerName: null,
     opponentName: null,
     isHost: false,
     pendingAction: null,
@@ -479,6 +487,7 @@ export async function restartOnlineGame(renderCallback) {
     _shown: -1,
     roomId: onlineState.roomId,
     myPlayerId: myPlayerId,
+    myPlayerName: onlineState.myPlayerName,
     opponentName: onlineState.opponentName
   };
 
