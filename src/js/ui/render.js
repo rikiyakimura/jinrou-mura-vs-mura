@@ -79,16 +79,23 @@ export function render() {
     if (document.body.classList) document.body.classList.remove('ledger-open');
   }
   const pub = (w === 0), revealAll = (c.ph === 'end');
-  const M = pub ? G.V[G.endView] : me(), F = pub ? G.V[other(G.endView)] : opp();
   const myId = G.myPlayerId || 1;
   const oppId = myId === 1 ? 2 : 1;
   const myName = G.myPlayerName || '自分';
   const oppName = G.opponentName || '相手';
+  // オンラインモードでは自分→相手の順で表示
+  const M = pub ? (G.mode === 'online' ? G.V[myId] : G.V[G.endView]) : me();
+  const F = pub ? (G.mode === 'online' ? G.V[oppId] : G.V[other(G.endView)]) : opp();
 
-  document.getElementById('t-mine').textContent =
-    pub ? `${vname(M)}の地図` : (G.mode === 'online' ? `${myName}の村の地図` : '自分の村の地図');
-  document.getElementById('t-foe').textContent =
-    pub ? `${vname(F)}の地図` : (G.mode === 'online' ? `${oppName}の村の地図` : '相手の村の地図');
+  // 地図タイトル
+  const mineTitle = pub
+    ? (G.mode === 'online' ? `${myName}の村の地図` : `${vname(M)}の地図`)
+    : (G.mode === 'online' ? `${myName}の村の地図` : '自分の村の地図');
+  const foeTitle = pub
+    ? (G.mode === 'online' ? `${oppName}の村の地図` : `${vname(F)}の地図`)
+    : (G.mode === 'online' ? `${oppName}の村の地図` : '相手の村の地図');
+  document.getElementById('t-mine').textContent = mineTitle;
+  document.getElementById('t-foe').textContent = foeTitle;
   document.getElementById('ledger-title').textContent = pub ? `覚え書き（${vname(M)}）` : '覚え書き';
 
   const st = document.getElementById('status');
