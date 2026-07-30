@@ -48,7 +48,7 @@
 .token.mine{background:var(--moon);color:#0B1018}
 @media (prefers-reduced-motion:reduce){.token{transition:none}}
 
-/* 9件モード（large） */
+/* 9軒モード（large） */
 .map.large{aspect-ratio:1/1}
 .map.large .house{width:62px;padding:5px 3px 4px}
 .map.large .house .hname{font-size:9px}
@@ -57,7 +57,7 @@
 .map.large .house .badge{font-size:8px}
 .map.large .ticknum{min-width:15px;height:15px;font-size:9px;line-height:15px;top:-5px;right:-5px}
 .map.large .token{font-size:9px;padding:2px 6px}
-/* 従の村の9件モード */
+/* 従の村の9軒モード */
 .board.is-sub .map.large .house{width:48px;padding:4px 2px 3px}
 .board.is-sub .map.large .house .hname{font-size:8px}
 .board.is-sub .map.large .house .occ{font-size:10px;min-height:14px}

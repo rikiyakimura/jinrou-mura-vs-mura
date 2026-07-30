@@ -93,7 +93,7 @@ export function showOptions() {
       ${chip('medium', '霊媒師', '霊媒の札で、倒した相手の役職が分かる')}
       ${chip('pit', '落とし穴', '自分の村の道に仕掛ける。通った相手は持ち物を全部落とす')}
       <div class="optlabel" style="margin-top:12px">マップサイズ</div>
-      ${chip('large', '9件5日', '広い村（3×3）で、5日5夜の長期戦')}
+      ${chip('large', '9軒5日', '広い村（3×3）で、5日5夜の長期戦')}
     </div>
     <div class="modebtns">
       <button class="primary big" onclick="window._startGame()">ゲーム開始</button>
@@ -196,7 +196,7 @@ export function showOnlineOptions(action) {
       ${chip('medium', '霊媒師', '霊媒の札で、倒した相手の役職が分かる')}
       ${chip('pit', '落とし穴', '自分の村の道に仕掛ける。通った相手は持ち物を全部落とす')}
       <div class="optlabel" style="margin-top:12px">マップサイズ</div>
-      ${chip('large', '9件5日', '広い村（3×3）で、5日5夜の長期戦')}
+      ${chip('large', '9軒5日', '広い村（3×3）で、5日5夜の長期戦')}
     </div>
     <div class="modebtns">
       <button class="primary big" onclick="${onStart}">開始</button>

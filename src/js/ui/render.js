@@ -133,7 +133,7 @@ export function render() {
 
   const pitPicking = (!pub && c.ph === 'pit');
 
-  // 9件モードのクラス設定
+  // 9軒モードのクラス設定
   const isLarge = getPreset() === 'large';
   const mapMine = document.getElementById('map-mine');
   const mapFoe = document.getElementById('map-foe');
