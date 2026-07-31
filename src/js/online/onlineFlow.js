@@ -304,13 +304,16 @@ async function onBothPlayersReady(state) {
   stopReadyPolling();
   clearTimeoutTimer();
 
-  const currentPhase = cur().ph;
-
-  // トリガーにより更新されたidxを取得
+  // トリガーにより更新されたidxを取得（currentPhase計算前に同期）
   const { data: latestState } = await fetchGameState(onlineState.roomId);
   if (latestState && latestState.game_data) {
     G.idx = latestState.game_data.idx;
+    console.log('[onBothPlayersReady] synced idx from DB:', G.idx);
   }
+
+  // DB同期後にフェーズを確認
+  const currentPhase = G.sched[G.idx - 2]?.ph;  // トリガー発火前のフェーズ
+  console.log('[onBothPlayersReady] currentPhase:', currentPhase, 'G.idx:', G.idx);
 
   // 両者のアクションを取得（リトライ付き）
   let actions = [];
@@ -465,40 +468,51 @@ export async function submitOnlineAction(action) {
 
   // 現在のフェーズを確認（idx同期前に）
   const c = cur();
+  console.log('[submitOnlineAction] phase:', c.ph, 'local idx:', G.idx, 'playerId:', myPlayerId);
 
   // アクションを送信
   await sendAction(roomId, action);
 
   // place/pit は待ち合わせなし、ローカルで次へ進む（idx同期なし）
   if (LOCAL_PHASES.includes(c.ph)) {
+    console.log('[submitOnlineAction] LOCAL_PHASE, advancing locally');
     advanceLocal();
     return;
   }
 
   // WAIT_PHASES（explorer以降）は DB から idx を同期してから処理
   const dbIdx = await syncIdxFromDB(roomId);
+  console.log('[submitOnlineAction] synced idx from DB:', dbIdx);
   if (dbIdx !== null) G.idx = dbIdx;
 
   // explorer以降は待ち合わせ
   if (WAIT_PHASES.includes(c.ph)) {
     // トリガー発火後の期待idxを記録
     expectedIdxAfterTrigger = G.idx + 2;
+    console.log('[submitOnlineAction] WAIT_PHASE, expectedIdx:', expectedIdxAfterTrigger);
 
     // ready状態にして相手を待つ
     await setPlayerReady(roomId, myPlayerId, true);
+    console.log('[submitOnlineAction] set ready, checking trigger...');
 
     // 即座にDBを確認（後からreadyにした方はここで検出できる）
     const { data: immediateCheck } = await fetchGameState(roomId);
+    const immediateIdx = immediateCheck?.game_data?.idx;
+    const p1Ready = immediateCheck?.player1_ready;
+    const p2Ready = immediateCheck?.player2_ready;
+    console.log('[submitOnlineAction] DB state: idx=', immediateIdx, 'p1Ready=', p1Ready, 'p2Ready=', p2Ready, 'expected=', expectedIdxAfterTrigger);
 
     // トリガーによりidxが進んでいれば発火済み
-    if (immediateCheck?.game_data?.idx === expectedIdxAfterTrigger) {
+    if (immediateIdx === expectedIdxAfterTrigger) {
       // トリガー発火済み → 即座に進行
+      console.log('[submitOnlineAction] trigger fired! proceeding...');
       onlineState.waitingForOpponent = true;
       onBothPlayersReady(immediateCheck);
       return;
     }
 
     // まだ相手が未完了 → 待機モードへ
+    console.log('[submitOnlineAction] waiting for opponent...');
     onlineState.waitingForOpponent = true;
 
     // 待機中表示
