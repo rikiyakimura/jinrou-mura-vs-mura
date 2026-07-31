@@ -16,6 +16,12 @@ let _placePit = null;
 let _pickRoute = null;
 let _pickAttackHouse = null;
 
+// エモート一覧
+const EMOTES = ['👍', '😊', '🤔', '⏳', '🙏', '😅', '❤️', '💀', '😏', '😜', '🤭', '👋'];
+
+// エモートバーの開閉状態
+let emoteBarOpen = false;
+
 export function setRenderCallbacks(callbacks) {
   _placeNext = callbacks.placeNext;
   _placePit = callbacks.placePit;
@@ -180,6 +186,7 @@ export function render() {
     renderLedger(M);
   }
   renderPanel();
+  renderEmoteBar();
 }
 
 // routeValidをラップ
@@ -191,6 +198,52 @@ function routeValidWrapper(h) {
   if (r.length === 0) return true;
   const last = r[r.length - 1];
   return h === last || ADJ[last].includes(h);
+}
+
+/**
+ * エモートバーの開閉を切り替え
+ */
+export function toggleEmoteBar() {
+  emoteBarOpen = !emoteBarOpen;
+  renderEmoteBar();
+}
+
+/**
+ * エモートバーを描画（オンラインモードのみ）
+ */
+export function renderEmoteBar() {
+  // 既存のバーを削除
+  const existing = document.getElementById('emote-bar');
+  if (existing) existing.remove();
+
+  // オンラインモードでなければ表示しない
+  if (!G || G.mode !== 'online') return;
+
+  const bar = document.createElement('div');
+  bar.id = 'emote-bar';
+  bar.className = emoteBarOpen ? 'emote-bar open' : 'emote-bar';
+
+  if (emoteBarOpen) {
+    bar.innerHTML = `
+      <div class="emote-grid">
+        ${EMOTES.map(e => `<button class="emote-btn" onclick="window._sendEmote('${e}')">${e}</button>`).join('')}
+      </div>
+      <button class="emote-toggle close" onclick="window._toggleEmoteBar()">×</button>
+    `;
+  } else {
+    bar.innerHTML = `<button class="emote-toggle" onclick="window._toggleEmoteBar()">😊</button>`;
+  }
+
+  document.body.appendChild(bar);
+}
+
+/**
+ * エモートバーを削除（タイトル画面などで）
+ */
+export function hideEmoteBar() {
+  emoteBarOpen = false;
+  const existing = document.getElementById('emote-bar');
+  if (existing) existing.remove();
 }
 
 // リサイズ時に再描画

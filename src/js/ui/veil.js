@@ -17,6 +17,7 @@ import {
   startOnlineGameAsGuest,
   restartOnlineGame
 } from '../online/onlineFlow.js';
+import { renderEmoteBar, hideEmoteBar } from './render.js';
 
 // タイトル画面のオプション
 export let TITLE_OPT = { madmanDog: false, medium: false, pit: false, large: false };
@@ -47,6 +48,7 @@ export function showTitle() {
   onlineScreen = null;
   selectedMode = null;
   cleanupOnlineSubscriptions();
+  hideEmoteBar();
 
   const el = document.getElementById('veil');
   el.style.display = 'flex';
@@ -428,6 +430,9 @@ export function showOnlineWaiting(message, status = 'normal') {
     <div id="timeout-display" class="timeout-display"></div>
     <button class="quit" onclick="window._quitGame()">やめる</button>
   </div>`;
+
+  // 待機中もエモートを使えるようにする
+  renderEmoteBar();
 }
 
 /**

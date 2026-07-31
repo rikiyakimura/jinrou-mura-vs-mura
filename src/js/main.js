@@ -14,7 +14,7 @@ import { runCPU } from './game/cpu.js';
 import { overlapSoFar, SPOIL } from './game/resolve.js';
 
 // UI
-import { render, toggleSwap, setRenderCallbacks } from './ui/render.js';
+import { render, toggleSwap, setRenderCallbacks, toggleEmoteBar } from './ui/render.js';
 import { renderPanel, setPanelCallbacks } from './ui/panel.js';
 import {
   showTitle, selectMode, showOptions, toggleOpt, pick, startGame,
@@ -407,6 +407,7 @@ window._sendEmote = async (emote) => {
     render();
   }
 };
+window._toggleEmoteBar = toggleEmoteBar;
 window._render = render;
 
 // 覚え書き用
