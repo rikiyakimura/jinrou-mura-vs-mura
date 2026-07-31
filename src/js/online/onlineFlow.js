@@ -22,6 +22,7 @@ import {
   fetchGameState,
   fetchPhaseActions,
   fetchSetupActions,
+  syncIdxFromDB,
   unsubscribeAll,
   setConnectionCallback
 } from './sync.js';
@@ -462,16 +463,21 @@ export async function submitOnlineAction(action) {
   const roomId = onlineState.roomId;
   const myPlayerId = onlineState.myPlayerId;
 
+  // 現在のフェーズを確認（idx同期前に）
+  const c = cur();
+
   // アクションを送信
   await sendAction(roomId, action);
 
-  const c = cur();
-
-  // place/pit は待ち合わせなし、ローカルで次へ進む
+  // place/pit は待ち合わせなし、ローカルで次へ進む（idx同期なし）
   if (LOCAL_PHASES.includes(c.ph)) {
     advanceLocal();
     return;
   }
+
+  // WAIT_PHASES（explorer以降）は DB から idx を同期してから処理
+  const dbIdx = await syncIdxFromDB(roomId);
+  if (dbIdx !== null) G.idx = dbIdx;
 
   // explorer以降は待ち合わせ
   if (WAIT_PHASES.includes(c.ph)) {

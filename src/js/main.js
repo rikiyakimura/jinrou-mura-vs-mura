@@ -28,7 +28,7 @@ import { toggleLedger, openLedger, closeLedger, initLedgerSwipe } from './ui/led
 // オンライン
 import { submitOnlineAction, setOnlineFlowCallbacks, advanceOnline, surrenderOnline, endOnlineGame, sendEmote, canSendEmote, markPlayerLeft } from './online/onlineFlow.js';
 import { setPlayerName } from './online/supabase.js';
-import { updateGameState } from './online/sync.js';
+import { updateGameState, syncIdxFromDB } from './online/sync.js';
 
 // ========== エモート表示 ==========
 
@@ -305,36 +305,43 @@ function confirmNightOnline() {
  * 朝の結果を確認して次の日へ（オンライン対応ラッパー）
  */
 async function nextFromMorningOnline() {
-  if (G.mode === 'online') {
-    // オンラインモード：ローカルでidxを進め、DBにも保存
-    const config = getConfig();
-    if (G.day >= config.DAYS) {
-      // 最終日 → 決着
-      G.idx++;
-      advanceOnline();
-    } else {
-      // 次の日へ
-      G.idx++;
-      const c = G.sched[G.idx];
-      if (c && c.day) G.day = c.day;
-
-      // DBに保存（トリガーが正しいidxを使えるように）
-      const roomId = G.roomId;
-      await updateGameState(roomId, {
-        game_data: {
-          ...G,
-          idx: G.idx,
-          day: G.day
-        },
-        current_phase: c ? c.ph : 'explorer',
-        current_day: G.day,
-        current_player: c ? c.who : 1
-      });
-
-      render();
-    }
-  } else {
+  if (G.mode !== 'online') {
     nextFromMorning();
+    return;
+  }
+
+  // DB から最新 idx を取得
+  const dbIdx = await syncIdxFromDB(G.roomId);
+  if (dbIdx !== null) G.idx = dbIdx;
+
+  const config = getConfig();
+  const c = cur();
+
+  // まだ morning なら idx++ して DB 保存（最初にクリックした方だけ実行される）
+  if (c.ph === 'morning') {
+    G.idx++;
+    const next = G.sched[G.idx];
+    if (next && next.day) G.day = next.day;
+
+    // DB に保存
+    await updateGameState(G.roomId, {
+      game_data: {
+        ...G,
+        idx: G.idx,
+        day: G.day
+      },
+      current_phase: next ? next.ph : 'end',
+      current_day: G.day,
+      current_player: next ? next.who : 0
+    });
+  }
+
+  // 最終日または end フェーズなら決着処理
+  const current = cur();
+  if (current.ph === 'end') {
+    advanceOnline();
+  } else {
+    render();
   }
 }
 

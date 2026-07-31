@@ -262,6 +262,19 @@ export async function fetchGameState(roomId) {
 }
 
 /**
+ * DB から idx を取得
+ * @param {string} roomId - ルームID
+ * @returns {number|null} idx値、または null（取得失敗時）
+ */
+export async function syncIdxFromDB(roomId) {
+  const { data } = await fetchGameState(roomId);
+  if (data?.game_data?.idx !== undefined) {
+    return data.game_data.idx;
+  }
+  return null;
+}
+
+/**
  * 現在のフェーズのアクションを取得
  * @param {string} roomId - ルームID
  * @param {string} phase - フェーズ名
