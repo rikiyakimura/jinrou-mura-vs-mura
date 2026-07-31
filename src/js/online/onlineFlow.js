@@ -18,7 +18,8 @@ import {
   updateGameState,
   fetchGameState,
   fetchPhaseActions,
-  unsubscribeAll
+  unsubscribeAll,
+  setConnectionCallback
 } from './sync.js';
 import { initGameState } from './room.js';
 import { startTimeout, clearTimeoutTimer } from './timeout.js';
@@ -183,11 +184,31 @@ function setupSync() {
   const roomId = onlineState.roomId;
   const myPlayerId = onlineState.myPlayerId;
 
+  // 接続状態変更時のコールバック
+  setConnectionCallback(onConnectionChange);
+
   // ゲーム状態の変更を監視
   subscribeToGameState(roomId, onGameStateChange, onBothPlayersReady);
 
   // 相手のアクションを監視
   subscribeToActions(roomId, myPlayerId, onOpponentAction);
+}
+
+/**
+ * 接続状態変更時
+ */
+function onConnectionChange(status) {
+  if (!onlineState.waitingForOpponent) return;
+
+  if (status === 'error') {
+    if (_showOnlineWaiting) {
+      _showOnlineWaiting('接続が切れました。再接続中...', 'error');
+    }
+  } else if (status === 'connected') {
+    if (_showOnlineWaiting) {
+      _showOnlineWaiting('相手の操作を待っています...', 'normal');
+    }
+  }
 }
 
 /**
@@ -423,7 +444,7 @@ export async function submitOnlineAction(action) {
 
     // 待機中表示
     if (_showOnlineWaiting) {
-      _showOnlineWaiting('相手の操作を待っています...');
+      _showOnlineWaiting('相手の操作を待っています...', 'normal');
     }
 
     // ポーリング開始（Realtime欠落時のフォールバック）

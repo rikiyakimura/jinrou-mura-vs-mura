@@ -73,6 +73,10 @@ button.back:hover{color:var(--kinari)}
 .code-input input:focus{outline:none;border-color:var(--kuchiba)}
 
 .waiting-indicator{display:flex;align-items:center;gap:12px;color:var(--kinari-faint);font-size:14px;margin:16px 0}
+.waiting-indicator.warning{color:var(--kuchiba)}
+.waiting-indicator.warning .spinner{border-top-color:var(--kuchiba)}
+.waiting-indicator.error{color:var(--akane-glow)}
+.waiting-indicator.error .spinner{border-top-color:var(--akane-glow)}
 .spinner{width:20px;height:20px;border:2px solid var(--indigo-edge);border-top-color:var(--kuchiba);border-radius:50%;animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 

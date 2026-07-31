@@ -11,6 +11,17 @@ let currentRoomId = null;
 let gameStateChannel = null;
 let actionsChannel = null;
 
+// 接続状態コールバック
+let _onConnectionChange = null;
+
+/**
+ * 接続状態変更時のコールバックを設定
+ * @param {function} callback - (status: 'connected' | 'disconnected' | 'error') => void
+ */
+export function setConnectionCallback(callback) {
+  _onConnectionChange = callback;
+}
+
 /**
  * ゲーム状態の同期を開始
  * @param {string} roomId - ルームID
@@ -43,7 +54,18 @@ export function subscribeToGameState(roomId, onStateChange, onBothReady) {
         }
       }
     )
-    .subscribe();
+    .subscribe((status) => {
+      // 接続状態を通知
+      if (_onConnectionChange) {
+        if (status === 'SUBSCRIBED') {
+          _onConnectionChange('connected');
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          _onConnectionChange('error');
+        } else if (status === 'CLOSED') {
+          _onConnectionChange('disconnected');
+        }
+      }
+    });
 
   return () => {
     if (gameStateChannel) {

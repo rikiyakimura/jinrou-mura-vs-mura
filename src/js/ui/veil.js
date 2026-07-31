@@ -410,18 +410,23 @@ function cleanupOnlineSubscriptions() {
 
 /**
  * オンライン待機画面を表示
+ * @param {string} message - 表示メッセージ
+ * @param {string} status - 状態 ('normal' | 'warning' | 'error')
  */
-export function showOnlineWaiting(message) {
+export function showOnlineWaiting(message, status = 'normal') {
   const el = document.getElementById('veil');
   el.style.display = 'flex';
   document.body.style.overflow = 'hidden';
 
+  const statusClass = status === 'error' ? 'error' : status === 'warning' ? 'warning' : '';
+
   el.innerHTML = `<div class="inner waiting">
-    <div class="waiting-indicator">
+    <div class="waiting-indicator ${statusClass}">
       <div class="spinner"></div>
       <span>${message}</span>
     </div>
     <div id="timeout-display" class="timeout-display"></div>
+    <button class="quit" onclick="window._quitGame()">やめる</button>
   </div>`;
 }
 
