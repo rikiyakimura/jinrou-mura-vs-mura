@@ -26,7 +26,7 @@ import {
 import { toggleLedger, openLedger, closeLedger, initLedgerSwipe } from './ui/ledger.js';
 
 // オンライン
-import { submitOnlineAction, setOnlineFlowCallbacks, advanceOnline, surrenderOnline, endOnlineGame, sendEmote, canSendEmote } from './online/onlineFlow.js';
+import { submitOnlineAction, setOnlineFlowCallbacks, advanceOnline, surrenderOnline, endOnlineGame, sendEmote, canSendEmote, markPlayerLeft } from './online/onlineFlow.js';
 import { setPlayerName } from './online/supabase.js';
 
 // ========== エモート表示 ==========
@@ -394,8 +394,11 @@ window._quitGame = async () => {
     showTitle();
   }
 };
-window._backToTitle = () => {
+window._backToTitle = async () => {
   // 決着後にタイトルに戻る（降参ではない）
+  if (G.mode === 'online') {
+    await markPlayerLeft();
+  }
   endOnlineGame();
   showTitle();
 };

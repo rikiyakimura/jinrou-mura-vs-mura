@@ -244,6 +244,14 @@ function onGameStateChange(newState) {
     return;
   }
 
+  // 退出検出：相手が退出した場合
+  if (gameData.playerLeft && gameData.playerLeft !== onlineState.myPlayerId) {
+    alert('相手が退出しました。タイトルに戻ります。');
+    endOnlineGame();
+    if (_showTitle) _showTitle();
+    return;
+  }
+
   // リスタート検出：現在ゲーム終了中で、新しいゲーム状態（idx=0, done=false）が来た場合
   if (G && G.done && gameData.idx === 0 && !gameData.done) {
     // 相手がリスタートした
@@ -580,6 +588,17 @@ export async function surrenderOnline() {
   // DBに降参を記録
   await updateGameState(onlineState.roomId, {
     game_data: { ...getG(), surrendered: onlineState.myPlayerId }
+  });
+}
+
+/**
+ * プレイヤーが退出したことを記録
+ */
+export async function markPlayerLeft() {
+  if (!onlineState.roomId) return;
+
+  await updateGameState(onlineState.roomId, {
+    game_data: { ...getG(), playerLeft: onlineState.myPlayerId }
   });
 }
 
