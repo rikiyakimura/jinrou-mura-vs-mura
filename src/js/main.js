@@ -343,11 +343,7 @@ window._toggleSwap = toggleSwap;
 // オンライン用
 window._showOnlineMenu = showOnlineMenu;
 window._showOnlineOptions = showOnlineOptions;
-window._savePlayerName = (name) => {
-  const trimmed = name.trim() || '名無し';
-  console.log('[DEBUG] _savePlayerName:', { name, trimmed });
-  setPlayerName(trimmed);
-};
+window._savePlayerName = (name) => setPlayerName(name.trim() || '名無し');
 window._toggleOptOnline = toggleOptOnline;
 window._showCreateRoom = showCreateRoom;
 window._showJoinRoom = showJoinRoom;
@@ -366,14 +362,14 @@ window._confirmNight = confirmNightOnline;
 window._nextFromMorning = nextFromMorning;
 window._showTitle = showTitle;
 window._restartGame = restartGame;
-window._quitGame = () => {
+window._quitGame = async () => {
   const msg = G.mode === 'online'
     ? '降参して終了しますか？（相手の勝ちになります）'
     : 'ゲームを終了しますか？';
 
   if (confirm(msg)) {
     if (G.mode === 'online') {
-      surrenderOnline();
+      await surrenderOnline();
     }
     endOnlineGame();
     showTitle();

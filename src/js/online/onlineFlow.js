@@ -200,7 +200,6 @@ function onGameStateChange(newState) {
 
   // 降参検出：相手が降参した場合
   if (gameData.surrendered && gameData.surrendered !== onlineState.myPlayerId) {
-    // 相手が降参 → 自分の勝ち
     alert('相手が降参しました。あなたの勝ちです！');
     endOnlineGame();
     if (_showTitle) _showTitle();
@@ -542,8 +541,7 @@ export async function surrenderOnline() {
 
   // DBに降参を記録
   await updateGameState(onlineState.roomId, {
-    game_data: { ...getG(), surrendered: onlineState.myPlayerId },
-    status: 'finished'
+    game_data: { ...getG(), surrendered: onlineState.myPlayerId }
   });
 }
 
