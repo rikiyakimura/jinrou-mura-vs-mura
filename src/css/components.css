@@ -8,6 +8,10 @@ button.danger{background:var(--akane);color:#FFF1EC;border-color:var(--akane);fo
 button.danger:hover:not(:disabled){background:var(--akane-glow)}
 button.big{font-size:16px;padding:16px 28px}
 button.mini{padding:2px 9px;font-size:12px;min-width:0;border-radius:20px;line-height:1.4}
+button.quit{background:transparent;color:var(--kinari-faint);border-color:transparent;font-size:12px;padding:6px 12px}
+button.quit:hover:not(:disabled){background:var(--indigo-lift);color:var(--kinari)}
+
+.quitrow{display:flex;justify-content:flex-end;margin-top:12px;padding-top:8px;border-top:1px solid var(--indigo-edge)}
 
 .btnrow{display:flex;gap:9px;flex-wrap:wrap;margin-top:6px}
 .btnrow.tickbtns{gap:8px}

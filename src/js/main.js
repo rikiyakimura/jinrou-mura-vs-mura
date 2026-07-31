@@ -26,7 +26,7 @@ import {
 import { toggleLedger, openLedger, closeLedger, initLedgerSwipe } from './ui/ledger.js';
 
 // オンライン
-import { submitOnlineAction, setOnlineFlowCallbacks, advanceOnline } from './online/onlineFlow.js';
+import { submitOnlineAction, setOnlineFlowCallbacks, advanceOnline, surrenderOnline, endOnlineGame } from './online/onlineFlow.js';
 import { setPlayerName } from './online/supabase.js';
 
 // ========== UIイベントハンドラ ==========
@@ -302,7 +302,8 @@ setVeilCallbacks({
 setOnlineFlowCallbacks({
   render,
   hideVeil: () => hideVeil(render),
-  showOnlineWaiting
+  showOnlineWaiting,
+  showTitle
 });
 
 // render.jsのコールバック
@@ -361,6 +362,19 @@ window._confirmNight = confirmNightOnline;
 window._nextFromMorning = nextFromMorning;
 window._showTitle = showTitle;
 window._restartGame = restartGame;
+window._quitGame = () => {
+  const msg = G.mode === 'online'
+    ? '降参して終了しますか？（相手の勝ちになります）'
+    : 'ゲームを終了しますか？';
+
+  if (confirm(msg)) {
+    if (G.mode === 'online') {
+      surrenderOnline();
+    }
+    endOnlineGame();
+    showTitle();
+  }
+};
 window._render = render;
 
 // 覚え書き用

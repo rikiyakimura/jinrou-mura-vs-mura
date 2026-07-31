@@ -44,13 +44,15 @@ export function renderPanel() {
   const tag = (G.mode === 'cpu' || G.mode === 'online') ? '' : `${v ? v.id : ''}P・`;
   const myName = G.myPlayerName || '自分';
   const myMapLabel = G.mode === 'online' ? `${myName}の村の地図` : '自分の村の地図';
+  const quitBtn = '<div class="quitrow"><button class="quit" onclick="window._quitGame()">やめる</button></div>';
 
   if (c.ph === 'place') {
     const p = v.people[v.placeIdx];
     el.innerHTML = H(`${tag}配置`, `
       <p class="lead"><b>${p.name}（${ROLE_LABEL[p.role]}）</b>をどの家に住まわせる？ <b>${myMapLabel}</b>で選ぶ。</p>
       <p>一度決めたら${getConfig().DAYS}夜のあいだ動かせない。</p>
-      <p style="color:var(--kinari-faint)">残り ${getConfig().VILLAGERS - v.placeIdx} 人</p>`);
+      <p style="color:var(--kinari-faint)">残り ${getConfig().VILLAGERS - v.placeIdx} 人</p>
+      ${quitBtn}`);
     return;
   }
 
@@ -69,7 +71,8 @@ export function renderPanel() {
       <p>相手は一度その道を通るまで、落とし穴の場所を知らない。落ちた後は相手にも見える。アイテムを取る前に通られると落とせないので、<b>アイテムのある家から出る道</b>に仕掛けると効きやすい。一度決めたら変えられない。</p>
       ${placedCount > 0 ? `<p class="good">${pitLabels.join('、')}の道に仕掛けた。</p>` : ''}
       ${allPlaced ? '' : `<p style="color:var(--kinari-faint)">道（点線）をタップして選ぶ。残り${remaining}本</p>`}
-      <div class="btnrow"><button class="primary" onclick="window._confirmPit()" ${allPlaced ? '' : 'disabled'}>これでいく</button></div>`);
+      <div class="btnrow"><button class="primary" onclick="window._confirmPit()" ${allPlaced ? '' : 'disabled'}>これでいく</button></div>
+      ${quitBtn}`);
     return;
   }
 
@@ -89,7 +92,8 @@ export function renderPanel() {
       <p>ただし人狼を送り、相手の爪研ぎ3ティックすべてに居合わせれば<b>その場で勝てる</b>。</p>
       ${extra}
       <div class="chips">${alive(v).map(p =>
-      `<div class="chip" onclick="window._chooseExplorer(${p.id})">${p.name}<small>${ROLE_LABEL[p.role]}</small></div>`).join('')}</div>`);
+      `<div class="chip" onclick="window._chooseExplorer(${p.id})">${p.name}<small>${ROLE_LABEL[p.role]}</small></div>`).join('')}</div>
+      ${quitBtn}`);
     return;
   }
 
@@ -112,7 +116,8 @@ export function renderPanel() {
         ${gotLine}
         <p class="lead">${mine.name}は5軒を回り終えた。</p>
         <div class="ticks">${tickRow}</div>
-        <div class="btnrow"><button class="primary" onclick="window._confirmRoute()">昼へ進む</button></div>`);
+        <div class="btnrow"><button class="primary" onclick="window._confirmRoute()">昼へ進む</button></div>
+        ${quitBtn}`);
       return;
     }
 
@@ -121,7 +126,8 @@ export function renderPanel() {
       <p class="lead">こちらの探索者は <b>${mine.name}</b>、相手から来ているのは <b>${theirs.name}</b>。</p>
       <p>${mine.name}が回る家を、<b>相手の村の地図</b>で1つずつ選ぶ。同じ家に留まるのも1ティック。5軒すべて回れば護衛届は必ず見つかるが、2ティック留まらないと爪研ぎは妨げられない。</p>
       <div class="ticks">${tickRow}</div>
-      <p class="warn" style="font-size:13px">選んだ家は戻せない。護衛届はその場で判定される。</p>`);
+      <p class="warn" style="font-size:13px">選んだ家は戻せない。護衛届はその場で判定される。</p>
+      ${quitBtn}`);
     return;
   }
 
@@ -183,6 +189,7 @@ export function renderPanel() {
       b += `<button class="primary" onclick="window._advanceTick()">次へ</button>`;
     }
     b += `</div>`;
+    b += quitBtn;
 
     const head = v.tickDone
       ? `${G.day}日目・昼　5ティック目まで明けた`
@@ -223,6 +230,7 @@ export function renderPanel() {
     }
     const need = canAttack(v) && v.attackTarget === null;
     b += `<div class="btnrow"><button class="primary" onclick="window._confirmNight()" ${need ? 'disabled' : ''}>夜を明かす</button></div>`;
+    b += quitBtn;
     el.innerHTML = H(`${G.day}日目・夜${(G.mode === 'cpu' || G.mode === 'online') ? '' : `　（${v.id}P）`}`, b);
     return;
   }
@@ -241,7 +249,8 @@ export function renderPanel() {
       <p class="lead">${n1}：${ra ? `<b>${ra}</b>が死んだ。` : '誰も欠けていない。'}</p>
       <p class="lead">${n2}：${rb ? `<b>${rb}</b>が死んだ。` : '誰も欠けていない。'}</p>
       <p>失敗の理由は、襲われた側にしか分からない。</p>
-      <div class="btnrow"><button class="primary" onclick="window._nextFromMorning()">${G.day >= getConfig().DAYS ? '決着を見る' : '次の日へ'}</button></div>`);
+      <div class="btnrow"><button class="primary" onclick="window._nextFromMorning()">${G.day >= getConfig().DAYS ? '決着を見る' : '次の日へ'}</button></div>
+      ${quitBtn}`);
     return;
   }
 

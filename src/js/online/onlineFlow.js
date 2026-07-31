@@ -45,6 +45,7 @@ let _hideVeil = null;
 let _showOnlineWaiting = null;
 let _onTimeout = null;
 let _onOpponentLeft = null;
+let _showTitle = null;
 
 // ポーリング用
 let pollIntervalId = null;
@@ -59,6 +60,7 @@ export function setOnlineFlowCallbacks(callbacks) {
   _showOnlineWaiting = callbacks.showOnlineWaiting;
   _onTimeout = callbacks.onTimeout;
   _onOpponentLeft = callbacks.onOpponentLeft;
+  _showTitle = callbacks.showTitle;
 }
 
 /**
@@ -195,6 +197,15 @@ function onGameStateChange(newState) {
   if (!newState.game_data) return;
 
   const gameData = newState.game_data;
+
+  // 降参検出：相手が降参した場合
+  if (gameData.surrendered && gameData.surrendered !== onlineState.myPlayerId) {
+    // 相手が降参 → 自分の勝ち
+    alert('相手が降参しました。あなたの勝ちです！');
+    endOnlineGame();
+    if (_showTitle) _showTitle();
+    return;
+  }
 
   // リスタート検出：現在ゲーム終了中で、新しいゲーム状態（idx=0, done=false）が来た場合
   if (G && G.done && gameData.idx === 0 && !gameData.done) {
@@ -521,6 +532,19 @@ export function endOnlineGame() {
     waitingForOpponent: false,
     waitingForRestart: false
   };
+}
+
+/**
+ * オンラインゲームで降参
+ */
+export async function surrenderOnline() {
+  if (!onlineState.roomId) return;
+
+  // DBに降参を記録
+  await updateGameState(onlineState.roomId, {
+    game_data: { ...getG(), surrendered: onlineState.myPlayerId },
+    status: 'finished'
+  });
 }
 
 /**
