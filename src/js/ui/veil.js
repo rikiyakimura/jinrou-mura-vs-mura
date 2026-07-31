@@ -161,7 +161,7 @@ export function showOnlineMenu() {
     <div class="title-sm">オンライン対戦</div>
     <div class="name-input">
       <label>あなたの名前</label>
-      <input type="text" id="player-name" value="${savedName}" placeholder="ニックネーム" maxlength="10">
+      <input type="text" id="player-name" value="${savedName}" placeholder="ニックネーム" maxlength="10" oninput="window._savePlayerName(this.value)">
     </div>
     <div class="online-btns">
       <button class="primary big" onclick="window._showOnlineOptions('create')">ルームを作る<span class="note">コードを相手に伝える</span></button>
