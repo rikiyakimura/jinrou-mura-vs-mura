@@ -272,46 +272,16 @@ function onGameStateChange(newState) {
     // ベールを非表示にして描画
     if (_hideVeil) _hideVeil();
     if (_render) _render();
-    return;
-  }
-
-  // ★ゲストの状態同期：ホストがDB更新した場合
-  if (!onlineState.isHost && onlineState.waitingForOpponent) {
-    // idxが進んでいれば、ホストが状態を更新した
-    if (gameData.idx !== undefined && gameData.idx !== G.idx) {
-      // プリセットを再設定（念のため）
-      if (gameData.opt) {
-        setPreset(gameData.opt.large ? 'large' : 'classic');
-      }
-
-      // 状態を同期（myPlayerId等は維持）
-      const syncedG = { ...gameData };
-      syncedG.roomId = onlineState.roomId;
-      syncedG.myPlayerId = onlineState.myPlayerId;
-      syncedG.myPlayerName = onlineState.myPlayerName;
-      syncedG.opponentName = onlineState.opponentName;
-
-      setG(syncedG);
-
-      // 待機状態を解除
-      onlineState.waitingForOpponent = false;
-      stopReadyPolling();
-      clearTimeoutTimer();
-
-      if (_hideVeil) _hideVeil();
-      if (_render) _render();
-    }
   }
 }
 
 /**
  * 両者ready時
- * ホストのみがゲーム状態を更新しDBに保存、ゲストはDB同期を待つ
  */
 async function onBothPlayersReady(state) {
   if (!onlineState.waitingForOpponent) return;
 
-  // ポーリング・タイマー停止（両者共通）
+  onlineState.waitingForOpponent = false;
   stopReadyPolling();
   clearTimeoutTimer();
 
@@ -324,66 +294,80 @@ async function onBothPlayersReady(state) {
     const { data: allActions } = await fetchPhaseActions(onlineState.roomId, currentPhase);
     actions = allActions ? allActions.slice(-2) : [];
     if (actions.length >= 2) break;
-    await new Promise(r => setTimeout(r, 300));
+    await new Promise(r => setTimeout(r, 300)); // 300ms待機
   }
 
   if (actions.length < 2) {
     console.error('Failed to fetch both actions after retries');
     // 待機状態に戻す（ポーリングが再検出する）
+    onlineState.waitingForOpponent = true;
     startReadyPolling();
     return;
   }
 
-  // 両者のアクションを適用（両者共通）
-  actions.forEach(a => {
-    applyAction({
-      playerId: a.player_id,
-      phase: a.action_type,
-      data: a.action_data
+  if (actions && actions.length >= 2) {
+    // 両者のアクションを適用
+    actions.forEach(a => {
+      applyAction({
+        playerId: a.player_id,
+        phase: a.action_type,
+        data: a.action_data
+      });
     });
-  });
 
-  // ready状態をリセット（両者共通）
-  await resetBothReady(onlineState.roomId);
+    // ready状態をリセット
+    await resetBothReady(onlineState.roomId);
 
-  // ★ホストのみ：ゲーム状態を進めてDB保存
-  if (onlineState.isHost) {
-    onlineState.waitingForOpponent = false;
-
+    // 同時入力フェーズの場合、両者分のスケジュールをスキップ
     if (SIMULTANEOUS_PHASES.includes(currentPhase)) {
-      // place/pitフェーズは特殊処理
+      // place/pitフェーズは特殊処理（スケジュールが1P→2P交互になっているため）
       if (currentPhase === 'place') {
-        G.idx = G.opt?.pit ? 1 : 2;
+        if (G.opt?.pit) {
+          // pitがある場合：placeの次のpitフェーズへ（idx 1）
+          G.idx = 1;
+        } else {
+          // pitがない場合：explorerフェーズへ（idx 2）
+          G.idx = 2;
+        }
       } else if (currentPhase === 'pit') {
+        // pitの後はexplorerフェーズへ（スケジュールを検索）
         const explorerIdx = G.sched.findIndex(e => e.ph === 'explorer');
         G.idx = explorerIdx >= 0 ? explorerIdx : G.idx + 2;
       } else {
+        // explorer, route, ticks, night - 2エントリをスキップ
         G.idx += 2;
       }
 
-      // ticksフェーズ終了後の解決処理（早期returnしない）
+      // ticksフェーズ終了後の解決処理
       if (currentPhase === 'ticks') {
         resolveDay(_hideVeil);
-      }
-
-      // nightフェーズ終了後の解決処理（早期returnしない）
-      if (currentPhase === 'night') {
-        resolveNight();
-        if (!G.done) {
-          const config = getConfig();
-          if (G.day < config.DAYS) {
-            startOnlineDay();
-          }
+        if (G.done) {
+          if (_render) _render();
+          return;
         }
       }
 
-      // 次フェーズ情報
+      // nightフェーズ終了後の解決処理
+      if (currentPhase === 'night') {
+        resolveNight();
+        if (G.done) {
+          if (_render) _render();
+          return;
+        }
+        // 次の日の開始
+        const config = getConfig();
+        if (G.day < config.DAYS) {
+          startOnlineDay();
+        }
+      }
+
+      // 次の日の初期化が必要な場合
       const next = cur();
       if (next.day) G.day = next.day;
       if (next.ph === 'ticks') G.tickIdx = 0;
 
-      // ★常にDB保存（G.done=trueでも保存する）
-      await updateGameState(onlineState.roomId, {
+      // ゲーム状態をDBに保存
+      updateGameState(onlineState.roomId, {
         game_data: getG(),
         current_phase: next.ph,
         current_day: G.day,
@@ -395,12 +379,6 @@ async function onBothPlayersReady(state) {
     } else {
       // 順次入力フェーズへ
       advanceOnline();
-    }
-  } else {
-    // ★ゲスト：ホストのDB更新を待つ
-    // waitingForOpponentはtrueのまま維持（onGameStateChangeで解除）
-    if (_showOnlineWaiting) {
-      _showOnlineWaiting('同期中...', 'normal');
     }
   }
 }
