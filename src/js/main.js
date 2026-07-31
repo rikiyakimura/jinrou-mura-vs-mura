@@ -375,6 +375,11 @@ window._quitGame = async () => {
     showTitle();
   }
 };
+window._backToTitle = () => {
+  // 決着後にタイトルに戻る（降参ではない）
+  endOnlineGame();
+  showTitle();
+};
 window._render = render;
 
 // 覚え書き用
