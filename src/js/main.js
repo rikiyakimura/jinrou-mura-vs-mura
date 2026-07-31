@@ -28,6 +28,7 @@ import { toggleLedger, openLedger, closeLedger, initLedgerSwipe } from './ui/led
 // オンライン
 import { submitOnlineAction, setOnlineFlowCallbacks, advanceOnline, surrenderOnline, endOnlineGame, sendEmote, canSendEmote, markPlayerLeft } from './online/onlineFlow.js';
 import { setPlayerName } from './online/supabase.js';
+import { updateGameState } from './online/sync.js';
 
 // ========== エモート表示 ==========
 
@@ -300,6 +301,43 @@ function confirmNightOnline() {
   }
 }
 
+/**
+ * 朝の結果を確認して次の日へ（オンライン対応ラッパー）
+ */
+async function nextFromMorningOnline() {
+  if (G.mode === 'online') {
+    // オンラインモード：ローカルでidxを進め、DBにも保存
+    const config = getConfig();
+    if (G.day >= config.DAYS) {
+      // 最終日 → 決着
+      G.idx++;
+      advanceOnline();
+    } else {
+      // 次の日へ
+      G.idx++;
+      const c = G.sched[G.idx];
+      if (c && c.day) G.day = c.day;
+
+      // DBに保存（トリガーが正しいidxを使えるように）
+      const roomId = G.roomId;
+      await updateGameState(roomId, {
+        game_data: {
+          ...G,
+          idx: G.idx,
+          day: G.day
+        },
+        current_phase: c ? c.ph : 'explorer',
+        current_day: G.day,
+        current_player: c ? c.who : 1
+      });
+
+      render();
+    }
+  } else {
+    nextFromMorning();
+  }
+}
+
 // ========== コールバック設定 ==========
 
 // flow.jsのコールバック
@@ -344,7 +382,7 @@ setPanelCallbacks({
   advanceTick,
   finishDay: finishDayOnline,
   confirmNight: confirmNightOnline,
-  nextFromMorning,
+  nextFromMorning: nextFromMorningOnline,
   showTitle
 });
 
@@ -378,7 +416,7 @@ window._startSharpenMad = startSharpenMad;
 window._advanceTick = advanceTick;
 window._finishDay = finishDayOnline;
 window._confirmNight = confirmNightOnline;
-window._nextFromMorning = nextFromMorning;
+window._nextFromMorning = nextFromMorningOnline;
 window._showTitle = showTitle;
 window._restartGame = restartGame;
 window._quitGame = async () => {
