@@ -161,7 +161,7 @@ export function showOnlineMenu() {
     <div class="title-sm">オンライン対戦</div>
     <div class="name-input">
       <label>あなたの名前</label>
-      <input type="text" id="player-name" value="${savedName}" placeholder="ニックネーム" maxlength="10" oninput="window._savePlayerName(this.value)">
+      <input type="text" id="player-name" value="${savedName}" placeholder="ニックネーム" maxlength="10" oninput="window._savePlayerName(this.value)" onchange="window._savePlayerName(this.value)" onblur="window._savePlayerName(this.value)">
     </div>
     <div class="online-btns">
       <button class="primary big" onclick="window._showOnlineOptions('create')">ルームを作る<span class="note">コードを相手に伝える</span></button>
@@ -176,7 +176,10 @@ export function showOnlineMenu() {
  * オンラインオプション画面を表示（ルーム作成/マッチング前）
  */
 export function showOnlineOptions(action) {
-  const playerName = document.getElementById('player-name')?.value.trim() || '名無し';
+  const inputEl = document.getElementById('player-name');
+  const rawValue = inputEl?.value;
+  const playerName = rawValue?.trim() || '名無し';
+  console.log('[DEBUG] showOnlineOptions:', { inputEl: !!inputEl, rawValue, playerName });
   setPlayerName(playerName);
 
   onlineScreen = 'options';
@@ -221,7 +224,9 @@ export function toggleOptOnline(k) {
  * ルーム作成画面
  */
 export async function showCreateRoom() {
-  const playerName = getPlayerName() || '名無し';
+  const storedName = getPlayerName();
+  const playerName = storedName || '名無し';
+  console.log('[DEBUG] showCreateRoom:', { storedName, playerName });
 
   onlineScreen = 'create';
   const el = document.getElementById('veil');
@@ -265,7 +270,10 @@ export async function showCreateRoom() {
  * ルーム参加画面
  */
 export function showJoinRoom() {
-  const playerName = document.getElementById('player-name')?.value.trim() || '名無し';
+  const inputEl = document.getElementById('player-name');
+  const rawValue = inputEl?.value;
+  const playerName = rawValue?.trim() || '名無し';
+  console.log('[DEBUG] showJoinRoom:', { inputEl: !!inputEl, rawValue, playerName });
   setPlayerName(playerName);
 
   onlineScreen = 'join';

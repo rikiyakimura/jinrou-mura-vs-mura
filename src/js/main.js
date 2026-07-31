@@ -343,7 +343,11 @@ window._toggleSwap = toggleSwap;
 // オンライン用
 window._showOnlineMenu = showOnlineMenu;
 window._showOnlineOptions = showOnlineOptions;
-window._savePlayerName = (name) => setPlayerName(name.trim() || '名無し');
+window._savePlayerName = (name) => {
+  const trimmed = name.trim() || '名無し';
+  console.log('[DEBUG] _savePlayerName:', { name, trimmed });
+  setPlayerName(trimmed);
+};
 window._toggleOptOnline = toggleOptOnline;
 window._showCreateRoom = showCreateRoom;
 window._showJoinRoom = showJoinRoom;
