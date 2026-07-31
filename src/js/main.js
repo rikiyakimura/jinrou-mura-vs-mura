@@ -26,8 +26,26 @@ import {
 import { toggleLedger, openLedger, closeLedger, initLedgerSwipe } from './ui/ledger.js';
 
 // オンライン
-import { submitOnlineAction, setOnlineFlowCallbacks, advanceOnline, surrenderOnline, endOnlineGame } from './online/onlineFlow.js';
+import { submitOnlineAction, setOnlineFlowCallbacks, advanceOnline, surrenderOnline, endOnlineGame, sendEmote, canSendEmote } from './online/onlineFlow.js';
 import { setPlayerName } from './online/supabase.js';
+
+// ========== エモート表示 ==========
+
+/**
+ * エモートのトースト通知を表示
+ */
+function showEmoteToast(emote) {
+  const toast = document.createElement('div');
+  toast.className = 'emote-toast';
+  toast.textContent = `相手: ${emote}`;
+  document.body.appendChild(toast);
+
+  // 3秒後にフェードアウトして削除
+  setTimeout(() => {
+    toast.classList.add('fade-out');
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
 
 // ========== UIイベントハンドラ ==========
 
@@ -303,7 +321,8 @@ setOnlineFlowCallbacks({
   render,
   hideVeil: () => hideVeil(render),
   showOnlineWaiting,
-  showTitle
+  showTitle,
+  showEmoteToast
 });
 
 // render.jsのコールバック
@@ -379,6 +398,14 @@ window._backToTitle = () => {
   // 決着後にタイトルに戻る（降参ではない）
   endOnlineGame();
   showTitle();
+};
+window._sendEmote = async (emote) => {
+  if (G.mode !== 'online') return;
+  const success = await sendEmote(emote);
+  if (success) {
+    // 送信成功時、一時的にボタンを無効化表示（CSSで対応）
+    render();
+  }
 };
 window._render = render;
 

@@ -12,7 +12,10 @@ import { resolveDay, resolveNight, finish } from '../game/resolve.js';
 import {
   subscribeToGameState,
   subscribeToActions,
+  subscribeToEmotes,
   sendAction,
+  sendEmote as sendEmoteToDb,
+  canSendEmote,
   setPlayerReady,
   resetBothReady,
   updateGameState,
@@ -47,6 +50,7 @@ let _showOnlineWaiting = null;
 let _onTimeout = null;
 let _onOpponentLeft = null;
 let _showTitle = null;
+let _showEmoteToast = null;
 
 // ポーリング用
 let pollIntervalId = null;
@@ -62,6 +66,7 @@ export function setOnlineFlowCallbacks(callbacks) {
   _onTimeout = callbacks.onTimeout;
   _onOpponentLeft = callbacks.onOpponentLeft;
   _showTitle = callbacks.showTitle;
+  _showEmoteToast = callbacks.showEmoteToast;
 }
 
 /**
@@ -192,6 +197,18 @@ function setupSync() {
 
   // 相手のアクションを監視
   subscribeToActions(roomId, myPlayerId, onOpponentAction);
+
+  // エモートを監視
+  subscribeToEmotes(roomId, myPlayerId, onEmoteReceived);
+}
+
+/**
+ * エモート受信時
+ */
+function onEmoteReceived(emote) {
+  if (_showEmoteToast) {
+    _showEmoteToast(emote);
+  }
 }
 
 /**
@@ -631,3 +648,21 @@ export async function restartOnlineGame(renderCallback) {
 
   if (renderCallback) renderCallback();
 }
+
+/**
+ * エモートを送信
+ * @param {string} emote - エモート絵文字
+ * @returns {boolean} 送信成功したかどうか
+ */
+export async function sendEmote(emote) {
+  if (!onlineState.roomId || !onlineState.myPlayerId) return false;
+  if (!canSendEmote()) return false;
+
+  const { error } = await sendEmoteToDb(onlineState.roomId, onlineState.myPlayerId, emote);
+  return !error;
+}
+
+/**
+ * エモートを送信可能かどうか
+ */
+export { canSendEmote };

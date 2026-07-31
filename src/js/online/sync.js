@@ -10,6 +10,11 @@ import { setG, getG } from '../state.js';
 let currentRoomId = null;
 let gameStateChannel = null;
 let actionsChannel = null;
+let emotesChannel = null;
+
+// エモートクールダウン
+let lastEmoteTime = 0;
+const EMOTE_COOLDOWN = 3000; // 3秒
 
 // 接続状態コールバック
 let _onConnectionChange = null;
@@ -112,6 +117,70 @@ export function subscribeToActions(roomId, myPlayerId, onOpponentAction) {
       actionsChannel = null;
     }
   };
+}
+
+/**
+ * エモートを監視
+ * @param {string} roomId - ルームID
+ * @param {number} myPlayerId - 自分のプレイヤーID（1 or 2）
+ * @param {function} onEmote - エモート受信時コールバック
+ */
+export function subscribeToEmotes(roomId, myPlayerId, onEmote) {
+  emotesChannel = supabase
+    .channel(`emotes:${roomId}`)
+    .on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'player_emotes',
+        filter: `room_id=eq.${roomId}`
+      },
+      (payload) => {
+        const emote = payload.new;
+        // 相手のエモートのみ処理
+        if (emote.player_id !== myPlayerId && onEmote) {
+          onEmote(emote.emote);
+        }
+      }
+    )
+    .subscribe();
+
+  return () => {
+    if (emotesChannel) {
+      supabase.removeChannel(emotesChannel);
+      emotesChannel = null;
+    }
+  };
+}
+
+/**
+ * エモートを送信可能か
+ */
+export function canSendEmote() {
+  return Date.now() - lastEmoteTime >= EMOTE_COOLDOWN;
+}
+
+/**
+ * エモートをDBに送信
+ * @param {string} roomId - ルームID
+ * @param {number} playerId - プレイヤーID
+ * @param {string} emote - エモート絵文字
+ */
+export async function sendEmote(roomId, playerId, emote) {
+  if (!canSendEmote()) return { error: 'cooldown' };
+
+  lastEmoteTime = Date.now();
+
+  const { error } = await supabase
+    .from('player_emotes')
+    .insert({
+      room_id: roomId,
+      player_id: playerId,
+      emote: emote
+    });
+
+  return { error };
 }
 
 /**
@@ -219,6 +288,10 @@ export function unsubscribeAll() {
   if (actionsChannel) {
     supabase.removeChannel(actionsChannel);
     actionsChannel = null;
+  }
+  if (emotesChannel) {
+    supabase.removeChannel(emotesChannel);
+    emotesChannel = null;
   }
   currentRoomId = null;
 }

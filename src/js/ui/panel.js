@@ -34,6 +34,18 @@ export function setPanelCallbacks(callbacks) {
   _showTitle = callbacks.showTitle;
 }
 
+// エモート一覧
+const EMOTES = ['👍', '😊', '🤔', '⏳', '🙏', '😅', '❤️', '💀', '😏', '😜', '🤭', '👋'];
+
+/**
+ * エモートボタン行を生成（オンラインモードのみ）
+ */
+function emoteRow() {
+  if (G.mode !== 'online') return '';
+  const btns = EMOTES.map(e => `<button class="emote-btn" onclick="window._sendEmote('${e}')">${e}</button>`).join('');
+  return `<div class="emote-row">${btns}</div>`;
+}
+
 /**
  * パネルを描画
  */
@@ -44,7 +56,7 @@ export function renderPanel() {
   const tag = (G.mode === 'cpu' || G.mode === 'online') ? '' : `${v ? v.id : ''}P・`;
   const myName = G.myPlayerName || '自分';
   const myMapLabel = G.mode === 'online' ? `${myName}の村の地図` : '自分の村の地図';
-  const quitBtn = '<div class="quitrow"><button class="quit" onclick="window._quitGame()">やめる</button></div>';
+  const quitBtn = emoteRow() + '<div class="quitrow"><button class="quit" onclick="window._quitGame()">やめる</button></div>';
 
   if (c.ph === 'place') {
     const p = v.people[v.placeIdx];
