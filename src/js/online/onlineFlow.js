@@ -28,8 +28,11 @@ import { initGameState } from './room.js';
 import { startTimeout, clearTimeoutTimer } from './timeout.js';
 import { getPlayerName } from './supabase.js';
 
-// 同時入力が必要なフェーズ
-const SIMULTANEOUS_PHASES = ['place', 'pit', 'explorer', 'route', 'ticks', 'night'];
+// 待ち合わせが必要なフェーズ（explorer以降）
+const WAIT_PHASES = ['explorer', 'route', 'ticks', 'night'];
+
+// place/pitは待ち合わせなしで各自進行
+const LOCAL_PHASES = ['place', 'pit'];
 
 // オンライン状態
 let onlineState = {
@@ -55,6 +58,7 @@ let _showEmoteToast = null;
 // ポーリング用
 let pollIntervalId = null;
 const POLL_INTERVAL_MS = 3000;
+let expectedIdxAfterTrigger = null;  // トリガー発火後の期待idx
 
 /**
  * コールバック設定
@@ -272,21 +276,35 @@ function onGameStateChange(newState) {
     // ベールを非表示にして描画
     if (_hideVeil) _hideVeil();
     if (_render) _render();
+    return;
+  }
+
+  // トリガー発火検出：待機中にidxが期待値に変化した場合
+  if (onlineState.waitingForOpponent && expectedIdxAfterTrigger !== null) {
+    if (gameData.idx === expectedIdxAfterTrigger) {
+      onBothPlayersReady(newState);
+    }
   }
 }
 
 /**
- * 両者ready時
+ * 両者ready時（トリガーによりidx += 2、ready = false が実行済み）
  */
 async function onBothPlayersReady(state) {
   if (!onlineState.waitingForOpponent) return;
 
   onlineState.waitingForOpponent = false;
+  expectedIdxAfterTrigger = null;  // リセット
   stopReadyPolling();
   clearTimeoutTimer();
 
-  const c = cur();
-  const currentPhase = c.ph;
+  const currentPhase = cur().ph;
+
+  // トリガーにより更新されたidxを取得
+  const { data: latestState } = await fetchGameState(onlineState.roomId);
+  if (latestState && latestState.game_data) {
+    G.idx = latestState.game_data.idx;
+  }
 
   // 両者のアクションを取得（リトライ付き）
   let actions = [];
@@ -294,106 +312,69 @@ async function onBothPlayersReady(state) {
     const { data: allActions } = await fetchPhaseActions(onlineState.roomId, currentPhase);
     actions = allActions ? allActions.slice(-2) : [];
     if (actions.length >= 2) break;
-    await new Promise(r => setTimeout(r, 300)); // 300ms待機
+    await new Promise(r => setTimeout(r, 300));
   }
 
   if (actions.length < 2) {
     console.error('Failed to fetch both actions after retries');
-    // 待機状態に戻す（ポーリングが再検出する）
     onlineState.waitingForOpponent = true;
     startReadyPolling();
     return;
   }
 
-  if (actions && actions.length >= 2) {
-    // 両者のアクションを適用
-    actions.forEach(a => {
-      applyAction({
-        playerId: a.player_id,
-        phase: a.action_type,
-        data: a.action_data
-      });
+  // 両者のアクションを適用
+  actions.forEach(a => {
+    applyAction({
+      playerId: a.player_id,
+      phase: a.action_type,
+      data: a.action_data
     });
+  });
 
-    // ready状態をリセット
-    await resetBothReady(onlineState.roomId);
+  // ticksフェーズ終了後の解決処理
+  if (currentPhase === 'ticks') {
+    resolveDay(_hideVeil);
+  }
 
-    // 同時入力フェーズの場合、両者分のスケジュールをスキップ
-    if (SIMULTANEOUS_PHASES.includes(currentPhase)) {
-      // place/pitフェーズは特殊処理（スケジュールが1P→2P交互になっているため）
-      if (currentPhase === 'place') {
-        if (G.opt?.pit) {
-          // pitがある場合：placeの次のpitフェーズへ（idx 1）
-          G.idx = 1;
-        } else {
-          // pitがない場合：explorerフェーズへ（idx 2）
-          G.idx = 2;
-        }
-      } else if (currentPhase === 'pit') {
-        // pitの後はexplorerフェーズへ（スケジュールを検索）
-        const explorerIdx = G.sched.findIndex(e => e.ph === 'explorer');
-        G.idx = explorerIdx >= 0 ? explorerIdx : G.idx + 2;
-      } else {
-        // explorer, route, ticks, night - 2エントリをスキップ
-        G.idx += 2;
+  // nightフェーズ終了後の解決処理
+  if (currentPhase === 'night') {
+    resolveNight();
+    if (!G.done) {
+      const config = getConfig();
+      if (G.day < config.DAYS) {
+        startOnlineDay();
       }
-
-      // ticksフェーズ終了後の解決処理
-      if (currentPhase === 'ticks') {
-        resolveDay(_hideVeil);
-        if (G.done) {
-          if (_render) _render();
-          return;
-        }
-      }
-
-      // nightフェーズ終了後の解決処理
-      if (currentPhase === 'night') {
-        resolveNight();
-        if (G.done) {
-          if (_render) _render();
-          return;
-        }
-        // 次の日の開始
-        const config = getConfig();
-        if (G.day < config.DAYS) {
-          startOnlineDay();
-        }
-      }
-
-      // 次の日の初期化が必要な場合
-      const next = cur();
-      if (next.day) G.day = next.day;
-      if (next.ph === 'ticks') G.tickIdx = 0;
-
-      // ゲーム状態をDBに保存
-      updateGameState(onlineState.roomId, {
-        game_data: getG(),
-        current_phase: next.ph,
-        current_day: G.day,
-        current_player: next.who
-      });
-
-      if (_hideVeil) _hideVeil();
-      if (_render) _render();
-    } else {
-      // 順次入力フェーズへ
-      advanceOnline();
     }
   }
+
+  // 次フェーズ情報を更新
+  const next = cur();
+  if (next.day) G.day = next.day;
+  if (next.ph === 'ticks') G.tickIdx = 0;
+
+  // ゲーム状態をDBに保存（resolveDay/Night等の結果を反映）
+  await updateGameState(onlineState.roomId, {
+    game_data: getG(),
+    current_phase: next.ph,
+    current_day: G.day,
+    current_player: next.who
+  });
+
+  if (_hideVeil) _hideVeil();
+  if (_render) _render();
 }
 
 /**
  * 相手のアクション受信時
  */
 function onOpponentAction(action) {
-  // 同時入力フェーズでない場合は即座に適用
+  // 待ち合わせフェーズ以外は即座に適用
   const c = cur();
-  if (!SIMULTANEOUS_PHASES.includes(c.ph)) {
+  if (!WAIT_PHASES.includes(c.ph) && !LOCAL_PHASES.includes(c.ph)) {
     applyAction(action);
     if (_render) _render();
   }
-  // 同時入力フェーズの場合はonBothPlayersReadyで処理
+  // 待ち合わせフェーズの場合はonBothPlayersReadyで処理
 }
 
 /**
@@ -451,15 +432,27 @@ export async function submitOnlineAction(action) {
 
   const c = cur();
 
-  if (SIMULTANEOUS_PHASES.includes(c.ph)) {
-    // 同時入力フェーズ → ready状態にして相手を待つ
+  // place/pit は待ち合わせなし、ローカルで次へ進む
+  if (LOCAL_PHASES.includes(c.ph)) {
+    advanceLocal();
+    return;
+  }
+
+  // explorer以降は待ち合わせ
+  if (WAIT_PHASES.includes(c.ph)) {
+    // トリガー発火後の期待idxを記録
+    expectedIdxAfterTrigger = G.idx + 2;
+
+    // ready状態にして相手を待つ
     await setPlayerReady(roomId, myPlayerId, true);
 
     // 即座にDBを確認（後からreadyにした方はここで検出できる）
     const { data: immediateCheck } = await fetchGameState(roomId);
-    if (immediateCheck?.player1_ready && immediateCheck?.player2_ready) {
-      // 両者ready → 即座に進行
-      onlineState.waitingForOpponent = true;  // フラグを立ててから呼ぶ
+
+    // トリガーによりidxが進んでいれば発火済み
+    if (immediateCheck?.game_data?.idx === expectedIdxAfterTrigger) {
+      // トリガー発火済み → 即座に進行
+      onlineState.waitingForOpponent = true;
       onBothPlayersReady(immediateCheck);
       return;
     }
@@ -486,17 +479,43 @@ export async function submitOnlineAction(action) {
 }
 
 /**
- * 両者ready状態をポーリングで確認
+ * place/pit完了後、ローカルで次のフェーズへ進む
+ */
+function advanceLocal() {
+  const c = cur();
+
+  if (c.ph === 'place') {
+    // place完了 → pit or explorer へ
+    if (G.opt?.pit) {
+      // pitあり: P1 pit (idx 1) へ
+      G.idx = 1;
+    } else {
+      // pitなし: explorer (idx 2) へ
+      G.idx = 2;
+    }
+  } else if (c.ph === 'pit') {
+    // pit完了 → explorer へ
+    const explorerIdx = G.sched.findIndex(e => e.ph === 'explorer');
+    G.idx = explorerIdx >= 0 ? explorerIdx : G.idx + 2;
+  }
+
+  if (_render) _render();
+}
+
+/**
+ * トリガー発火をポーリングで確認
+ * トリガーが発火するとidxが+2され、readyがfalseになる
  */
 function startReadyPolling() {
-  stopReadyPolling(); // 既存のポーリングをクリア
+  stopReadyPolling();
   pollIntervalId = setInterval(async () => {
     if (!onlineState.waitingForOpponent) {
       stopReadyPolling();
       return;
     }
     const { data } = await fetchGameState(onlineState.roomId);
-    if (data?.player1_ready && data?.player2_ready) {
+    // トリガー発火後はidxが期待値になっている
+    if (data?.game_data?.idx === expectedIdxAfterTrigger) {
       stopReadyPolling();
       onBothPlayersReady(data);
     }
