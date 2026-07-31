@@ -327,6 +327,13 @@ async function onBothPlayersReady(state) {
     return;
   }
 
+  // explorerフェーズ完了時、相手のplace/pitアクションを取得・適用
+  // （この時点で両者がexplorerを送信しているので、place/pitは必ず完了済み）
+  if (currentPhase === 'explorer' && !setupActionsFetched) {
+    await fetchAndApplySetupActions();
+    setupActionsFetched = true;
+  }
+
   // 両者のアクションを適用
   actions.forEach(a => {
     applyAction({
@@ -468,12 +475,6 @@ export async function submitOnlineAction(action) {
 
   // explorer以降は待ち合わせ
   if (WAIT_PHASES.includes(c.ph)) {
-    // 初回のWAIT_PHASE（explorer）前に、相手のplace/pitアクションを取得・適用
-    if (!setupActionsFetched) {
-      await fetchAndApplySetupActions();
-      setupActionsFetched = true;
-    }
-
     // トリガー発火後の期待idxを記録
     expectedIdxAfterTrigger = G.idx + 2;
 
