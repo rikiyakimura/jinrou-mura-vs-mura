@@ -481,7 +481,7 @@ export async function submitOnlineAction(action) {
 /**
  * place/pit完了後、ローカルで次のフェーズへ進む
  */
-function advanceLocal() {
+async function advanceLocal() {
   const c = cur();
 
   if (c.ph === 'place') {
@@ -498,6 +498,14 @@ function advanceLocal() {
     const explorerIdx = G.sched.findIndex(e => e.ph === 'explorer');
     G.idx = explorerIdx >= 0 ? explorerIdx : G.idx + 2;
   }
+
+  // DBにも保存（トリガーが正しいidxを使えるように）
+  await updateGameState(onlineState.roomId, {
+    game_data: getG(),
+    current_phase: cur().ph,
+    current_day: G.day,
+    current_player: cur().who
+  });
 
   if (_render) _render();
 }
