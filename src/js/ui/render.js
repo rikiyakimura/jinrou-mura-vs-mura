@@ -231,7 +231,7 @@ export function renderEmoteBar() {
       <button class="emote-toggle close" onclick="window._toggleEmoteBar()">×</button>
     `;
   } else {
-    bar.innerHTML = `<button class="emote-toggle" onclick="window._toggleEmoteBar()">😊</button>`;
+    bar.innerHTML = `<button class="emote-toggle" onclick="window._toggleEmoteBar()">エモート</button>`;
   }
 
   document.body.appendChild(bar);
