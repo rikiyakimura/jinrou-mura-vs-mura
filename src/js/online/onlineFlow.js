@@ -21,6 +21,7 @@ import {
   updateGameState,
   fetchGameState,
   fetchPhaseActions,
+  fetchSetupActions,
   unsubscribeAll,
   setConnectionCallback
 } from './sync.js';
@@ -59,6 +60,7 @@ let _showEmoteToast = null;
 let pollIntervalId = null;
 const POLL_INTERVAL_MS = 3000;
 let expectedIdxAfterTrigger = null;  // トリガー発火後の期待idx
+let setupActionsFetched = false;  // place/pitアクションを取得済みか
 
 /**
  * コールバック設定
@@ -130,6 +132,7 @@ export async function startOnlineGameAsHost(room, opt) {
 
   // 同期を開始
   setupSync();
+  setupActionsFetched = false;
 
   // 最初の日の初期化
   startOnlineDay();
@@ -182,6 +185,7 @@ export async function startOnlineGameAsGuest(room) {
 
   // 同期を開始
   setupSync();
+  setupActionsFetched = false;
 
   if (_render) _render();
 }
@@ -269,6 +273,7 @@ function onGameStateChange(newState) {
     setPreset(savedG.opt.large ? 'large' : 'classic');
 
     setG(savedG);
+    setupActionsFetched = false;
 
     // 最初の日の初期化
     startOnlineDay();
@@ -420,6 +425,29 @@ export function startOnlineDay() {
 }
 
 /**
+ * 相手のplace/pitアクションを取得して適用
+ */
+async function fetchAndApplySetupActions() {
+  const roomId = onlineState.roomId;
+  const myPlayerId = onlineState.myPlayerId;
+
+  // place/pitアクションを全て取得
+  const { data: actions } = await fetchSetupActions(roomId);
+  if (!actions || actions.length === 0) return;
+
+  // 相手のアクションのみ適用（自分のは既にローカルで適用済み）
+  actions.forEach(a => {
+    if (a.player_id !== myPlayerId) {
+      applyAction({
+        playerId: a.player_id,
+        phase: a.action_type,
+        data: a.action_data
+      });
+    }
+  });
+}
+
+/**
  * アクションを送信して完了を待つ
  * @param {object} action - アクションデータ
  */
@@ -440,6 +468,12 @@ export async function submitOnlineAction(action) {
 
   // explorer以降は待ち合わせ
   if (WAIT_PHASES.includes(c.ph)) {
+    // 初回のWAIT_PHASE（explorer）前に、相手のplace/pitアクションを取得・適用
+    if (!setupActionsFetched) {
+      await fetchAndApplySetupActions();
+      setupActionsFetched = true;
+    }
+
     // トリガー発火後の期待idxを記録
     expectedIdxAfterTrigger = G.idx + 2;
 
@@ -677,6 +711,7 @@ export async function restartOnlineGame(renderCallback) {
 
   setG(newG);
   G.totalHandoffs = countHandoffs(G.sched);
+  setupActionsFetched = false;
 
   // DBに新しいゲーム状態を保存
   await updateGameState(onlineState.roomId, {

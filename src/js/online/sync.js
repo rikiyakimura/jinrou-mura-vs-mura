@@ -278,6 +278,21 @@ export async function fetchPhaseActions(roomId, phase) {
 }
 
 /**
+ * セットアップフェーズ（place, pit）のアクションを取得
+ * @param {string} roomId - ルームID
+ */
+export async function fetchSetupActions(roomId) {
+  const { data, error } = await supabase
+    .from('player_actions')
+    .select('*')
+    .eq('room_id', roomId)
+    .in('action_type', ['place', 'pit'])
+    .order('created_at', { ascending: true });
+
+  return { data: data || [], error };
+}
+
+/**
  * 全ての同期を解除
  */
 export function unsubscribeAll() {
