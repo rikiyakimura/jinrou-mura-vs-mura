@@ -403,6 +403,7 @@ export async function submitOnlineAction(action) {
     const { data: immediateCheck } = await fetchGameState(roomId);
     if (immediateCheck?.player1_ready && immediateCheck?.player2_ready) {
       // 両者ready → 即座に進行
+      onlineState.waitingForOpponent = true;  // フラグを立ててから呼ぶ
       onBothPlayersReady(immediateCheck);
       return;
     }
