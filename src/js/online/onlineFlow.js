@@ -668,6 +668,9 @@ async function advanceLocal() {
     current_player: cur().who
   });
 
+  // 処理完了、フラグをリセット
+  onlineState.processingAction = false;
+
   if (_render) _render();
 }
 
