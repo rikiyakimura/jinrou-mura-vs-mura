@@ -48,6 +48,14 @@ export function renderPanel() {
   const quitBtn = '<div class="quitrow"><button class="quit" onclick="window._quitGame()">やめる</button></div>';
 
   if (c.ph === 'place') {
+    // 配置完了済みの場合は待機画面を表示
+    if (v.placeIdx >= getConfig().VILLAGERS) {
+      el.innerHTML = H(`${tag}配置完了`, `
+        <p class="lead">全員の配置が完了しました。</p>
+        <p style="color:var(--kinari-faint)">相手の操作を待っています...</p>
+        ${quitBtn}`);
+      return;
+    }
     const p = v.people[v.placeIdx];
     el.innerHTML = H(`${tag}配置`, `
       <p class="lead"><b>${p.name}（${ROLE_LABEL[p.role]}）</b>をどの家に住まわせる？ <b>${myMapLabel}</b>で選ぶ。</p>

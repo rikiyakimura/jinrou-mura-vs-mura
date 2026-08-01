@@ -641,15 +641,18 @@ export async function submitOnlineAction(action) {
  */
 async function advanceLocal() {
   const c = cur();
+  const myPlayerId = onlineState.myPlayerId;
 
   if (c.ph === 'place') {
     // place完了 → pit or explorer へ
     if (G.opt?.pit) {
-      // pitあり: P1 pit (idx 1) へ
-      G.idx = 1;
+      // pitあり: 自分の pit フェーズへ
+      // P1: idx 1, P2: idx 3
+      G.idx = myPlayerId === 1 ? 1 : 3;
     } else {
-      // pitなし: explorer (idx 2) へ
-      G.idx = 2;
+      // pitなし: explorer へ
+      const explorerIdx = G.sched.findIndex(e => e.ph === 'explorer');
+      G.idx = explorerIdx >= 0 ? explorerIdx : 2;
     }
   } else if (c.ph === 'pit') {
     // pit完了 → explorer へ
