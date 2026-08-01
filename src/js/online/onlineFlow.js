@@ -340,14 +340,11 @@ async function onBothPlayersReady(state) {
   const { data: latestState } = await fetchGameState(onlineState.roomId);
   if (latestState && latestState.game_data) {
     G.idx = latestState.game_data.idx;
-    // day も同期（current_day を優先、なければ game_data.day）
-    if (latestState.current_day !== undefined && latestState.current_day !== null) {
-      G.day = latestState.current_day;
-    } else if (latestState.game_data.day !== undefined) {
-      G.day = latestState.game_data.day;
-    }
-    console.log('[onBothPlayersReady] synced from DB: idx=', G.idx, 'day=', G.day, 'current_day=', latestState.current_day);
   }
+  // スケジュールから day を同期（idx が day の正しい情報源）
+  const syncedEntry = cur();
+  if (syncedEntry.day) G.day = syncedEntry.day;
+  console.log('[onBothPlayersReady] synced from DB: idx=', G.idx, 'day=', G.day);
 
   // idx が範囲外なら即座に finish() を呼ぶ
   const schedLen = G.sched ? G.sched.length : 0;
@@ -586,16 +583,14 @@ export async function submitOnlineAction(action) {
       return;
     }
 
-    // WAIT_PHASES（explorer以降）は DB から idx と day を同期してから処理
+    // WAIT_PHASES（explorer以降）は DB から idx を同期
     const { data: syncState } = await fetchGameState(roomId);
     if (syncState?.game_data) {
       G.idx = syncState.game_data.idx;
-      if (syncState.current_day !== undefined && syncState.current_day !== null) {
-        G.day = syncState.current_day;
-      } else if (syncState.game_data.day !== undefined) {
-        G.day = syncState.game_data.day;
-      }
     }
+    // スケジュールから day を同期（idx が day の正しい情報源）
+    const syncedEntry = cur();
+    if (syncedEntry.day) G.day = syncedEntry.day;
     console.log('[submitOnlineAction] synced from DB: idx=', G.idx, 'day=', G.day);
 
     // 同期後のフェーズで判定

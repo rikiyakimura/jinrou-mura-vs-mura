@@ -336,6 +336,8 @@ async function nextFromMorningOnline() {
   if (dbIdx !== null) G.idx = dbIdx;
 
   const c = cur();
+  // スケジュールから day を同期（idx 同期後に必ず実行）
+  if (c.day) G.day = c.day;
   const schedLen = G.sched ? G.sched.length : 0;
 
   // 既にゲーム終了済み or idx が範囲外なら finish() へ直行
