@@ -11,7 +11,7 @@ import { TICKS, ADJ, edgeKey, ROLE_LABEL, HLABEL, getConfig } from './constants.
 // ゲームロジック
 import { newGame, advance, startDay, finishDay, confirmNight, nextFromMorning, setFlowCallbacks } from './game/flow.js';
 import { runCPU } from './game/cpu.js';
-import { overlapSoFar, SPOIL } from './game/resolve.js';
+import { overlapSoFar, SPOIL, finish } from './game/resolve.js';
 
 // UI
 import { render, toggleSwap, setRenderCallbacks, toggleEmoteBar } from './ui/render.js';
@@ -26,7 +26,7 @@ import {
 import { toggleLedger, openLedger, closeLedger, initLedgerSwipe } from './ui/ledger.js';
 
 // オンライン
-import { submitOnlineAction, setOnlineFlowCallbacks, advanceOnline, surrenderOnline, endOnlineGame, sendEmote, canSendEmote, markPlayerLeft } from './online/onlineFlow.js';
+import { submitOnlineAction, setOnlineFlowCallbacks, advanceOnline, surrenderOnline, endOnlineGame, sendEmote, canSendEmote, markPlayerLeft, startProcessing, endProcessing } from './online/onlineFlow.js';
 import { setPlayerName } from './online/supabase.js';
 import { updateGameState, syncIdxFromDB } from './online/sync.js';
 
@@ -53,16 +53,17 @@ function showEmoteToast(emote) {
 /**
  * 村人を1人ずつ配置
  */
-function placeNext(h) {
+async function placeNext(h) {
   const v = me();
   v.people[v.placeIdx].house = h;
   v.placeIdx++;
 
   if (v.placeIdx >= getConfig().VILLAGERS) {
     if (G.mode === 'online') {
+      if (!startProcessing()) return;  // 即座にボタン無効化
       // オンラインモード：配置完了をDBに送信して相手を待つ
       const houses = v.people.map(p => p.house);
-      submitOnlineAction({
+      await submitOnlineAction({
         playerId: G.myPlayerId,
         phase: 'place',
         data: { houses }
@@ -96,10 +97,11 @@ function placePit(key) {
 /**
  * 落とし穴確定
  */
-function confirmPit() {
+async function confirmPit() {
   if (G.mode === 'online') {
+    if (!startProcessing()) return;  // 即座にボタン無効化、既に処理中なら無視
     const v = me();
-    submitOnlineAction({
+    await submitOnlineAction({
       playerId: G.myPlayerId,
       phase: 'pit',
       data: { edges: v.pitEdge }
@@ -112,13 +114,17 @@ function confirmPit() {
 /**
  * 探索者を選択
  */
-function chooseExplorer(id) {
+async function chooseExplorer(id) {
+  if (G.mode === 'online') {
+    if (!startProcessing()) return;  // 即座にボタン無効化
+  }
+
   const v = me();
   v.explorer = id;
   v.mediumResult = null;
 
   if (G.mode === 'online') {
-    submitOnlineAction({
+    await submitOnlineAction({
       playerId: G.myPlayerId,
       phase: 'explorer',
       data: { personId: id }
@@ -194,12 +200,16 @@ function pickRoute(h) {
 /**
  * 経路確定
  */
-function confirmRoute() {
+async function confirmRoute() {
+  if (G.mode === 'online') {
+    if (!startProcessing()) return;  // 即座にボタン無効化
+  }
+
   const v = me();
   v.routeDone = false;
 
   if (G.mode === 'online') {
-    submitOnlineAction({
+    await submitOnlineAction({
       playerId: G.myPlayerId,
       phase: 'route',
       data: { route: v.route, explorer: v.explorer }
@@ -263,12 +273,16 @@ function advanceTick() {
 /**
  * 昼を終える（オンライン対応ラッパー）
  */
-function finishDayOnline() {
+async function finishDayOnline() {
+  if (G.mode === 'online') {
+    if (!startProcessing()) return;  // 即座にボタン無効化
+  }
+
   const v = me();
   v.tickDone = false;
 
   if (G.mode === 'online') {
-    submitOnlineAction({
+    await submitOnlineAction({
       playerId: G.myPlayerId,
       phase: 'ticks',
       data: {
@@ -284,11 +298,15 @@ function finishDayOnline() {
 /**
  * 夜を終える（オンライン対応ラッパー）
  */
-function confirmNightOnline() {
+async function confirmNightOnline() {
+  if (G.mode === 'online') {
+    if (!startProcessing()) return;  // 即座にボタン無効化
+  }
+
   const v = me();
 
   if (G.mode === 'online') {
-    submitOnlineAction({
+    await submitOnlineAction({
       playerId: G.myPlayerId,
       phase: 'night',
       data: {
@@ -310,36 +328,50 @@ async function nextFromMorningOnline() {
     return;
   }
 
+  // 即座にボタン無効化（連打防止）
+  if (!startProcessing()) return;
+
   // DB から最新 idx を取得
   const dbIdx = await syncIdxFromDB(G.roomId);
   if (dbIdx !== null) G.idx = dbIdx;
 
-  const config = getConfig();
   const c = cur();
+  const schedLen = G.sched ? G.sched.length : 0;
+
+  // 既にゲーム終了済み or idx が範囲外なら finish() へ直行
+  if (G.done || c.ph === 'end' || c.ph === 'unknown' || G.idx >= schedLen - 1) {
+    // idx を安全な値に修正
+    G.idx = Math.max(0, schedLen - 1);
+    finish(() => hideVeil(render));
+    return;
+  }
 
   // まだ morning なら idx++ して DB 保存（最初にクリックした方だけ実行される）
   if (c.ph === 'morning') {
-    G.idx++;
-    const next = G.sched[G.idx];
-    if (next && next.day) G.day = next.day;
+    // 境界チェック: 増分後も範囲内であることを確認
+    if (G.idx + 1 < schedLen) {
+      G.idx++;
+      const next = G.sched[G.idx];
+      if (next && next.day) G.day = next.day;
 
-    // DB に保存
-    await updateGameState(G.roomId, {
-      game_data: {
-        ...G,
-        idx: G.idx,
-        day: G.day
-      },
-      current_phase: next ? next.ph : 'end',
-      current_day: G.day,
-      current_player: next ? next.who : 0
-    });
+      // DB に保存
+      await updateGameState(G.roomId, {
+        game_data: {
+          ...G,
+          idx: G.idx,
+          day: G.day
+        },
+        current_phase: next ? next.ph : 'end',
+        current_day: G.day,
+        current_player: next ? next.who : 0
+      });
+    }
   }
 
-  // 最終日または end フェーズなら決着処理
+  // end フェーズなら決着処理
   const current = cur();
-  if (current.ph === 'end') {
-    advanceOnline();
+  if (current.ph === 'end' || current.ph === 'unknown') {
+    finish(() => hideVeil(render));
   } else {
     render();
   }

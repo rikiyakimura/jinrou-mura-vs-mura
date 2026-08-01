@@ -6,6 +6,7 @@ import { G, cur, who, me, opp, wolfOf, personAt, houseName, alive, guardAway } f
 import { TICKS, SHARPEN, ROLE_LABEL, HLABEL, getConfig } from '../constants.js';
 import { other } from '../utils.js';
 import { sharpenTicks, overlapSoFar, madSharpenTicks, canSharpen, canSharpenMad, madManualNeeded, canAttack, canProtect, protectReason } from '../game/resolve.js';
+import { isProcessing } from '../online/onlineFlow.js';
 
 // 外部関数（main.jsから注入）
 let _render = null;
@@ -71,7 +72,7 @@ export function renderPanel() {
       <p>相手は一度その道を通るまで、落とし穴の場所を知らない。落ちた後は相手にも見える。アイテムを取る前に通られると落とせないので、<b>アイテムのある家から出る道</b>に仕掛けると効きやすい。一度決めたら変えられない。</p>
       ${placedCount > 0 ? `<p class="good">${pitLabels.join('、')}の道に仕掛けた。</p>` : ''}
       ${allPlaced ? '' : `<p style="color:var(--kinari-faint)">道（点線）をタップして選ぶ。残り${remaining}本</p>`}
-      <div class="btnrow"><button class="primary" onclick="window._confirmPit()" ${allPlaced ? '' : 'disabled'}>これでいく</button></div>
+      <div class="btnrow"><button class="primary" onclick="window._confirmPit()" ${allPlaced && !(G.mode === 'online' && isProcessing()) ? '' : 'disabled'}>これでいく</button></div>
       ${quitBtn}`);
     return;
   }
@@ -91,8 +92,10 @@ export function renderPanel() {
       <p><b>探索から帰った者は疲れて眠る。</b>その夜、能力は使えない。人狼を送れば襲撃できず、護衛を送れば守れず、霊媒師を送れば札は働かない。一般村人には夜の役目がないので、影響はない。</p>
       <p>ただし人狼を送り、相手の爪研ぎ3ティックすべてに居合わせれば<b>その場で勝てる</b>。</p>
       ${extra}
-      <div class="chips">${alive(v).map(p =>
-      `<div class="chip" onclick="window._chooseExplorer(${p.id})">${p.name}<small>${ROLE_LABEL[p.role]}</small></div>`).join('')}</div>
+      <div class="chips">${alive(v).map(p => {
+        const disabled = G.mode === 'online' && isProcessing();
+        return `<div class="chip${disabled ? ' disabled' : ''}" ${disabled ? '' : `onclick="window._chooseExplorer(${p.id})"`}>${p.name}<small>${ROLE_LABEL[p.role]}</small></div>`;
+      }).join('')}</div>
       ${quitBtn}`);
     return;
   }
@@ -116,7 +119,7 @@ export function renderPanel() {
         ${gotLine}
         <p class="lead">${mine.name}は5軒を回り終えた。</p>
         <div class="ticks">${tickRow}</div>
-        <div class="btnrow"><button class="primary" onclick="window._confirmRoute()">昼へ進む</button></div>
+        <div class="btnrow"><button class="primary" ${G.mode === 'online' && isProcessing() ? 'disabled' : ''} onclick="window._confirmRoute()">昼へ進む</button></div>
         ${quitBtn}`);
       return;
     }
@@ -182,11 +185,12 @@ export function renderPanel() {
     }
 
     b += `<div class="btnrow tickbtns">`;
+    const tickDisabled = G.mode === 'online' && isProcessing() ? 'disabled' : '';
     if (v.tickDone) {
-      b += `<button class="primary" onclick="window._finishDay()">昼を終える</button>`;
+      b += `<button class="primary" ${tickDisabled} onclick="window._finishDay()">昼を終える</button>`;
     } else {
-      if (canSharpen(v)) b += `<button class="danger" onclick="window._startSharpen()">爪を研ぐ</button>`;
-      b += `<button class="primary" onclick="window._advanceTick()">次へ</button>`;
+      if (canSharpen(v)) b += `<button class="danger" ${tickDisabled} onclick="window._startSharpen()">爪を研ぐ</button>`;
+      b += `<button class="primary" ${tickDisabled} onclick="window._advanceTick()">次へ</button>`;
     }
     b += `</div>`;
     b += quitBtn;
@@ -229,7 +233,8 @@ export function renderPanel() {
       v.protectTarget = null;
     }
     const need = canAttack(v) && v.attackTarget === null;
-    b += `<div class="btnrow"><button class="primary" onclick="window._confirmNight()" ${need ? 'disabled' : ''}>夜を明かす</button></div>`;
+    const nightDisabled = need || (G.mode === 'online' && isProcessing()) ? 'disabled' : '';
+    b += `<div class="btnrow"><button class="primary" onclick="window._confirmNight()" ${nightDisabled}>夜を明かす</button></div>`;
     b += quitBtn;
     el.innerHTML = H(`${G.day}日目・夜${(G.mode === 'cpu' || G.mode === 'online') ? '' : `　（${v.id}P）`}`, b);
     return;
@@ -249,18 +254,30 @@ export function renderPanel() {
       <p class="lead">${n1}：${ra ? `<b>${ra}</b>が死んだ。` : '誰も欠けていない。'}</p>
       <p class="lead">${n2}：${rb ? `<b>${rb}</b>が死んだ。` : '誰も欠けていない。'}</p>
       <p>失敗の理由は、襲われた側にしか分からない。</p>
-      <div class="btnrow"><button class="primary" onclick="window._nextFromMorning()">${G.day >= getConfig().DAYS ? '決着を見る' : '次の日へ'}</button></div>
+      <div class="btnrow"><button class="primary" ${G.mode === 'online' && isProcessing() ? 'disabled' : ''} onclick="window._nextFromMorning()">${G.day >= getConfig().DAYS ? '決着を見る' : '次の日へ'}</button></div>
       ${quitBtn}`);
     return;
   }
 
-  if (c.ph === 'end') {
+  // end または idx範囲外 または done の場合は決着画面を表示
+  const schedLen = G.sched ? G.sched.length : 0;
+  const idxOutOfBounds = G.idx < 0 || G.idx >= schedLen;
+  if (c.ph === 'end' || c.ph === 'unknown' || idxOutOfBounds || G.done) {
+    // idx を安全な値に修正
+    if (idxOutOfBounds && schedLen > 0) {
+      G.idx = schedLen - 1;
+    }
     const myId = G.myPlayerId || 1;
     const oppId = myId === 1 ? 2 : 1;
     const myName = G.myPlayerName || '自分';
     const oppName = G.opponentName || '相手';
-    const a = alive(G.V[1]).length, f = alive(G.V[2]).length;
-    const myAlive = alive(G.V[myId]).length, oppAlive = alive(G.V[oppId]).length;
+    // 安全にaliveカウントを取得
+    const safeAlive = (vObj) => {
+      if (!vObj || !vObj.people) return [];
+      return vObj.people.filter(p => p.alive);
+    };
+    const a = safeAlive(G.V[1]).length, f = safeAlive(G.V[2]).length;
+    const myAlive = safeAlive(G.V[myId]).length, oppAlive = safeAlive(G.V[oppId]).length;
     const nm = p => {
       if (G.mode === 'cpu') return p === 1 ? 'あなた' : 'CPU';
       if (G.mode === 'online') return p === myId ? myName : oppName;
@@ -305,8 +322,8 @@ export function renderPanel() {
         <button class="quit" onclick="window._backToTitle()">タイトルに戻る</button>
       </div>
       <div class="reveal">
-        ${nm(first)}の村：${G.V[first].people.map(p => `${p.name}（${ROLE_LABEL[p.role]}${p.alive ? '' : '・死亡'}）`).join('　')}<br>
-        ${nm(second)}の村：${G.V[second].people.map(p => `${p.name}（${ROLE_LABEL[p.role]}${p.alive ? '' : '・死亡'}）`).join('　')}
+        ${G.V[first]?.people ? `${nm(first)}の村：${G.V[first].people.map(p => `${p.name}（${ROLE_LABEL[p.role]}${p.alive ? '' : '・死亡'}）`).join('　')}<br>` : ''}
+        ${G.V[second]?.people ? `${nm(second)}の村：${G.V[second].people.map(p => `${p.name}（${ROLE_LABEL[p.role]}${p.alive ? '' : '・死亡'}）`).join('　')}` : ''}
       </div></div>`;
     return;
   }
