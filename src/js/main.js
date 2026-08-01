@@ -344,6 +344,7 @@ async function nextFromMorningOnline() {
   if (G.done || c.ph === 'end' || c.ph === 'unknown' || G.idx >= schedLen - 1) {
     // idx を安全な値に修正
     G.idx = Math.max(0, schedLen - 1);
+    endProcessing();
     finish(() => hideVeil(render));
     return;
   }
@@ -373,8 +374,10 @@ async function nextFromMorningOnline() {
   // end フェーズなら決着処理
   const current = cur();
   if (current.ph === 'end' || current.ph === 'unknown') {
+    endProcessing();
     finish(() => hideVeil(render));
   } else {
+    endProcessing();
     render();
   }
 }
