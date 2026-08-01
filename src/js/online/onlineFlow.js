@@ -355,6 +355,8 @@ async function onBothPlayersReady(state) {
       current_day: G.day,
       current_player: 0
     });
+    // 処理完了、フラグをリセット
+    onlineState.processingAction = false;
     if (_hideVeil) _hideVeil();
     finish(_hideVeil);
     return;
@@ -450,6 +452,9 @@ async function onBothPlayersReady(state) {
       current_player: 0
     });
 
+    // 処理完了、フラグをリセット
+    onlineState.processingAction = false;
+
     if (_hideVeil) _hideVeil();
     finish(_hideVeil);
     return;
@@ -465,6 +470,9 @@ async function onBothPlayersReady(state) {
     current_day: G.day,
     current_player: next.who
   });
+
+  // 処理完了、フラグをリセット
+  onlineState.processingAction = false;
 
   if (_hideVeil) _hideVeil();
   if (_render) _render();
