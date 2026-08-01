@@ -125,7 +125,7 @@ ${v}`}class H extends Error{constructor({message:e,code:r,cause:n,name:s}){var i
       <button class="big match" onclick="window._showOnlineOptions('match')">対戦相手を探す<span class="note">自動マッチング</span></button>
     </div>
     <button class="back" onclick="window._showTitle()">← 戻る</button>
-  </div>`}function si(t){var a,o;const e=((o=(a=document.getElementById("player-name"))==null?void 0:a.value)==null?void 0:o.trim())||"名無し";on(e);const r=document.getElementById("veil"),n=(l,c,d)=>'<button class="optchip '+(Q[l]?"on":"")+`" onclick="window._toggleOptOnline('`+l+`')"><span class="ck">`+(Q[l]?"✓":"")+"</span>"+c+"<small>"+d+"</small></button>",s=t==="create"?"ルームを作る":"対戦相手を探す",i=t==="create"?"window._showCreateRoom()":"window._startMatchmaking()";r.innerHTML=`<div class="inner">
+  </div>`}function si(t){var a;const e=document.getElementById("player-name");if(e){const o=((a=e.value)==null?void 0:a.trim())||"名無し";on(o)}const r=document.getElementById("veil"),n=(o,l,c)=>'<button class="optchip '+(Q[o]?"on":"")+`" onclick="window._toggleOptOnline('`+o+`')"><span class="ck">`+(Q[o]?"✓":"")+"</span>"+l+"<small>"+c+"</small></button>",s=t==="create"?"ルームを作る":"対戦相手を探す",i=t==="create"?"window._showCreateRoom()":"window._startMatchmaking()";r.innerHTML=`<div class="inner">
     <div class="title-sm">${s}</div>
     <div class="opts">
       <div class="optlabel">追加の役職（任意）</div>

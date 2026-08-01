@@ -178,8 +178,12 @@ export function showOnlineMenu() {
  * オンラインオプション画面を表示（ルーム作成/マッチング前）
  */
 export function showOnlineOptions(action) {
-  const playerName = document.getElementById('player-name')?.value?.trim() || '名無し';
-  setPlayerName(playerName);
+  // player-name 入力欄が存在する場合のみ名前を保存（toggleOptOnline からの再呼び出し時は存在しない）
+  const nameInput = document.getElementById('player-name');
+  if (nameInput) {
+    const playerName = nameInput.value?.trim() || '名無し';
+    setPlayerName(playerName);
+  }
 
   onlineScreen = 'options';
   const el = document.getElementById('veil');
