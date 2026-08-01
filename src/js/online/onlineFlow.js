@@ -340,7 +340,11 @@ async function onBothPlayersReady(state) {
   const { data: latestState } = await fetchGameState(onlineState.roomId);
   if (latestState && latestState.game_data) {
     G.idx = latestState.game_data.idx;
-    console.log('[onBothPlayersReady] synced idx from DB:', G.idx);
+    // day も同期
+    if (latestState.game_data.day !== undefined) {
+      G.day = latestState.game_data.day;
+    }
+    console.log('[onBothPlayersReady] synced from DB: idx=', G.idx, 'day=', G.day);
   }
 
   // idx が範囲外なら即座に finish() を呼ぶ
