@@ -28,7 +28,7 @@
 .house .occ{font-family:var(--mincho);font-size:13.5px;display:block;margin-top:1px;min-height:20px;color:var(--kinari)}
 .house .role{font-size:9.5px;letter-spacing:.08em;display:block;min-height:14px}
 .house .badge{display:block;font-size:9px;line-height:1.5;color:var(--kuchiba);letter-spacing:.04em}
-.house-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);width:28px;height:28px;object-fit:cover;object-position:top;border-radius:50%;border:2px solid var(--indigo-edge);background:var(--indigo)}
+.house-badge{position:absolute;top:-10px;left:-10px;width:28px;height:28px;object-fit:cover;object-position:top;border-radius:50%;border:2px solid var(--indigo-edge);background:var(--indigo)}
 .house-badge.dead{filter:grayscale(100%);opacity:.5}
 .role-wolf{color:var(--akane-glow)} .role-guard{color:var(--moon)} .role-villager{color:var(--kinari-faint)}
 .role-dead{color:var(--akane-glow);font-weight:700} .role-away{color:var(--moon)}
