@@ -28,6 +28,9 @@ import { toggleLedger, openLedger, closeLedger, initLedgerSwipe } from './ui/led
 // オンライン
 import { submitOnlineAction, setOnlineFlowCallbacks, advanceOnline, surrenderOnline, endOnlineGame, sendEmote, canSendEmote, markPlayerLeft, startProcessing, endProcessing } from './online/onlineFlow.js';
 import { setPlayerName } from './online/supabase.js';
+
+// プリロード
+import { preloadPortraits } from './preload.js';
 import { updateGameState, syncIdxFromDB } from './online/sync.js';
 
 // ========== エモート表示 ==========
@@ -506,3 +509,10 @@ window.G = G;
 
 initLedgerSwipe();
 showTitle();
+
+// ポートレート画像をバックグラウンドでプリロード
+if ('requestIdleCallback' in window) {
+  requestIdleCallback(() => preloadPortraits());
+} else {
+  setTimeout(() => preloadPortraits(), 1000);
+}
