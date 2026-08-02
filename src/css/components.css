@@ -116,3 +116,9 @@ button.back:hover{color:var(--kinari)}
 .explorer-card .name{font-size:14px;font-weight:600;color:var(--kinari)}
 .explorer-card .role{font-size:11px;color:var(--kinari-faint)}
 .explorer-card.sel{border-color:var(--kuchiba);background:#31291A}
+.explorer-card.blank{visibility:hidden}
+.explorer-card.dead{opacity:.4;cursor:not-allowed;pointer-events:none}
+.explorer-card.dead img{filter:grayscale(100%)}
+.explorer-card.excluded{opacity:.4;cursor:not-allowed;pointer-events:none}
+.explorer-card.excluded img{filter:grayscale(100%)}
+.explorer-card .status{font-size:10px;color:var(--akane-glow);margin-top:2px}

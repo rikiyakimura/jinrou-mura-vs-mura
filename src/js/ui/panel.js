@@ -36,6 +36,71 @@ export function setPanelCallbacks(callbacks) {
 }
 
 /**
+ * 村配置グリッド用カード生成
+ * @param {Array} people - 村人配列
+ * @param {Object} options - オプション
+ *   - onClickAttr: クリック時の属性文字列（{id}がIDに置換される）
+ *   - selectedId: 選択中のID
+ *   - showRole: 役職を表示するか
+ *   - forceVillagerImg: 全員villager画像を使うか
+ *   - excludeRoles: 対象外とする役職配列
+ *   - disabled: 全体を無効化するか
+ */
+function villageGridCards(people, options = {}) {
+  const gridOrder = ['tl', 'tm', 'tr', 'ml', 'c', 'mr', 'bl', 'bm', 'br'];
+  const config = getConfig();
+
+  return gridOrder.map(house => {
+    // Classic モードで存在しない家は空白
+    if (!config.HOUSES.includes(house)) {
+      return '<div class="explorer-card blank"></div>';
+    }
+
+    // この家に住んでいる人を探す
+    const person = people.find(p => p.house === house);
+    if (!person) {
+      return '<div class="explorer-card blank"></div>';
+    }
+
+    const isAlive = person.alive !== false;
+    const isExcluded = options.excludeRoles?.includes(person.role);
+    const isSelected = options.selectedId === person.id;
+    const imgKey = NAME_TO_KEY[person.name];
+    const imgSrc = options.forceVillagerImg
+      ? `/portraits/${imgKey}_villager.webp`
+      : `/portraits/${imgKey}_${person.role}.webp`;
+
+    let statusLabel = '';
+    let cardClass = 'explorer-card';
+    let clickAttr = '';
+
+    if (!isAlive) {
+      statusLabel = '<span class="status">死亡</span>';
+      cardClass += ' dead';
+    } else if (isExcluded) {
+      statusLabel = '<span class="status">対象外</span>';
+      cardClass += ' excluded';
+    } else if (options.disabled) {
+      cardClass += ' disabled';
+    } else {
+      clickAttr = options.onClickAttr ? options.onClickAttr.replace('{id}', person.id) : '';
+      if (isSelected) cardClass += ' sel';
+    }
+
+    const roleLabel = options.showRole
+      ? ROLE_LABEL[person.role]
+      : `${config.HLABEL[house]}の家`;
+
+    return `<div class="${cardClass}" ${clickAttr}>
+      ${imgKey ? `<img src="${imgSrc}" alt="${person.name}">` : ''}
+      <span class="name">${person.name}</span>
+      <span class="role">${roleLabel}</span>
+      ${statusLabel}
+    </div>`;
+  }).join('');
+}
+
+/**
  * パネルを描画
  */
 export function renderPanel() {
@@ -102,16 +167,11 @@ export function renderPanel() {
     if (G.opt && G.opt.madmanDog) {
       extra += '<p>犬飼いを送ると、狂人の贋物を無視して<b>人狼の爪の音だけ</b>を聞き分けられる。狂人を送ると、その夜は狂人の爪が鳴らない。</p>';
     }
-    const explorerCards = alive(v).map(p => {
-      const disabled = G.mode === 'online' && isProcessing();
-      const imgKey = NAME_TO_KEY[p.name];
-      const imgSrc = imgKey ? `/portraits/${imgKey}_${p.role}.webp` : '';
-      return `<div class="explorer-card${disabled ? ' disabled' : ''}" ${disabled ? '' : `onclick="window._chooseExplorer(${p.id})"`}>
-        ${imgKey ? `<img src="${imgSrc}" alt="${p.name}">` : ''}
-        <span class="name">${p.name}</span>
-        <span class="role">${ROLE_LABEL[p.role]}</span>
-      </div>`;
-    }).join('');
+    const explorerCards = villageGridCards(v.people, {
+      onClickAttr: G.mode === 'online' && isProcessing() ? '' : 'onclick="window._chooseExplorer({id})"',
+      showRole: true,
+      disabled: G.mode === 'online' && isProcessing()
+    });
     el.innerHTML = H(`${G.day}日目・昼　探索者を選ぶ`, `
       ${med}
       <p class="lead">相手の村へ送る探索者を1人選ぶ。<b>互いに伏せて選ぶ</b>ので、相手が誰を出すかはまだ分からない。</p>
@@ -241,30 +301,23 @@ export function renderPanel() {
       }
     }
     if (canAttack(v)) {
-      const attackCards = alive(o).map(p => {
-        const imgKey = NAME_TO_KEY[p.name];
-        const imgSrc = imgKey ? `/portraits/${imgKey}_villager.webp` : '';
-        return `<div class="explorer-card${v.attackTarget === p.id ? ' sel' : ''}" onclick="G.V[${v.id}].attackTarget=${p.id};window._render()">
-          ${imgKey ? `<img src="${imgSrc}" alt="${p.name}">` : ''}
-          <span class="name">${p.name}</span>
-          <span class="role">${getConfig().HLABEL[p.house]}の家</span>
-        </div>`;
-      }).join('');
+      const attackCards = villageGridCards(o.people, {
+        onClickAttr: `onclick="G.V[${v.id}].attackTarget={id};window._render()"`,
+        selectedId: v.attackTarget,
+        forceVillagerImg: true
+      });
       b += `<p class="lead">爪は研げた。相手の村の誰を襲う？ 下のカードか、相手の村の地図の家をタップして選ぶ。人狼を狙うと空振りになる。</p>
         <div class="explorer-grid">${attackCards}</div>`;
     } else {
       b += `<p class="warn">今夜、こちらから襲撃はできない。${v.spoiled ? '研ぎを見られた。' : ''}</p>`;
     }
     if (canProtect(v)) {
-      const protectCards = alive(v).filter(p => p.role !== 'guard' && p.role !== 'wolf').map(p => {
-        const imgKey = NAME_TO_KEY[p.name];
-        const imgSrc = imgKey ? `/portraits/${imgKey}_${p.role}.webp` : '';
-        return `<div class="explorer-card${v.protectTarget === p.id ? ' sel' : ''}" onclick="G.V[${v.id}].protectTarget=${p.id};window._render()">
-          ${imgKey ? `<img src="${imgSrc}" alt="${p.name}">` : ''}
-          <span class="name">${p.name}</span>
-          <span class="role">${ROLE_LABEL[p.role]}</span>
-        </div>`;
-      }).join('');
+      const protectCards = villageGridCards(v.people, {
+        onClickAttr: `onclick="G.V[${v.id}].protectTarget={id};window._render()"`,
+        selectedId: v.protectTarget,
+        showRole: true,
+        excludeRoles: ['guard', 'wolf']
+      });
       b += `<p class="good">護衛届がある。味方1人を守れる（護衛自身と人狼は守れない）。</p>
         <div class="explorer-grid">${protectCards}</div>`;
     } else {
