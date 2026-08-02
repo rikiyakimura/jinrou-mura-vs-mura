@@ -112,7 +112,7 @@ button.back:hover{color:var(--kinari)}
 .explorer-card{display:flex;flex-direction:column;align-items:center;background:var(--indigo-lift);border:1px solid var(--indigo-edge);border-radius:6px;padding:10px 6px;cursor:pointer;transition:border-color .15s,background .15s}
 .explorer-card:hover{border-color:var(--kuchiba);background:#2a3040}
 .explorer-card.disabled{opacity:.5;cursor:not-allowed;pointer-events:none}
-.explorer-card img{width:80px;height:auto;border-radius:4px;margin-bottom:6px}
+.explorer-card img{width:80px;height:80px;object-fit:cover;object-position:top;border-radius:4px;margin-bottom:6px}
 .explorer-card .name{font-size:14px;font-weight:600;color:var(--kinari)}
 .explorer-card .role{font-size:11px;color:var(--kinari-faint)}
 .explorer-card.sel{border-color:var(--kuchiba);background:#31291A}
