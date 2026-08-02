@@ -8,10 +8,13 @@
   .ledger{position:static;margin-top:0}
   /* 引き出しを開くタブ（右端中央に縦書き） */
   #ledger-tab{display:block;position:fixed;right:0;top:0;bottom:0;height:max-content;margin-top:auto;margin-bottom:auto;z-index:55;
-    writing-mode:vertical-rl;padding:12px 5px;font-family:var(--mincho);font-size:13px;letter-spacing:.1em;
+    writing-mode:vertical-rl;padding:12px 5px;font-family:var(--mincho);font-size:0;letter-spacing:.1em;
     background:var(--indigo);color:var(--kinari);border:1px solid var(--indigo-edge);border-right:none;
     border-radius:6px 0 0 6px;cursor:pointer;line-height:1.25;box-shadow:-3px 0 12px -4px rgba(0,0,0,.5);
-    will-change:transform;backface-visibility:hidden;transform:translateZ(0)}
+    will-change:transform;backface-visibility:hidden;transform:translateZ(0);transition:transform .28s ease}
+  #ledger-tab::after{content:'覚え書き';font-size:13px}
+  body.ledger-open #ledger-tab{transform:translateX(calc(-1 * min(86vw,340px))) translateZ(0)}
+  body.ledger-open #ledger-tab::after{content:'覚え書きを閉じる'}
   /* 開いているとき背後を暗くする膜 */
   #ledger-scrim{display:none;position:fixed;inset:0;background:rgba(0,0,0,.42);z-index:50}
   body.ledger-open #ledger-scrim{display:block}
