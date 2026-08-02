@@ -2,7 +2,7 @@
  * 地図描画
  */
 
-import { ROLE_LABEL, edgeKey, getConfig } from '../constants.js';
+import { ROLE_LABEL, edgeKey, getConfig, NAME_TO_KEY } from '../constants.js';
 import { personAt } from '../state.js';
 
 /**
@@ -121,16 +121,23 @@ export function drawMap(el, village, o) {
     d.style.left = POS[h][0] + '%';
     d.style.top = POS[h][1] + '%';
 
-    let occ = '—', cls = 'role-villager', rt = '', occCls = '';
+    let occ = '—', cls = 'role-villager', rt = '', occCls = '', badge = '';
     const p = personAt(village, h);
     if (p) {
       occ = p.name;
       if (!p.alive) { cls = 'role-dead'; rt = '死亡'; occCls = ' occ-dead'; }
       else if (o.omniscient) { cls = 'role-' + p.role; rt = ROLE_LABEL[p.role]; }
       else if (o.showExplorer && village.explorer === p.id) { cls = 'role-away'; rt = '探索者'; }
+
+      // ポートレートバッジ
+      const imgKey = NAME_TO_KEY[p.name];
+      if (imgKey) {
+        const role = o.omniscient ? p.role : 'villager';
+        badge = `<img class="house-badge${!p.alive ? ' dead' : ''}" src="/portraits/${imgKey}_${role}.webp" alt="">`;
+      }
     }
 
-    d.innerHTML = `<span class="hname">${HLABEL[h]}</span><span class="occ${occCls}">${occ}</span><span class="role ${cls}">${rt}</span>`;
+    d.innerHTML = `${badge}<span class="hname">${HLABEL[h]}</span><span class="occ${occCls}">${occ}</span><span class="role ${cls}">${rt}</span>`;
 
     if (o.omniscient && o.sharpenHouse === h) {
       d.classList.add('sharpening');
