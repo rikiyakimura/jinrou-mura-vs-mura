@@ -102,16 +102,23 @@ export function renderPanel() {
     if (G.opt && G.opt.madmanDog) {
       extra += '<p>犬飼いを送ると、狂人の贋物を無視して<b>人狼の爪の音だけ</b>を聞き分けられる。狂人を送ると、その夜は狂人の爪が鳴らない。</p>';
     }
+    const explorerCards = alive(v).map(p => {
+      const disabled = G.mode === 'online' && isProcessing();
+      const imgKey = NAME_TO_KEY[p.name];
+      const imgSrc = imgKey ? `/portraits/${imgKey}_${p.role}.webp` : '';
+      return `<div class="explorer-card${disabled ? ' disabled' : ''}" ${disabled ? '' : `onclick="window._chooseExplorer(${p.id})"`}>
+        ${imgKey ? `<img src="${imgSrc}" alt="${p.name}">` : ''}
+        <span class="name">${p.name}</span>
+        <span class="role">${ROLE_LABEL[p.role]}</span>
+      </div>`;
+    }).join('');
     el.innerHTML = H(`${G.day}日目・昼　探索者を選ぶ`, `
       ${med}
       <p class="lead">相手の村へ送る探索者を1人選ぶ。<b>互いに伏せて選ぶ</b>ので、相手が誰を出すかはまだ分からない。</p>
       <p><b>探索から帰った者は疲れて眠る。</b>その夜、能力は使えない。人狼を送れば襲撃できず、護衛を送れば守れず、霊媒師を送れば札は働かない。一般村人には夜の役目がないので、影響はない。</p>
       <p>ただし人狼を送り、相手の爪研ぎ3ティックすべてに居合わせれば<b>その場で勝てる</b>。</p>
       ${extra}
-      <div class="chips">${alive(v).map(p => {
-        const disabled = G.mode === 'online' && isProcessing();
-        return `<div class="chip${disabled ? ' disabled' : ''}" ${disabled ? '' : `onclick="window._chooseExplorer(${p.id})"`}>${p.name}<small>${ROLE_LABEL[p.role]}</small></div>`;
-      }).join('')}</div>
+      <div class="explorer-grid">${explorerCards}</div>
       ${quitBtn}`);
     return;
   }
