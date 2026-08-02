@@ -115,3 +115,4 @@ button.back:hover{color:var(--kinari)}
 .explorer-card img{width:80px;height:auto;border-radius:4px;margin-bottom:6px}
 .explorer-card .name{font-size:14px;font-weight:600;color:var(--kinari)}
 .explorer-card .role{font-size:11px;color:var(--kinari-faint)}
+.explorer-card.sel{border-color:var(--kuchiba);background:#31291A}

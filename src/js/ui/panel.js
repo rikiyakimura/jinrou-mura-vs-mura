@@ -241,16 +241,32 @@ export function renderPanel() {
       }
     }
     if (canAttack(v)) {
-      b += `<p class="lead">爪は研げた。相手の村の誰を襲う？ 下のチップか、相手の村の地図の家をタップして選ぶ。人狼を狙うと空振りになる。</p>
-        <div class="chips">${alive(o).map(p =>
-        `<div class="chip ${v.attackTarget === p.id ? 'sel' : ''}" onclick="G.V[${v.id}].attackTarget=${p.id};window._render()">${p.name}<small>${getConfig().HLABEL[p.house]}の家</small></div>`).join('')}</div>`;
+      const attackCards = alive(o).map(p => {
+        const imgKey = NAME_TO_KEY[p.name];
+        const imgSrc = imgKey ? `/portraits/${imgKey}_villager.webp` : '';
+        return `<div class="explorer-card${v.attackTarget === p.id ? ' sel' : ''}" onclick="G.V[${v.id}].attackTarget=${p.id};window._render()">
+          ${imgKey ? `<img src="${imgSrc}" alt="${p.name}">` : ''}
+          <span class="name">${p.name}</span>
+          <span class="role">${getConfig().HLABEL[p.house]}の家</span>
+        </div>`;
+      }).join('');
+      b += `<p class="lead">爪は研げた。相手の村の誰を襲う？ 下のカードか、相手の村の地図の家をタップして選ぶ。人狼を狙うと空振りになる。</p>
+        <div class="explorer-grid">${attackCards}</div>`;
     } else {
       b += `<p class="warn">今夜、こちらから襲撃はできない。${v.spoiled ? '研ぎを見られた。' : ''}</p>`;
     }
     if (canProtect(v)) {
+      const protectCards = alive(v).filter(p => p.role !== 'guard' && p.role !== 'wolf').map(p => {
+        const imgKey = NAME_TO_KEY[p.name];
+        const imgSrc = imgKey ? `/portraits/${imgKey}_${p.role}.webp` : '';
+        return `<div class="explorer-card${v.protectTarget === p.id ? ' sel' : ''}" onclick="G.V[${v.id}].protectTarget=${p.id};window._render()">
+          ${imgKey ? `<img src="${imgSrc}" alt="${p.name}">` : ''}
+          <span class="name">${p.name}</span>
+          <span class="role">${ROLE_LABEL[p.role]}</span>
+        </div>`;
+      }).join('');
       b += `<p class="good">護衛届がある。味方1人を守れる（護衛自身と人狼は守れない）。</p>
-        <div class="chips">${alive(v).filter(p => p.role !== 'guard' && p.role !== 'wolf').map(p =>
-        `<div class="chip ${v.protectTarget === p.id ? 'sel' : ''}" onclick="G.V[${v.id}].protectTarget=${p.id};window._render()">${p.name}<small>${ROLE_LABEL[p.role]}</small></div>`).join('')}</div>`;
+        <div class="explorer-grid">${protectCards}</div>`;
     } else {
       b += `<p class="${guardAway(v) ? 'warn' : ''}">護衛は使えない。${protectReason(v)}</p>`;
       v.protectTarget = null;
