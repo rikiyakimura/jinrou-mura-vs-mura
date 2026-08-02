@@ -45,13 +45,20 @@ export function setPanelCallbacks(callbacks) {
  *   - forceVillagerImg: 全員villager画像を使うか
  *   - excludeRoles: 対象外とする役職配列
  *   - disabled: 全体を無効化するか
+ * @returns {Object} { cards: string, gridClass: string }
  */
 function villageGridCards(people, options = {}) {
-  const gridOrder = ['tl', 'tm', 'tr', 'ml', 'c', 'mr', 'bl', 'bm', 'br'];
   const config = getConfig();
+  const isClassic = config.VILLAGERS === 5;
 
-  return gridOrder.map(house => {
-    // Classic モードで存在しない家は空白
+  // Classic: 2列レイアウト用の順序（中央は最後で重ねる）
+  // Large: 3×3グリッド
+  const gridOrder = isClassic
+    ? ['tl', 'tr', 'bl', 'br', 'c']
+    : ['tl', 'tm', 'tr', 'ml', 'c', 'mr', 'bl', 'bm', 'br'];
+
+  const cards = gridOrder.map(house => {
+    // 存在しない家は空白（Largeモード用）
     if (!config.HOUSES.includes(house)) {
       return '<div class="explorer-card blank"></div>';
     }
@@ -98,6 +105,8 @@ function villageGridCards(people, options = {}) {
       ${statusLabel}
     </div>`;
   }).join('');
+
+  return { cards, gridClass: isClassic ? 'classic' : '' };
 }
 
 /**
@@ -167,7 +176,7 @@ export function renderPanel() {
     if (G.opt && G.opt.madmanDog) {
       extra += '<p>犬飼いを送ると、狂人の贋物を無視して<b>人狼の爪の音だけ</b>を聞き分けられる。狂人を送ると、その夜は狂人の爪が鳴らない。</p>';
     }
-    const explorerCards = villageGridCards(v.people, {
+    const { cards: explorerCards, gridClass } = villageGridCards(v.people, {
       onClickAttr: G.mode === 'online' && isProcessing() ? '' : 'onclick="window._chooseExplorer({id})"',
       showRole: true,
       disabled: G.mode === 'online' && isProcessing()
@@ -178,7 +187,7 @@ export function renderPanel() {
       <p><b>探索から帰った者は疲れて眠る。</b>その夜、能力は使えない。人狼を送れば襲撃できず、護衛を送れば守れず、霊媒師を送れば札は働かない。一般村人には夜の役目がないので、影響はない。</p>
       <p>ただし人狼を送り、相手の爪研ぎ3ティックすべてに居合わせれば<b>その場で勝てる</b>。</p>
       ${extra}
-      <div class="explorer-grid">${explorerCards}</div>
+      <div class="explorer-grid ${gridClass}">${explorerCards}</div>
       ${quitBtn}`);
     return;
   }
@@ -301,25 +310,25 @@ export function renderPanel() {
       }
     }
     if (canAttack(v)) {
-      const attackCards = villageGridCards(o.people, {
+      const { cards: attackCards, gridClass: attackGridClass } = villageGridCards(o.people, {
         onClickAttr: `onclick="G.V[${v.id}].attackTarget={id};window._render()"`,
         selectedId: v.attackTarget,
         forceVillagerImg: true
       });
       b += `<p class="lead">爪は研げた。相手の村の誰を襲う？ 下のカードか、相手の村の地図の家をタップして選ぶ。人狼を狙うと空振りになる。</p>
-        <div class="explorer-grid">${attackCards}</div>`;
+        <div class="explorer-grid ${attackGridClass}">${attackCards}</div>`;
     } else {
       b += `<p class="warn">今夜、こちらから襲撃はできない。${v.spoiled ? '研ぎを見られた。' : ''}</p>`;
     }
     if (canProtect(v)) {
-      const protectCards = villageGridCards(v.people, {
+      const { cards: protectCards, gridClass: protectGridClass } = villageGridCards(v.people, {
         onClickAttr: `onclick="G.V[${v.id}].protectTarget={id};window._render()"`,
         selectedId: v.protectTarget,
         showRole: true,
         excludeRoles: ['guard', 'wolf']
       });
       b += `<p class="good">護衛届がある。味方1人を守れる（護衛自身と人狼は守れない）。</p>
-        <div class="explorer-grid">${protectCards}</div>`;
+        <div class="explorer-grid ${protectGridClass}">${protectCards}</div>`;
     } else {
       b += `<p class="${guardAway(v) ? 'warn' : ''}">護衛は使えない。${protectReason(v)}</p>`;
       v.protectTarget = null;
