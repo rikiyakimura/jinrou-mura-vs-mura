@@ -58,7 +58,7 @@ export function renderPanel() {
     }
     const p = v.people[v.placeIdx];
     const imgKey = NAME_TO_KEY[p.name];
-    const imgSrc = imgKey ? `/assets/portraits/${imgKey}_${p.role}.webp` : '';
+    const imgSrc = imgKey ? `/portraits/${imgKey}_${p.role}.webp` : '';
     el.innerHTML = H(`${tag}配置`, `
       <div class="place-card">
         ${imgKey ? `<img src="${imgSrc}" class="portrait" alt="${p.name}">` : ''}
