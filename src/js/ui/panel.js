@@ -3,7 +3,7 @@
  */
 
 import { G, cur, who, me, opp, wolfOf, personAt, houseName, alive, guardAway } from '../state.js';
-import { TICKS, SHARPEN, ROLE_LABEL, HLABEL, getConfig } from '../constants.js';
+import { TICKS, SHARPEN, ROLE_LABEL, HLABEL, getConfig, NAME_TO_KEY } from '../constants.js';
 import { other } from '../utils.js';
 import { sharpenTicks, overlapSoFar, madSharpenTicks, canSharpen, canSharpenMad, madManualNeeded, canAttack, canProtect, protectReason } from '../game/resolve.js';
 import { isProcessing } from '../online/onlineFlow.js';
@@ -57,10 +57,18 @@ export function renderPanel() {
       return;
     }
     const p = v.people[v.placeIdx];
+    const imgKey = NAME_TO_KEY[p.name];
+    const imgSrc = imgKey ? `/assets/portraits/${imgKey}_${p.role}.webp` : '';
     el.innerHTML = H(`${tag}配置`, `
-      <p class="lead"><b>${p.name}（${ROLE_LABEL[p.role]}）</b>をどの家に住まわせる？ <b>${myMapLabel}</b>で選ぶ。</p>
-      <p>一度決めたら${getConfig().DAYS}夜のあいだ動かせない。</p>
-      <p style="color:var(--kinari-faint)">残り ${getConfig().VILLAGERS - v.placeIdx} 人</p>
+      <div class="place-card">
+        ${imgKey ? `<img src="${imgSrc}" class="portrait" alt="${p.name}">` : ''}
+        <div class="place-info">
+          <p class="lead"><b>${p.name}（${ROLE_LABEL[p.role]}）</b></p>
+          <p>をどの家に住まわせる？</p>
+          <p><b>${myMapLabel}</b>で選ぶ。</p>
+          <p style="color:var(--kinari-faint)">残り ${getConfig().VILLAGERS - v.placeIdx} 人</p>
+        </div>
+      </div>
       ${quitBtn}`);
     return;
   }
