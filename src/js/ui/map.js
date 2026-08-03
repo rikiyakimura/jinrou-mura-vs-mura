@@ -146,9 +146,9 @@ export function drawMap(el, village, o) {
 
     if (!o.omniscient && o.itemHouses) {
       const badges = [];
-      if (o.itemHouses.permit === h) badges.push('<img src="./assets/item/goeitodoke.webp" class="item-badge" title="護衛届">');
-      if (o.itemHouses.claw === h) badges.push('<img src="./assets/item/kyoujinnotume.webp" class="item-badge" title="狂人の爪">');
-      if (o.itemHouses.medium === h) badges.push('<img src="./assets/item/reibainohuda.webp" class="item-badge" title="霊媒の札">');
+      if (o.itemHouses.permit === h) badges.push('<img src="/item/goeitodoke.webp" class="item-badge" title="護衛届">');
+      if (o.itemHouses.claw === h) badges.push('<img src="/item/kyoujinnotume.webp" class="item-badge" title="狂人の爪">');
+      if (o.itemHouses.medium === h) badges.push('<img src="/item/reibainohuda.webp" class="item-badge" title="霊媒の札">');
       if (badges.length) {
         d.classList.add('permitfound');
         badges.forEach(b => { d.innerHTML += '<span class="badge">' + b + '</span>'; });
