@@ -57,9 +57,8 @@ export function drawMap(el, village, o) {
     const pad = 9;
     ln.setAttribute('x1', x1 + ux * pad); ln.setAttribute('y1', y1 + uy * pad);
     ln.setAttribute('x2', x2 - ux * pad); ln.setAttribute('y2', y2 - uy * pad);
-    ln.setAttribute('stroke', o.routeMine ? 'var(--moon)' : 'var(--kuchiba)');
-    ln.setAttribute('stroke-width', '1.1'); ln.setAttribute('opacity', '0.55');
-    ln.setAttribute('stroke-dasharray', 'none');
+    const arrowColor = o.routeMine ? 'var(--moon)' : 'var(--kuchiba)';
+    ln.setAttribute('style', `stroke:${arrowColor};stroke-width:1.5;opacity:0.7;stroke-dasharray:none`);
     ln.setAttribute('marker-end', 'url(#arrow-' + (o.routeMine ? 'm' : 'f') + ')');
     svg.appendChild(ln);
   }
@@ -75,8 +74,8 @@ export function drawMap(el, village, o) {
       mk.setAttribute('orient', 'auto');
       const pa = document.createElementNS('http://www.w3.org/2000/svg', 'path');
       pa.setAttribute('d', 'M0,0 L5,2.5 L0,5 Z');
-      pa.setAttribute('fill', k === 'm' ? 'var(--moon)' : 'var(--kuchiba)');
-      pa.setAttribute('opacity', '0.7');
+      const markerColor = k === 'm' ? 'var(--moon)' : 'var(--kuchiba)';
+      pa.setAttribute('style', `fill:${markerColor};opacity:0.8`);
       mk.appendChild(pa); defs.appendChild(mk);
     });
     svg.appendChild(defs);
