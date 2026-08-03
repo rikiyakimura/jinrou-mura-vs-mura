@@ -53,6 +53,7 @@ export function showTitle() {
   const el = document.getElementById('veil');
   el.style.display = 'flex';
   el.classList.add('title-screen');
+  el.classList.remove('menu-screen');
   document.body.style.overflow = 'hidden';
   document.body.classList.remove('game-active');
 
@@ -80,6 +81,7 @@ export function showOptions() {
   const el = document.getElementById('veil');
   el.style.display = 'flex';
   el.classList.remove('title-screen');
+  el.classList.add('menu-screen');
   document.body.style.overflow = 'hidden';
 
   const chip = (key, label, desc) =>
@@ -158,6 +160,7 @@ export function showOnlineMenu() {
   selectedMode = 'online';
   const el = document.getElementById('veil');
   el.classList.remove('title-screen');
+  el.classList.add('menu-screen');
   const savedName = getPlayerName();
 
   el.innerHTML = `<div class="inner online-menu">
@@ -188,6 +191,7 @@ export function showOnlineOptions(action) {
 
   onlineScreen = 'options';
   const el = document.getElementById('veil');
+  el.classList.add('menu-screen');
 
   const chip = (key, label, desc) =>
     '<button class="optchip ' + (TITLE_OPT[key] ? 'on' : '') + '" onclick="window._toggleOptOnline(\'' + key + '\')"><span class="ck">' +
@@ -232,6 +236,7 @@ export async function showCreateRoom() {
 
   onlineScreen = 'create';
   const el = document.getElementById('veil');
+  el.classList.add('menu-screen');
   el.innerHTML = `<div class="inner"><div class="loading">ルームを作成中...</div></div>`;
 
   const { room, error } = await createRoom(playerName, { ...TITLE_OPT });
@@ -277,6 +282,7 @@ export function showJoinRoom() {
 
   onlineScreen = 'join';
   const el = document.getElementById('veil');
+  el.classList.add('menu-screen');
 
   el.innerHTML = `<div class="inner join-room">
     <div class="title-sm">ルームに参加</div>
@@ -333,6 +339,7 @@ export async function startMatchmaking() {
 
   onlineScreen = 'matchmaking';
   const el = document.getElementById('veil');
+  el.classList.add('menu-screen');
   el.innerHTML = `<div class="inner"><div class="loading">対戦相手を探しています...</div></div>`;
 
   const { queueId, room, matched, error, isHost } = await joinMatchmakingQueue(playerName, { ...TITLE_OPT });
@@ -423,6 +430,7 @@ function cleanupOnlineSubscriptions() {
 export function showOnlineWaiting(message, status = 'normal') {
   const el = document.getElementById('veil');
   el.style.display = 'flex';
+  el.classList.add('menu-screen');
   document.body.style.overflow = 'hidden';
 
   const statusClass = status === 'error' ? 'error' : status === 'warning' ? 'warning' : '';
@@ -470,6 +478,7 @@ export function showVeilIfNeeded(render) {
   G.handoffs++;
   el.className = 'veil';
   el.classList.remove('title-screen');
+  el.classList.add('menu-screen');
   el.style.display = 'flex';
   document.body.style.overflow = 'hidden';
   window.scrollTo(0, 0);
@@ -488,7 +497,7 @@ export function showVeilIfNeeded(render) {
 export function hideVeil(render) {
   const el = document.getElementById('veil');
   el.style.display = 'none';
-  el.classList.remove('title-screen');
+  el.classList.remove('title-screen', 'menu-screen');
   document.body.style.overflow = '';
   document.body.classList.add('game-active');
   if (render) render();

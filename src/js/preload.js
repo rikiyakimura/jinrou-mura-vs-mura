@@ -6,17 +6,47 @@ import { NAMES, NAME_TO_KEY } from './constants.js';
 
 const ROLES = ['wolf', 'guard', 'villager', 'madman', 'medium', 'dog'];
 
+// プリロードする背景画像（topBG.webpは即座に表示されるので不要）
+const BG_IMAGES = [
+  '/assets/BG/nontitleBG.webp',
+  '/assets/resultBG/win.webp',
+  '/assets/resultBG/loss.webp',
+  '/assets/resultBG/draw.webp'
+];
+
+// プリロードするアイテム画像
+const ITEM_IMAGES = [
+  '/item/goeitodoke.webp',
+  '/item/kyoujinnotume.webp',
+  '/item/reibainohuda.webp'
+];
+
 // プリロードした画像の参照を保持（GC回避）
 let preloadedImages = null;
 
 /**
- * 全ポートレート画像をバックグラウンドでプリロード
+ * 全画像をバックグラウンドでプリロード
  */
 export function preloadPortraits() {
   if (preloadedImages) return; // 既にプリロード済み
 
   preloadedImages = [];
 
+  // 背景画像
+  for (const src of BG_IMAGES) {
+    const img = new Image();
+    img.src = src;
+    preloadedImages.push(img);
+  }
+
+  // アイテム画像
+  for (const src of ITEM_IMAGES) {
+    const img = new Image();
+    img.src = src;
+    preloadedImages.push(img);
+  }
+
+  // ポートレート画像
   for (const name of NAMES) {
     const key = NAME_TO_KEY[name];
     if (!key) continue;
@@ -28,5 +58,5 @@ export function preloadPortraits() {
     }
   }
 
-  console.log(`[Preload] ${preloadedImages.length} portrait images queued`);
+  console.log(`[Preload] ${preloadedImages.length} images queued (BG: ${BG_IMAGES.length}, items: ${ITEM_IMAGES.length}, portraits: ${preloadedImages.length - BG_IMAGES.length - ITEM_IMAGES.length})`);
 }
