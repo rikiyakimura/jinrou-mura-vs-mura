@@ -236,9 +236,12 @@ export function renderPanel() {
       let cl = 'tick';
       if (i <= G.tickIdx) cl += ' done';
       if (st.includes(i)) cl += ' claw';
-      if (i <= G.tickIdx && st.includes(i) && o.route[i - 1] === wl.house) cl += ' seen';
+      const heardThis = i <= G.tickIdx && st.includes(i) && o.route[i - 1] === wl.house;
+      if (heardThis) cl += ' seen';
       if (i === G.tickIdx + 1) cl += ' now';
-      // 研ぎ完了時の結果クラス
+      // 今通過したティックにフラッシュ
+      if (i === G.tickIdx && st.includes(i)) cl += ' flash';
+      // 研ぎ完了時の結果クラス（3マス全部）
       if (sharpenDone && st.includes(i)) cl += heardCount >= 2 ? ' fail' : ' success';
       const nm = i <= G.tickIdx ? (personAt(v, o.route[i - 1]) ? personAt(v, o.route[i - 1]).name : getConfig().HLABEL[o.route[i - 1]]) : '—';
       return `<div class="${cl}"><b>${i}</b><span>${nm}</span></div>`;
@@ -271,6 +274,8 @@ export function renderPanel() {
         // 狂人が聞かれた（良いこと）
         if (md && i <= G.tickIdx && mst.includes(i) && o.route[i - 1] === md.house) cl += ' madheard';
         if (i === G.tickIdx + 1) cl += ' now';
+        // 今通過したティックにフラッシュ
+        if (i === G.tickIdx && mst.includes(i)) cl += ' flash';
         return `<div class="${cl}">${i}</div>`;
       }).join('');
       const madHouseName = md ? (personAt(v, md.house) ? personAt(v, md.house).name : getConfig().HLABEL[md.house]) : '';

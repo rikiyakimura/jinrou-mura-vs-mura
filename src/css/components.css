@@ -39,21 +39,25 @@ button.quit:hover:not(:disabled){background:var(--indigo-lift);color:var(--kinar
 .tick b{display:block;font-size:11px;font-weight:700;opacity:.7}
 .tick span{display:block;font-size:11px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tick.done{color:var(--kinari);border-color:var(--kinari-faint)}
-.tick.claw{border-color:var(--akane);color:var(--akane-glow);background:#2C1C1A;animation:claw-flash .6s ease-out}
-.tick.seen{border-color:var(--moon);color:var(--moon);background:#1C2634;animation:seen-flash .8s ease-out}
+.tick.claw{border-color:var(--akane);color:var(--akane-glow);background:#2C1C1A}
+.tick.seen{border-color:var(--moon);color:var(--moon);background:#1C2634}
 .tick.now{border-color:var(--kuchiba);color:var(--kuchiba)}
-/* 人狼の爪エフェクト */
+/* 狂人の爪スタイル */
+.tick.madclaw{border-color:#9D4EDD;color:#C77DFF;background:#2A1A33}
+.tick.madheard{border-color:var(--midori);color:#96D09E;background:#1A2820}
+/* 今通過したティックのフラッシュ */
+.tick.claw.flash{animation:claw-flash .6s ease-out}
+.tick.seen.flash{animation:seen-flash .8s ease-out}
+.tick.madclaw.flash{animation:madclaw-flash .6s ease-out}
+.tick.madheard.flash{animation:madheard-flash .8s ease-out}
 @keyframes claw-flash{0%,100%{box-shadow:none}50%{box-shadow:0 0 12px 2px var(--akane-glow)}}
 @keyframes seen-flash{0%,100%{box-shadow:none}50%{box-shadow:0 0 14px 3px var(--moon)}}
-/* 研ぎ完了エフェクト */
-.tick.claw.success{border-color:var(--kuchiba);animation:sharpen-success 1s ease-out}
-.tick.claw.fail{opacity:.5;border-color:var(--kinari-faint);color:var(--kinari-faint);background:var(--indigo-lift);animation:none}
-@keyframes sharpen-success{0%,100%{box-shadow:none}50%{box-shadow:0 0 16px 4px var(--kuchiba)}}
-/* 狂人の爪エフェクト */
-.tick.madclaw{border-color:#9D4EDD;color:#C77DFF;background:#2A1A33;animation:madclaw-flash .6s ease-out}
-.tick.madheard{border-color:var(--midori);color:#96D09E;background:#1A2820;animation:madheard-flash .8s ease-out}
 @keyframes madclaw-flash{0%,100%{box-shadow:none}50%{box-shadow:0 0 12px 2px #C77DFF}}
 @keyframes madheard-flash{0%,100%{box-shadow:none}50%{box-shadow:0 0 14px 3px var(--midori)}}
+/* 研ぎ完了エフェクト（3マス全部） */
+.tick.claw.success{border-color:var(--kuchiba);animation:sharpen-success 1s ease-out}
+.tick.claw.fail{opacity:.5;border-color:var(--kinari-faint);color:var(--kinari-faint);background:var(--indigo-lift)}
+@keyframes sharpen-success{0%,100%{box-shadow:none}50%{box-shadow:0 0 16px 4px var(--kuchiba)}}
 
 .madsec{margin-top:12px;padding-top:10px;border-top:1px solid var(--indigo-edge)}
 .madhead{font-size:13.5px;color:var(--kinari);display:flex;align-items:center;gap:8px}
