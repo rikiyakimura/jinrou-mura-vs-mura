@@ -70,7 +70,6 @@ export function newGame(mode, opt) {
     (extra.length ? '　／　' + extra.join('・') : '');
 
   startDay();
-  console.log('[newGame] after startDay, permitHouse=', G.permitHouse, 'madHouse=', G.madHouse, 'mediumHouse=', G.mediumHouse);
   sync();
 }
 
