@@ -22,31 +22,42 @@ const ITEM_IMAGES = [
 ];
 
 // プリロードした画像の参照を保持（GC回避）
-let preloadedImages = null;
+let criticalImages = null;
+let portraitImages = null;
 
 /**
- * 全画像をバックグラウンドでプリロード
+ * 重要な画像を即座にプリロード（背景・アイテム）
  */
-export function preloadPortraits() {
-  if (preloadedImages) return; // 既にプリロード済み
+export function preloadCritical() {
+  if (criticalImages) return;
 
-  preloadedImages = [];
+  criticalImages = [];
 
   // 背景画像
   for (const src of BG_IMAGES) {
     const img = new Image();
     img.src = src;
-    preloadedImages.push(img);
+    criticalImages.push(img);
   }
 
   // アイテム画像
   for (const src of ITEM_IMAGES) {
     const img = new Image();
     img.src = src;
-    preloadedImages.push(img);
+    criticalImages.push(img);
   }
 
-  // ポートレート画像
+  console.log(`[Preload] ${criticalImages.length} critical images loading (BG + items)`);
+}
+
+/**
+ * ポートレート画像をバックグラウンドでプリロード
+ */
+export function preloadPortraits() {
+  if (portraitImages) return;
+
+  portraitImages = [];
+
   for (const name of NAMES) {
     const key = NAME_TO_KEY[name];
     if (!key) continue;
@@ -54,9 +65,9 @@ export function preloadPortraits() {
     for (const role of ROLES) {
       const img = new Image();
       img.src = `/portraits/${key}_${role}.webp`;
-      preloadedImages.push(img);
+      portraitImages.push(img);
     }
   }
 
-  console.log(`[Preload] ${preloadedImages.length} images queued (BG: ${BG_IMAGES.length}, items: ${ITEM_IMAGES.length}, portraits: ${preloadedImages.length - BG_IMAGES.length - ITEM_IMAGES.length})`);
+  console.log(`[Preload] ${portraitImages.length} portrait images queued`);
 }

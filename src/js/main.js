@@ -30,7 +30,7 @@ import { submitOnlineAction, setOnlineFlowCallbacks, advanceOnline, surrenderOnl
 import { setPlayerName } from './online/supabase.js';
 
 // プリロード
-import { preloadPortraits } from './preload.js';
+import { preloadCritical, preloadPortraits } from './preload.js';
 import { updateGameState, syncIdxFromDB } from './online/sync.js';
 
 // ========== エモート表示 ==========
@@ -510,7 +510,10 @@ window.G = G;
 initLedgerSwipe();
 showTitle();
 
-// ポートレート画像をバックグラウンドでプリロード
+// 背景・アイテム画像を即座にプリロード開始
+setTimeout(() => preloadCritical(), 100);
+
+// ポートレート画像はアイドル時にプリロード
 if ('requestIdleCallback' in window) {
   requestIdleCallback(() => preloadPortraits());
 } else {
