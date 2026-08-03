@@ -113,7 +113,7 @@ export function render() {
         : `<span>1P <b>${alive(G.V[1]).length}</b>人</span><span>2P <b>${alive(G.V[2]).length}</b>人</span>`)) +
     (pub
       ? `<span class="turnbadge pub">${G.mode === 'pvp' ? '1P・2P とも観覧可' : '結果'}</span>`
-      : `<span class="${M.permit ? 'on' : ''}">護衛届 ${M.permit ? '取得' : '—'}</span>` +
+      : `<span class="${M.permit ? 'on' : ''}"><img src="./assets/item/goeitodoke.webp" class="item-icon-sm">護衛届 ${M.permit ? '取得' : '—'}</span>` +
       (M.explorer !== null && guardAway(M) ? `<span style="color:var(--akane-glow)">護衛は探索中</span>` : '') +
       `<span>狼の食事 ${M.fed ? '済' : 'まだ'}</span>` +
       (G.mode === 'cpu' ? '' : (G.mode === 'online' ? '' : `<span class="turnbadge p${w}">${w}P の手番</span>`)));

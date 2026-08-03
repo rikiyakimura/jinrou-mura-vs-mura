@@ -170,7 +170,7 @@ function pickRoute(h) {
   // アイテム取得
   if (h === G.permitHouse[v.id] && !v.gotPermit) {
     v.permit = true; v.permitFound = h; v.gotPermit = true;
-    v.notice = `<b>護衛届を手に入れた。</b>${houseName(opp(), h)}のタンスの中にあった。今夜、村人1人を守れる。`;
+    v.notice = `<img src="./assets/item/goeitodoke.webp" class="item-icon"><b>護衛届を手に入れた。</b>${houseName(opp(), h)}のタンスの中にあった。今夜、村人1人を守れる。`;
     log(v, `${houseName(opp(), h)}で護衛届を手に入れた。`);
   }
   else if (h === G.madHouse[v.id] && !v.gotClaw) {
@@ -178,7 +178,7 @@ function pickRoute(h) {
     const mad = madmanOf(v);
     const usable = mad && mad.alive && v.explorer !== mad.id;
     const madReason = !mad ? '' : (!mad.alive ? '狂人はすでにいない' : (v.explorer === mad.id ? '狂人は探索に出て眠っている' : ''));
-    v.notice = '<b>狂人の爪を手に入れた。</b>' + houseName(opp(), h) + 'にあった。' +
+    v.notice = '<img src="./assets/item/kyoujinnotume.webp" class="item-icon"><b>狂人の爪を手に入れた。</b>' + houseName(opp(), h) + 'にあった。' +
       (usable ? '今夜、狂人に爪を研がせて相手の探索者を惑わせられる。'
         : 'だが今夜、' + madReason + '。爪は鳴らせない。');
     if (usable) log(v, houseName(opp(), h) + 'で狂人の爪を手に入れた。');
@@ -189,7 +189,7 @@ function pickRoute(h) {
     const med = mediumOf(v);
     const usable = med && med.alive && v.explorer !== med.id;
     const medReason = !med ? '' : (!med.alive ? '霊媒師はすでにいない' : (v.explorer === med.id ? '霊媒師は探索に出て眠っている' : ''));
-    v.notice = '<b>霊媒の札を手に入れた。</b>' + houseName(opp(), h) + 'にあった。' +
+    v.notice = '<img src="./assets/item/reibainohuda.webp" class="item-icon"><b>霊媒の札を手に入れた。</b>' + houseName(opp(), h) + 'にあった。' +
       (usable ? '今夜倒した相手がいれば、その正体が分かる。'
         : 'だが今夜、' + medReason + '。札は働かない。');
     if (usable) log(v, houseName(opp(), h) + 'で霊媒の札を手に入れた。');

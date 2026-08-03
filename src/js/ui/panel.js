@@ -201,9 +201,9 @@ export function renderPanel() {
 
     if (v.routeDone) {
       const got = [];
-      if (v.permitFound) got.push('護衛届');
-      if (v.madClawFound) got.push('狂人の爪');
-      if (v.mediumFound) got.push('霊媒の札');
+      if (v.permitFound) got.push('<img src="./assets/item/goeitodoke.webp" class="item-icon">護衛届');
+      if (v.madClawFound) got.push('<img src="./assets/item/kyoujinnotume.webp" class="item-icon">狂人の爪');
+      if (v.mediumFound) got.push('<img src="./assets/item/reibainohuda.webp" class="item-icon">霊媒の札');
       const gotLine = got.length
         ? `<div class="notice"><b>手に入れたもの：${got.join('、')}</b><span class="where">${v.route.map(h => houseName(o, h)).join(' → ')}</span></div>`
         : `<div class="notice quiet"><b>この探索では、何も手に入らなかった。</b><span class="where">${v.route.map(h => houseName(o, h)).join(' → ')}</span></div>`;

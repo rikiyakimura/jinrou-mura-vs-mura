@@ -146,3 +146,8 @@ button.back:hover{color:var(--kinari)}
 .explorer-card.excluded{opacity:.4;cursor:not-allowed;pointer-events:none}
 .explorer-card.excluded img{filter:grayscale(100%)}
 .explorer-card .status{font-size:10px;color:var(--akane-glow);margin-top:2px}
+
+/* アイテムアイコン */
+.item-icon{width:32px;height:32px;vertical-align:middle;margin-right:6px}
+.item-icon-sm{width:16px;height:16px;vertical-align:middle;margin-right:3px}
+.item-badge{width:20px;height:20px;vertical-align:middle}
