@@ -228,10 +228,10 @@ export function renderPanel() {
 
   if (c.ph === 'ticks') {
     const wl = wolfOf(v), s = v.sharpenStart, st = sharpenTicks(v);
-    // 研ぎ完了判定
+    // 研ぎ完了判定（完了した瞬間のティックのみフラッシュ）
     const sharpenEnd = s !== null ? Math.min(s + SHARPEN - 1, TICKS) : null;
-    const sharpenDone = s !== null && G.tickIdx >= sharpenEnd;
-    const heardCount = sharpenDone ? st.filter(t => t <= G.tickIdx && o.route[t - 1] === wl.house).length : 0;
+    const justFinished = s !== null && G.tickIdx === sharpenEnd;  // 今まさに完了したティック
+    const heardCount = justFinished ? st.filter(t => t <= G.tickIdx && o.route[t - 1] === wl.house).length : 0;
     const row = [1, 2, 3, 4, 5].map(i => {
       let cl = 'tick';
       if (i <= G.tickIdx) cl += ' done';
@@ -241,8 +241,8 @@ export function renderPanel() {
       if (i === G.tickIdx + 1) cl += ' now';
       // 今通過したティックにフラッシュ
       if (i === G.tickIdx && st.includes(i)) cl += ' flash';
-      // 研ぎ完了時の結果クラス（3マス全部）
-      if (sharpenDone && st.includes(i)) cl += heardCount >= 2 ? ' fail' : ' success';
+      // 研ぎ完了時の結果クラス（3マス全部、完了した瞬間のみ）
+      if (justFinished && st.includes(i)) cl += heardCount >= 2 ? ' fail' : ' success';
       const nm = i <= G.tickIdx ? (personAt(v, o.route[i - 1]) ? personAt(v, o.route[i - 1]).name : getConfig().HLABEL[o.route[i - 1]]) : '—';
       return `<div class="${cl}"><b>${i}</b><span>${nm}</span></div>`;
     }).join('');
