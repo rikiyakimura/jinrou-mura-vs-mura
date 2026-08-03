@@ -23,14 +23,14 @@
 
 /* 結果画面 */
 .final{text-align:center;padding:0;border-radius:8px;overflow:hidden;position:relative}
-.final.win{background:url('../assets/resultBG/win.webp') center/cover no-repeat}
-.final.loss{background:url('../assets/resultBG/loss.webp') center/cover no-repeat}
-.final.draw{background:url('../assets/resultBG/draw.webp') center/cover no-repeat}
-.final-content{padding:32px 24px 20px;background:linear-gradient(to bottom,rgba(10,13,19,0.7) 0%,rgba(10,13,19,0.5) 100%)}
+.final.win{background:url('../assets/resultBG/win.webp') top center/100% auto no-repeat}
+.final.loss{background:url('../assets/resultBG/loss.webp') top center/100% auto no-repeat}
+.final.draw{background:url('../assets/resultBG/draw.webp') top center/100% auto no-repeat}
+.final-content{padding:32px 24px 20px}
 .final .sub{color:var(--kinari-faint);font-size:14px;letter-spacing:.1em;text-shadow:0 1px 3px rgba(0,0,0,0.8)}
 .final .score{font-family:var(--mincho);font-size:56px;letter-spacing:.1em;margin:8px 0;color:var(--kinari);text-shadow:0 2px 8px rgba(0,0,0,0.9)}
 .final .verdict{font-family:var(--mincho);font-size:24px;letter-spacing:.2em;color:var(--kuchiba);text-shadow:0 1px 4px rgba(0,0,0,0.8)}
 .final .note{color:var(--kinari-dim);margin-top:10px;font-size:13px;text-shadow:0 1px 2px rgba(0,0,0,0.7)}
 .final .ledger-note{color:var(--midori);margin-top:8px;font-size:13px;text-shadow:0 1px 2px rgba(0,0,0,0.7)}
-.final-actions{padding:16px 24px 20px;background:rgba(10,13,19,0.85)}
-.reveal{padding:12px 24px 20px;background:rgba(10,13,19,0.9);color:var(--kinari-dim);font-size:12.5px;line-height:1.9}
+.final-actions{padding:16px 24px 20px;background:var(--indigo)}
+.reveal{padding:12px 24px 20px;background:var(--indigo);color:var(--kinari-dim);font-size:12.5px;line-height:1.9}
