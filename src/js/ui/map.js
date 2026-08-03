@@ -48,6 +48,7 @@ export function drawMap(el, village, o) {
 
   // 経路の矢印
   const rp = o.routePath || [];
+  const arrowId = 'arrow-' + (o.routeMine ? 'mine' : 'foe') + '-' + Date.now();
   for (let i = 0; i < rp.length - 1; i++) {
     const a = rp[i], b = rp[i + 1];
     if (a === b) continue;
@@ -59,25 +60,23 @@ export function drawMap(el, village, o) {
     ln.setAttribute('x2', x2 - ux * pad); ln.setAttribute('y2', y2 - uy * pad);
     const arrowColor = o.routeMine ? 'var(--moon)' : 'var(--kuchiba)';
     ln.setAttribute('style', `stroke:${arrowColor};stroke-width:1.5;opacity:0.7;stroke-dasharray:none`);
-    ln.setAttribute('marker-end', 'url(#arrow-' + (o.routeMine ? 'm' : 'f') + ')');
+    ln.setAttribute('marker-end', `url(#${arrowId})`);
     svg.appendChild(ln);
   }
 
-  // 矢印マーカー定義
+  // 矢印マーカー定義（このマップ専用のユニークID）
   if (rp.length > 1) {
     const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-    ['m', 'f'].forEach(k => {
-      const mk = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
-      mk.setAttribute('id', 'arrow-' + k);
-      mk.setAttribute('markerWidth', '5'); mk.setAttribute('markerHeight', '5');
-      mk.setAttribute('refX', '4'); mk.setAttribute('refY', '2.5');
-      mk.setAttribute('orient', 'auto');
-      const pa = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      pa.setAttribute('d', 'M0,0 L5,2.5 L0,5 Z');
-      const markerColor = k === 'm' ? 'var(--moon)' : 'var(--kuchiba)';
-      pa.setAttribute('style', `fill:${markerColor};opacity:0.8`);
-      mk.appendChild(pa); defs.appendChild(mk);
-    });
+    const mk = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+    mk.setAttribute('id', arrowId);
+    mk.setAttribute('markerWidth', '5'); mk.setAttribute('markerHeight', '5');
+    mk.setAttribute('refX', '4'); mk.setAttribute('refY', '2.5');
+    mk.setAttribute('orient', 'auto');
+    const pa = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    pa.setAttribute('d', 'M0,0 L5,2.5 L0,5 Z');
+    const markerColor = o.routeMine ? 'var(--moon)' : 'var(--kuchiba)';
+    pa.setAttribute('style', `fill:${markerColor};opacity:0.8`);
+    mk.appendChild(pa); defs.appendChild(mk);
     svg.appendChild(defs);
   }
 
