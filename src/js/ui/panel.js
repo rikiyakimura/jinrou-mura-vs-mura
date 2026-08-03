@@ -426,24 +426,31 @@ export function renderPanel() {
     const second = (G.mode === 'cpu' || G.mode === 'online') ? oppId : 2;
     const scoreLeft = (G.mode === 'cpu' || G.mode === 'online') ? myAlive : a;
     const scoreRight = (G.mode === 'cpu' || G.mode === 'online') ? oppAlive : f;
-    el.innerHTML = `<div class="final">
-      <div class="sub">${head}</div>
-      <div class="score">${scoreLeft} — ${scoreRight}</div>
-      <div class="verdict">${verdict}</div>
-      ${note ? `<p style="color:var(--kinari-dim);margin-top:8px">${note}</p>` : ''}
-      <p style="color:var(--midori);margin-top:6px;font-size:13px">覚え書きに、伏せられていたことを書き足した。</p>
-      <div class="btnrow" style="justify-content:center;margin-top:18px">
-        <button onclick="G.endView=${first};window._render()">${nm(first)}の覚え書き</button>
-        <button onclick="G.endView=${second};window._render()">${nm(second)}の覚え書き</button>
-        <button class="primary" onclick="window._restartGame()">もう一度</button>
+    // 背景画像の決定
+    const bgType = verdict === '勝ち' ? 'win' : verdict === '負け' ? 'loss' : verdict.includes('勝ち') ? 'win' : 'draw';
+    el.innerHTML = `<div class="final ${bgType}">
+      <div class="final-content">
+        <div class="sub">${head}</div>
+        <div class="score">${scoreLeft} — ${scoreRight}</div>
+        <div class="verdict">${verdict}</div>
+        ${note ? `<p class="note">${note}</p>` : ''}
+        <p class="ledger-note">覚え書きに、伏せられていたことを書き足した。</p>
       </div>
-      <div class="quitrow" style="border:none;margin-top:12px">
-        <button class="quit" onclick="window._backToTitle()">タイトルに戻る</button>
+      <div class="final-actions">
+        <div class="btnrow" style="justify-content:center">
+          <button onclick="G.endView=${first};window._render()">${nm(first)}の覚え書き</button>
+          <button onclick="G.endView=${second};window._render()">${nm(second)}の覚え書き</button>
+          <button class="primary" onclick="window._restartGame()">もう一度</button>
+        </div>
+        <div class="quitrow" style="border:none;margin-top:12px">
+          <button class="quit" onclick="window._backToTitle()">タイトルに戻る</button>
+        </div>
       </div>
       <div class="reveal">
         ${G.V[first]?.people ? `${nm(first)}の村：${G.V[first].people.map(p => `${p.name}（${ROLE_LABEL[p.role]}${p.alive ? '' : '・死亡'}）`).join('　')}<br>` : ''}
         ${G.V[second]?.people ? `${nm(second)}の村：${G.V[second].people.map(p => `${p.name}（${ROLE_LABEL[p.role]}${p.alive ? '' : '・死亡'}）`).join('　')}` : ''}
-      </div></div>`;
+      </div>
+    </div>`;
     return;
   }
 
