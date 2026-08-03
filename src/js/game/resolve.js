@@ -2,7 +2,7 @@
  * 判定処理
  */
 
-import { G, wolfOf, guardOf, mediumOf, madActive, log, houseName, alive } from '../state.js';
+import { G, wolfOf, guardOf, mediumOf, madActive, log, logRoute, houseName, alive } from '../state.js';
 import { TICKS, SHARPEN, SPOIL as SPOIL_CONST, EXPOSE, ROLE_LABEL, getConfig } from '../constants.js';
 
 // SPOILをエクスポート
@@ -124,6 +124,12 @@ export function resolveDay(hideVeil) {
   log(A, `相手の探索者 ${safeExplorerName(B)}：${path(A, B.route)}`, 'route');
   log(B, `自分の探索者 ${safeExplorerName(B)}：${path(A, B.route)}`, 'route');
   log(B, `相手の探索者 ${safeExplorerName(A)}：${path(B, A.route)}`, 'route');
+
+  // 経路をログに保存（覚え書きのミニマップ用）
+  logRoute(A, A.route, A.explorer, true);
+  logRoute(A, B.route, B.explorer, false);
+  logRoute(B, B.route, B.explorer, true);
+  logRoute(B, A.route, A.explorer, false);
 
   function hearing(att, def) {
     const explorerPerson = (att.explorer !== null && att.explorer !== undefined) ? att.people[att.explorer] : null;

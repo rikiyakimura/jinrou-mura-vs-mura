@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 940" width="1000" height="940">
+  <rect width="1000" height="940" fill="white"/>
+
+  <!-- 道 (edges) - 幅14px（9軒村と同じ） -->
+  <g stroke="black" stroke-width="14" fill="none" stroke-linecap="round">
+    <!-- 外周 -->
+    <line x1="200" y1="169" x2="800" y2="169"/>
+    <line x1="200" y1="169" x2="200" y2="696"/>
+    <line x1="800" y1="169" x2="800" y2="696"/>
+    <line x1="200" y1="696" x2="800" y2="696"/>
+    <!-- 中央への接続 -->
+    <line x1="500" y1="432" x2="200" y2="169"/>
+    <line x1="500" y1="432" x2="800" y2="169"/>
+    <line x1="500" y1="432" x2="200" y2="696"/>
+    <line x1="500" y1="432" x2="800" y2="696"/>
+  </g>
+
+  <!-- 家 (houses) - 80x112pxの縦長長方形（実際の比率に合わせる） -->
+  <g fill="black">
+    <rect x="160" y="113" width="80" height="112" rx="4"/>  <!-- 北西 -->
+    <rect x="760" y="113" width="80" height="112" rx="4"/>  <!-- 北東 -->
+    <rect x="460" y="376" width="80" height="112" rx="4"/>  <!-- 中央 -->
+    <rect x="160" y="640" width="80" height="112" rx="4"/>  <!-- 南西 -->
+    <rect x="760" y="640" width="80" height="112" rx="4"/>  <!-- 南東 -->
+  </g>
+</svg>

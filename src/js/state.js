@@ -87,6 +87,18 @@ export function log(v, t, cls) {
   d.lines.push({ t, cls });
 }
 
+// 経路をログに保存（覚え書きの地図表示用）
+export function logRoute(v, route, explorer, isOwn) {
+  let d = v.log.find(x => x.day === state.G.day);
+  if (!d) {
+    d = { day: state.G.day, lines: [], routes: {} };
+    v.log.push(d);
+  }
+  if (!d.routes) d.routes = {};
+  const key = isOwn ? 'own' : 'opp';
+  d.routes[key] = { path: [...route], explorer };
+}
+
 // 表示名：対CPUなら「自分／相手」、対人なら「1P／2P」
 export function vname(v) {
   if (state.G.mode === 'cpu') return v.isCPU ? '相手の村' : '自分の村';
