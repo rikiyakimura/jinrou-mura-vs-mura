@@ -339,6 +339,7 @@ export async function startMatchmaking() {
 
   onlineScreen = 'matchmaking';
   const el = document.getElementById('veil');
+  el.classList.remove('menu-screen');
   el.innerHTML = `<div class="inner"><div class="loading">対戦相手を探しています...</div></div>`;
 
   const { queueId, room, matched, error, isHost } = await joinMatchmakingQueue(playerName, { ...TITLE_OPT });
