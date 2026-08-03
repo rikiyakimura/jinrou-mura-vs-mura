@@ -339,7 +339,6 @@ export async function startMatchmaking() {
 
   onlineScreen = 'matchmaking';
   const el = document.getElementById('veil');
-  el.classList.add('menu-screen');
   el.innerHTML = `<div class="inner"><div class="loading">対戦相手を探しています...</div></div>`;
 
   const { queueId, room, matched, error, isHost } = await joinMatchmakingQueue(playerName, { ...TITLE_OPT });
@@ -430,7 +429,7 @@ function cleanupOnlineSubscriptions() {
 export function showOnlineWaiting(message, status = 'normal') {
   const el = document.getElementById('veil');
   el.style.display = 'flex';
-  el.classList.add('menu-screen');
+  el.classList.remove('menu-screen');
   document.body.style.overflow = 'hidden';
 
   const statusClass = status === 'error' ? 'error' : status === 'warning' ? 'warning' : '';
@@ -478,7 +477,6 @@ export function showVeilIfNeeded(render) {
   G.handoffs++;
   el.className = 'veil';
   el.classList.remove('title-screen');
-  el.classList.add('menu-screen');
   el.style.display = 'flex';
   document.body.style.overflow = 'hidden';
   window.scrollTo(0, 0);
