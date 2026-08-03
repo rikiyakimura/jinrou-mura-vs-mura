@@ -168,6 +168,7 @@ function pickRoute(h) {
   }
 
   // アイテム取得
+  console.log('[pickRoute] h=', h, 'v.id=', v.id, 'permitHouse=', G.permitHouse);
   if (h === G.permitHouse[v.id] && !v.gotPermit) {
     v.permit = true; v.permitFound = h; v.gotPermit = true;
     v.notice = `<b>護衛届を手に入れた。</b>${houseName(opp(), h)}のタンスの中にあった。今夜、村人1人を守れる。`;
