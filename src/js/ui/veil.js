@@ -54,6 +54,7 @@ export function showTitle() {
   el.style.display = 'flex';
   el.classList.add('title-screen');
   document.body.style.overflow = 'hidden';
+  document.body.classList.remove('game-active');
 
   el.innerHTML = `<div class="inner">
     <div class="modebtns">
@@ -489,5 +490,6 @@ export function hideVeil(render) {
   el.style.display = 'none';
   el.classList.remove('title-screen');
   document.body.style.overflow = '';
+  document.body.classList.add('game-active');
   if (render) render();
 }

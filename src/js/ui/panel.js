@@ -181,12 +181,17 @@ export function renderPanel() {
       showRole: true,
       disabled: G.mode === 'online' && isProcessing()
     });
+    const explorerHelp = G._explorerHelp ? `
+      <p class="dim small"><b>探索から帰った者は疲れて眠る。</b>その夜、能力は使えない。人狼を送れば襲撃できず、護衛を送れば守れず、霊媒師を送れば札は働かない。一般村人には夜の役目がないので、影響はない。</p>
+      <p class="dim small">ただし人狼を送り、相手の爪研ぎ3ティックすべてに居合わせれば<b>その場で勝てる</b>。</p>
+      ${extra ? `<p class="dim small">${extra.replace(/<\/?p>/g, '')}</p>` : ''}
+    ` : '';
     el.innerHTML = H(`${G.day}日目・昼　探索者を選ぶ`, `
       ${med}
-      <p class="lead">相手の村へ送る探索者を1人選ぶ。<b>互いに伏せて選ぶ</b>ので、相手が誰を出すかはまだ分からない。</p>
-      <p><b>探索から帰った者は疲れて眠る。</b>その夜、能力は使えない。人狼を送れば襲撃できず、護衛を送れば守れず、霊媒師を送れば札は働かない。一般村人には夜の役目がないので、影響はない。</p>
-      <p>ただし人狼を送り、相手の爪研ぎ3ティックすべてに居合わせれば<b>その場で勝てる</b>。</p>
-      ${extra}
+      <p class="lead">相手の村へ送る探索者を1人選ぶ。<b>互いに伏せて選ぶ</b>ので、相手が誰を出すかはまだ分からない。
+        <button class="mini" onclick="G._explorerHelp=!G._explorerHelp;window._render()">${G._explorerHelp ? '閉じる' : '？'}</button>
+      </p>
+      ${explorerHelp}
       <div class="explorer-grid ${gridClass}">${explorerCards}</div>
       ${quitBtn}`);
     return;

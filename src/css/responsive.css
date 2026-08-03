@@ -12,6 +12,7 @@
     background:var(--indigo);color:var(--kinari);border:1px solid var(--indigo-edge);border-right:none;
     border-radius:6px 0 0 6px;cursor:pointer;line-height:1.25;box-shadow:-3px 0 12px -4px rgba(0,0,0,.5);
     will-change:transform;backface-visibility:hidden;transform:translateZ(0);transition:transform .28s ease}
+  body:not(.game-active) #ledger-tab{display:none}
   #ledger-tab::after{content:'覚え書き';font-size:13px}
   body.ledger-open #ledger-tab{transform:translateX(calc(-1 * min(86vw,340px))) translateZ(0)}
   body.ledger-open #ledger-tab::after{content:'覚え書きを閉じる'}
