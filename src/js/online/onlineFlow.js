@@ -219,6 +219,10 @@ export async function startOnlineGameAsGuest(room) {
   setupSync();
   setupActionsFetched = false;
 
+  // 最初の日の初期化（アイテム位置をローカルで生成）
+  startOnlineDay();
+  console.log('[Guest] after startOnlineDay, permitHouse=', G.permitHouse, 'madHouse=', G.madHouse, 'mediumHouse=', G.mediumHouse);
+
   if (_render) _render();
 }
 
