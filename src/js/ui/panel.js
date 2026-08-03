@@ -157,9 +157,14 @@ export function renderPanel() {
       return houseName(v, a) + '〜' + houseName(v, b);
     });
     const remaining = pitCount - placedCount;
+    const pitHelp = G._pitHelp ? `
+      <p class="dim small">相手は一度その道を通るまで、落とし穴の場所を知らない。落ちた後は相手にも見える。アイテムを取る前に通られると落とせないので、<b>アイテムのある家から出る道</b>に仕掛けると効きやすい。一度決めたら変えられない。</p>
+    ` : '';
     el.innerHTML = H(`${tag}落とし穴を仕掛ける`, `
-      <p class="lead"><b>${myMapLabel}</b>で、道を${pitCount}本選んで落とし穴を仕掛ける。相手の探索者がその道を通ると、<b>その時持っている護衛届・狂人の爪・霊媒の札を全部落とす</b>。</p>
-      <p>相手は一度その道を通るまで、落とし穴の場所を知らない。落ちた後は相手にも見える。アイテムを取る前に通られると落とせないので、<b>アイテムのある家から出る道</b>に仕掛けると効きやすい。一度決めたら変えられない。</p>
+      <p class="lead"><b>${myMapLabel}</b>で、道を${pitCount}本選んで落とし穴を仕掛ける。相手の探索者がその道を通ると、<b>その時持っている護衛届・狂人の爪・霊媒の札を全部落とす</b>。
+        <button class="mini" onclick="G._pitHelp=!G._pitHelp;window._render()">${G._pitHelp ? '閉じる' : '？'}</button>
+      </p>
+      ${pitHelp}
       ${placedCount > 0 ? `<p class="good">${pitLabels.join('、')}の道に仕掛けた。</p>` : ''}
       ${allPlaced ? '' : `<p style="color:var(--kinari-faint)">道（点線）をタップして選ぶ。残り${remaining}本</p>`}
       <div class="btnrow"><button class="primary" onclick="window._confirmPit()" ${allPlaced && !(G.mode === 'online' && isProcessing()) ? '' : 'disabled'}>これでいく</button></div>
@@ -221,10 +226,16 @@ export function renderPanel() {
       return;
     }
 
+    const routeHelp = G._routeHelp ? `
+      <p class="dim small">同じ家に留まるのも1ティック。5軒すべて回れば護衛届は必ず見つかるが、2ティック留まらないと爪研ぎは妨げられない。</p>
+    ` : '';
     el.innerHTML = H(`${G.day}日目・昼　経路を組む（${v.route.length}/${TICKS}）`, `
       ${v.notice ? `<div class="notice">${v.notice}</div>` : ''}
       <p class="lead">こちらの探索者は <b>${mine.name}</b>、相手から来ているのは <b>${theirs.name}</b>。</p>
-      <p>${mine.name}が回る家を、<b>相手の村の地図</b>で1つずつ選ぶ。同じ家に留まるのも1ティック。5軒すべて回れば護衛届は必ず見つかるが、2ティック留まらないと爪研ぎは妨げられない。</p>
+      <p>${mine.name}が回る家を、<b>相手の村の地図</b>で1つずつ選ぶ。
+        <button class="mini" onclick="G._routeHelp=!G._routeHelp;window._render()">${G._routeHelp ? '閉じる' : '？'}</button>
+      </p>
+      ${routeHelp}
       <div class="ticks">${tickRow}</div>
       <p class="warn" style="font-size:13px">選んだ家は戻せない。護衛届はその場で判定される。</p>
       ${quitBtn}`);
