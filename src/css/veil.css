@@ -1,6 +1,6 @@
 .veil{position:fixed;top:0;left:0;right:0;bottom:0;width:100vw;height:100vh;background:#0A0D13;z-index:9999;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;overflow:auto}
-.veil.title-screen{background:url('../assets/BG/topBG.webp') center top/cover no-repeat;align-items:flex-start;padding-top:55vh}
-.veil.menu-screen{background:url('../assets/BG/nontitleBG.webp') center center/cover no-repeat}
+.veil.title-screen{background:#D9CFB9 url('../assets/BG/topBG.webp') center top/auto 100% no-repeat;align-items:flex-start;padding-top:55vh}
+.veil.menu-screen{background:#D9CFB9 url('../assets/BG/nontitleBG.webp') center center/auto 100% no-repeat}
 /* menu-screen用の文字色調整（背景が明るいため） */
 .veil.menu-screen .title-sm{color:#2a2218}
 .veil.menu-screen .optlabel{color:#3a3228}
