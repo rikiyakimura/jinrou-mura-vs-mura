@@ -228,12 +228,18 @@ export function renderPanel() {
 
   if (c.ph === 'ticks') {
     const wl = wolfOf(v), s = v.sharpenStart, st = sharpenTicks(v);
+    // 研ぎ完了判定
+    const sharpenEnd = s !== null ? Math.min(s + SHARPEN - 1, TICKS) : null;
+    const sharpenDone = s !== null && G.tickIdx >= sharpenEnd;
+    const heardCount = sharpenDone ? st.filter(t => t <= G.tickIdx && o.route[t - 1] === wl.house).length : 0;
     const row = [1, 2, 3, 4, 5].map(i => {
       let cl = 'tick';
       if (i <= G.tickIdx) cl += ' done';
       if (st.includes(i)) cl += ' claw';
       if (i <= G.tickIdx && st.includes(i) && o.route[i - 1] === wl.house) cl += ' seen';
       if (i === G.tickIdx + 1) cl += ' now';
+      // 研ぎ完了時の結果クラス
+      if (sharpenDone && st.includes(i)) cl += heardCount >= 2 ? ' fail' : ' success';
       const nm = i <= G.tickIdx ? (personAt(v, o.route[i - 1]) ? personAt(v, o.route[i - 1]).name : getConfig().HLABEL[o.route[i - 1]]) : '—';
       return `<div class="${cl}"><b>${i}</b><span>${nm}</span></div>`;
     }).join('');
@@ -261,7 +267,9 @@ export function renderPanel() {
       const mrow = [1, 2, 3, 4, 5].map(i => {
         let cl = 'tick';
         if (i <= G.tickIdx) cl += ' done';
-        if (mst.includes(i)) cl += ' claw';
+        if (mst.includes(i)) cl += ' madclaw';
+        // 狂人が聞かれた（良いこと）
+        if (md && i <= G.tickIdx && mst.includes(i) && o.route[i - 1] === md.house) cl += ' madheard';
         if (i === G.tickIdx + 1) cl += ' now';
         return `<div class="${cl}">${i}</div>`;
       }).join('');
