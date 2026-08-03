@@ -1,6 +1,12 @@
 .veil{position:fixed;top:0;left:0;right:0;bottom:0;width:100vw;height:100vh;background:#0A0D13;z-index:9999;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;overflow:auto}
 .veil.title-screen{background:url('../assets/BG/topBG.webp') center top/cover no-repeat;align-items:flex-start;padding-top:55vh}
 .veil.menu-screen{background:url('../assets/BG/nontitleBG.webp') center center/cover no-repeat}
+/* menu-screen用の文字色調整（背景が明るいため） */
+.veil.menu-screen .title-sm{color:#2a2218;text-shadow:0 0 8px rgba(255,255,255,0.8),0 0 16px rgba(255,255,255,0.6)}
+.veil.menu-screen .optlabel{color:#3a3228;text-shadow:0 0 6px rgba(255,255,255,0.7)}
+.veil.menu-screen .name-input label{color:#3a3228;text-shadow:0 0 6px rgba(255,255,255,0.7)}
+.veil.menu-screen button.back{color:#3a3228;text-shadow:0 0 6px rgba(255,255,255,0.7)}
+.veil.menu-screen button.back:hover{color:#1a1a1a}
 .veil.title-screen .inner{transform:translateY(-50%)}
 .veil .inner{max-width:520px}
 .veil .to{font-family:var(--mincho);font-size:46px;letter-spacing:.16em;margin:0 0 6px}
