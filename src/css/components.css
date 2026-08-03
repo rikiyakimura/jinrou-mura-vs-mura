@@ -54,9 +54,11 @@ button.quit:hover:not(:disabled){background:var(--indigo-lift);color:var(--kinar
 @keyframes seen-flash{0%,100%{box-shadow:none}50%{box-shadow:0 0 14px 3px var(--moon)}}
 @keyframes madclaw-flash{0%,100%{box-shadow:none}50%{box-shadow:0 0 12px 2px #C77DFF}}
 @keyframes madheard-flash{0%,100%{box-shadow:none}50%{box-shadow:0 0 14px 3px var(--midori)}}
-/* 研ぎ完了エフェクト（3マス全部） */
-.tick.claw.success{border-color:var(--kuchiba);animation:sharpen-success 1s ease-out}
+/* 研ぎ完了状態（ずっと維持） */
+.tick.claw.success{border-color:var(--kuchiba)}
 .tick.claw.fail{opacity:.5;border-color:var(--kinari-faint);color:var(--kinari-faint);background:var(--indigo-lift)}
+/* 研ぎ成功フラッシュ（完了した瞬間のみ） */
+.tick.claw.success.flash{animation:sharpen-success 1s ease-out}
 @keyframes sharpen-success{0%,100%{box-shadow:none}50%{box-shadow:0 0 16px 4px var(--kuchiba)}}
 
 .madsec{margin-top:12px;padding-top:10px;border-top:1px solid var(--indigo-edge)}
