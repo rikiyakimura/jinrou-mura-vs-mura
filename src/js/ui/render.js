@@ -30,7 +30,7 @@ export function setRenderCallbacks(callbacks) {
 }
 
 const isNarrow = () => !!(window.matchMedia && window.matchMedia('(max-width:820px)').matches);
-const mainSide = ph => ph === 'route' ? 'opp' : 'own';
+const mainSide = ph => (ph === 'route' || ph === 'night') ? 'opp' : 'own';
 
 export function toggleSwap() {
   G.swap = !G.swap;
