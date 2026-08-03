@@ -105,6 +105,19 @@ export function render() {
   document.getElementById('ledger-title').textContent = pub ? `覚え書き（${vname(M)}）` : '覚え書き';
 
   const st = document.getElementById('status');
+  // アイテム取得行を構築（非pub時のみ）
+  let itemLine = '';
+  if (!pub) {
+    const items = [];
+    items.push(`<span class="${M.permit ? 'on' : ''}"><img src="/item/goeitodoke.webp" class="item-icon-sm">護衛届 ${M.permit ? '取得' : '—'}</span>`);
+    if (G.opt && G.opt.madmanDog) {
+      items.push(`<span class="${M.madClaw ? 'on' : ''}"><img src="/item/kyoujinnotume.webp" class="item-icon-sm">狂人の爪 ${M.madClaw ? '取得' : '—'}</span>`);
+    }
+    if (G.opt && G.opt.medium) {
+      items.push(`<span class="${M.mediumFound ? 'on' : ''}"><img src="/item/reibainohuda.webp" class="item-icon-sm">霊媒の札 ${M.mediumFound ? '取得' : '—'}</span>`);
+    }
+    itemLine = `<div class="status-items">${items.join('')}</div>`;
+  }
   st.innerHTML = `<span><b>${G.day}</b>日目 / ${getConfig().DAYS}</span>` +
     (G.mode === 'cpu'
       ? `<span>自村 <b>${alive(G.V[1]).length}</b>人</span><span>敵村 <b>${alive(G.V[2]).length}</b>人</span>`
@@ -113,10 +126,10 @@ export function render() {
         : `<span>1P <b>${alive(G.V[1]).length}</b>人</span><span>2P <b>${alive(G.V[2]).length}</b>人</span>`)) +
     (pub
       ? `<span class="turnbadge pub">${G.mode === 'pvp' ? '1P・2P とも観覧可' : '結果'}</span>`
-      : `<span class="${M.permit ? 'on' : ''}"><img src="/item/goeitodoke.webp" class="item-icon-sm">護衛届 ${M.permit ? '取得' : '—'}</span>` +
-      (M.explorer !== null && guardAway(M) ? `<span style="color:var(--akane-glow)">護衛は探索中</span>` : '') +
+      : (M.explorer !== null && guardAway(M) ? `<span style="color:var(--akane-glow)">護衛は探索中</span>` : '') +
       `<span>狼の食事 ${M.fed ? '済' : 'まだ'}</span>` +
-      (G.mode === 'cpu' ? '' : (G.mode === 'online' ? '' : `<span class="turnbadge p${w}">${w}P の手番</span>`)));
+      (G.mode === 'cpu' ? '' : (G.mode === 'online' ? '' : `<span class="turnbadge p${w}">${w}P の手番</span>`)) +
+      itemLine);
 
   const wl = wolfOf(M);
   const sharpH = (!pub && M.sharpenStart !== null && wl.alive) ? wl.house : null;

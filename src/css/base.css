@@ -9,6 +9,7 @@ h1{font-family:var(--mincho);font-size:30px;font-weight:600;letter-spacing:.1em;
 .statusbar{display:flex;gap:20px;flex-wrap:wrap;align-items:baseline;margin-top:12px;font-family:var(--mono);font-size:12.5px;color:var(--kinari-dim)}
 .statusbar b{color:var(--kinari);font-weight:700}
 .statusbar .on{color:var(--kuchiba)}
+.status-items{width:100%;display:flex;gap:16px;flex-wrap:wrap;margin-top:4px;padding-top:6px;border-top:1px solid var(--indigo-edge)}
 .turnbadge{font-family:var(--gothic);font-weight:700;letter-spacing:.1em;padding:2px 12px;border-radius:2px;color:#0F131C}
 .turnbadge.p1{background:var(--p1)} .turnbadge.p2{background:var(--p2)}
 .turnbadge.pub{background:transparent;color:var(--midori);border:1px solid var(--midori)}
