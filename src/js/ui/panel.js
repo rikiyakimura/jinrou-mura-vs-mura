@@ -392,9 +392,10 @@ export function renderPanel() {
     const n2 = G.mode === 'cpu' ? '相手の村' : G.mode === 'online' ? `${oppName}の村` : '2Pの村';
     const ra = G.mode === 'online' ? r[myId === 1 ? 'a' : 'b'] : r.a;
     const rb = G.mode === 'online' ? r[myId === 1 ? 'b' : 'a'] : r.b;
-    // 自分の村人が死亡した場合、赤フラッシュ
+    // 自分の村人が死亡した場合、赤フラッシュ + SE
     if (ra && G._deathFlashPlayed !== G.day) {
       G._deathFlashPlayed = G.day;
+      playSE('hole');
       const flash = document.createElement('div');
       flash.className = 'death-flash';
       document.body.appendChild(flash);
