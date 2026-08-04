@@ -57,3 +57,19 @@ export function getTrackForPhase(ph, isDone) {
   if (ph === 'night' || ph === 'morning') return 'night';
   return 'day'; // place, pit, explorer, route, ticks
 }
+
+// SE
+const seSharpening = new Audio('/SE/sharpening.mp3');
+let lastSharpeningDay = null;
+
+/**
+ * SEを再生（同じ日には1回だけ）
+ */
+export function playSE(name, day) {
+  if (name === 'sharpening') {
+    if (day !== undefined && day === lastSharpeningDay) return;
+    lastSharpeningDay = day;
+    seSharpening.currentTime = 0;
+    seSharpening.play().catch(() => {});
+  }
+}

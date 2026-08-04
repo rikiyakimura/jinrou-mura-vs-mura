@@ -7,6 +7,7 @@ import { TICKS, SHARPEN, ROLE_LABEL, HLABEL, getConfig, NAME_TO_KEY } from '../c
 import { other } from '../utils.js';
 import { sharpenTicks, overlapSoFar, madSharpenTicks, canSharpen, canSharpenMad, madManualNeeded, canAttack, canProtect, protectReason } from '../game/resolve.js';
 import { isProcessing } from '../online/onlineFlow.js';
+import { playSE } from '../audio.js';
 
 // 外部関数（main.jsから注入）
 let _render = null;
@@ -331,6 +332,8 @@ export function renderPanel() {
   if (c.ph === 'night') {
     let b = '';
     if (v.heardToday !== null) {
+      // 爪研ぎ音SE（聞こえた時のみ、同じ日に1回だけ）
+      if (v.heardToday) playSE('sharpening', G.day);
       const where = [...new Set(v.route)].map(h => houseName(o, h)).join('・');
       const exRole = v.people[v.explorer] ? v.people[v.explorer].role : null;
       if (exRole === 'dog') {
