@@ -157,16 +157,21 @@ export function render() {
   const isNight = c.ph === 'night';
   const isDawn = c.ph === 'morning';
   const isEnd = c.ph === 'end' || c.ph === 'unknown' || G.done;
-  // 負け判定（終了時のみ）
-  let isLoss = false;
+  // 負け判定（終了時のみ、負けた側の村だけloss背景）
+  let myLoss = false;
+  let oppLoss = false;
   if (isEnd) {
     const myId = G.myPlayerId || 1;
     const myAlive = M.people ? M.people.filter(p => p.alive).length : 0;
     const oppAlive = F.people ? F.people.filter(p => p.alive).length : 0;
     if (G.instantWin) {
-      isLoss = G.instantWin !== myId && G.instantWin !== 'draw';
+      if (G.instantWin !== 'draw') {
+        myLoss = G.instantWin !== myId;
+        oppLoss = G.instantWin === myId;
+      }
     } else {
-      isLoss = myAlive < oppAlive;
+      myLoss = myAlive < oppAlive;
+      oppLoss = myAlive > oppAlive;
     }
   }
   const mapMine = document.getElementById('map-mine');
@@ -177,8 +182,8 @@ export function render() {
   mapFoe.classList.toggle('night', isNight);
   mapMine.classList.toggle('dawn', isDawn);
   mapFoe.classList.toggle('dawn', isDawn);
-  mapMine.classList.toggle('loss', isLoss);
-  mapFoe.classList.toggle('loss', isLoss);
+  mapMine.classList.toggle('loss', myLoss);
+  mapFoe.classList.toggle('loss', oppLoss);
 
   drawMap(mapMine, M, {
     omniscient: pub ? revealAll : true,
