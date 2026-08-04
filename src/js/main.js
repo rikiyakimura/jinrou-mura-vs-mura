@@ -159,6 +159,7 @@ function pickRoute(h) {
   // 落とし穴チェック
   const pitKey = prev !== null && prev !== h ? edgeKey(prev, h) : null;
   if (pitKey && o.pitEdge && o.pitEdge.includes(pitKey)) {
+    playSE('hole');
     const had = [];
     if (v.permit) had.push('護衛届');
     if (v.madClaw) had.push('狂人の爪');

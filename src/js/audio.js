@@ -71,6 +71,7 @@ const seSharpenMiss = new Audio('/SE/sharpen_miss.mp3');
 const seWin = new Audio('/SE/win.mp3');
 const seLoss = new Audio('/SE/loss.mp3');
 const seItem = new Audio('/SE/item.mp3');
+const seHole = new Audio('/SE/hole.mp3');
 let lastSharpeningDay = null;
 let lastSharpenResultDay = null;
 let lastResultPlayed = null;
@@ -119,6 +120,9 @@ export function playSE(name, day) {
     lastItemDay = day;
     seItem.currentTime = 0;
     seItem.play().catch(() => {});
+  } else if (name === 'hole') {
+    seHole.currentTime = 0;
+    seHole.play().catch(() => {});
   }
 }
 
