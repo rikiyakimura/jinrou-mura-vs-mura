@@ -12,14 +12,14 @@ const tracks = {
 Object.values(tracks).forEach(t => t.loop = true);
 
 let current = null;
-let userInteracted = false;
+let unlocked = false;
 
 /**
  * ユーザー操作後に呼ぶ（autoplay制限回避）
  */
 export function unlockAudio() {
-  if (userInteracted) return;
-  userInteracted = true;
+  if (unlocked) return;
+  unlocked = true;
   // 現在のトラックがあれば再生開始
   if (current && tracks[current]) {
     tracks[current].play().catch(() => {});
@@ -40,18 +40,20 @@ export function playTrack(name) {
 
   current = name;
 
-  // ユーザー操作済みなら再生
-  if (userInteracted && tracks[name]) {
-    tracks[name].play().catch(() => {});
+  if (tracks[name]) {
+    // 常に再生を試みる（ブラウザがブロックしたらcatchで無視）
+    tracks[name].play().then(() => {
+      unlocked = true;
+    }).catch(() => {});
   }
 }
 
 /**
  * フェーズから曲名を決定
  */
-export function getTrackForPhase(ph, isTitle) {
-  if (isTitle) return 'title';
-  if (ph === 'end') return 'title';
+export function getTrackForPhase(ph, isDone) {
+  if (isDone) return 'title';
+  if (ph === 'end' || ph === 'unknown') return 'title';
   if (ph === 'night' || ph === 'morning') return 'night';
   return 'day'; // place, pit, explorer, route, ticks
 }

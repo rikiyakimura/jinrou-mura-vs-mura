@@ -229,7 +229,7 @@ export function render() {
   renderEmoteBar();
 
   // BGM切り替え
-  const track = getTrackForPhase(c.ph, false);
+  const track = getTrackForPhase(c.ph, isEnd);
   playTrack(track);
 }
 
