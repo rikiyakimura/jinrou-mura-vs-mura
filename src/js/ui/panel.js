@@ -215,6 +215,10 @@ export function renderPanel() {
       if (v.permitFound) got.push('<img src="/item/goeitodoke.webp" class="item-icon">護衛届');
       if (v.madClawFound) got.push('<img src="/item/kyoujinnotume.webp" class="item-icon">狂人の爪');
       if (v.mediumFound) got.push('<img src="/item/reibainohuda.webp" class="item-icon">霊媒の札');
+      // アイテム取得SE
+      if (got.length > 0) {
+        playSE('item', G.day);
+      }
       const gotLine = got.length
         ? `<div class="notice"><b>手に入れたもの：${got.join('、')}</b><span class="where">${v.route.map(h => houseName(o, h)).join(' → ')}</span></div>`
         : `<div class="notice quiet"><b>この探索では、何も手に入らなかった。</b><span class="where">${v.route.map(h => houseName(o, h)).join(' → ')}</span></div>`;
@@ -451,6 +455,14 @@ export function renderPanel() {
     const scoreRight = (G.mode === 'cpu' || G.mode === 'online') ? oppAlive : f;
     // 背景画像の決定
     const bgType = verdict === '勝ち' ? 'win' : verdict === '負け' ? 'loss' : verdict.includes('勝ち') ? 'win' : 'draw';
+    // 勝敗SE（ホットシートは常にloss、それ以外は勝敗に応じて）
+    if (G.mode === 'pvp') {
+      playSE('loss');
+    } else if (bgType === 'win') {
+      playSE('win');
+    } else {
+      playSE('loss');
+    }
     el.innerHTML = `<div class="final ${bgType}">
       <div class="final-content">
         <div class="sub">${head}</div>

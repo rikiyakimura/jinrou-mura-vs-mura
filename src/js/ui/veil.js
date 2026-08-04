@@ -18,7 +18,7 @@ import {
   restartOnlineGame
 } from '../online/onlineFlow.js';
 import { renderEmoteBar, hideEmoteBar } from './render.js';
-import { playTrack, playSE } from '../audio.js';
+import { playTrack, playSE, resetResultSE } from '../audio.js';
 
 // タイトル画面のオプション
 export let TITLE_OPT = { madmanDog: false, medium: false, pit: false, large: false };
@@ -122,6 +122,7 @@ export function toggleOpt(k) {
  */
 export function startGame() {
   playSE('confirm');
+  resetResultSE();
   document.body.style.overflow = '';
   if (_newGame) _newGame(selectedMode, { ...TITLE_OPT });
 }
@@ -142,6 +143,7 @@ export function restartGame() {
     showTitle();
     return;
   }
+  resetResultSE();
 
   if (G.mode === 'online') {
     // オンライン：同じルームで再戦

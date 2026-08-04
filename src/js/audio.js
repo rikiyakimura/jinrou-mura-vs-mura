@@ -68,8 +68,13 @@ const seConfirm = new Audio('/SE/confirm button.mp3');
 const seSharpenStart = new Audio('/SE/sharpen_start.mp3');
 const seSharpenSuccess = new Audio('/SE/sharpen_success.mp3');
 const seSharpenMiss = new Audio('/SE/sharpen_miss.mp3');
+const seWin = new Audio('/SE/win.mp3');
+const seLoss = new Audio('/SE/loss.mp3');
+const seItem = new Audio('/SE/item.mp3');
 let lastSharpeningDay = null;
 let lastSharpenResultDay = null;
+let lastResultPlayed = null;
+let lastItemDay = null;
 
 /**
  * SEを再生
@@ -99,5 +104,28 @@ export function playSE(name, day) {
     lastSharpenResultDay = day;
     seSharpenMiss.currentTime = 0;
     seSharpenMiss.play().catch(() => {});
+  } else if (name === 'win') {
+    if (lastResultPlayed !== null) return;
+    lastResultPlayed = 'win';
+    seWin.currentTime = 0;
+    seWin.play().catch(() => {});
+  } else if (name === 'loss') {
+    if (lastResultPlayed !== null) return;
+    lastResultPlayed = 'loss';
+    seLoss.currentTime = 0;
+    seLoss.play().catch(() => {});
+  } else if (name === 'item') {
+    if (day !== undefined && day === lastItemDay) return;
+    lastItemDay = day;
+    seItem.currentTime = 0;
+    seItem.play().catch(() => {});
   }
+}
+
+/**
+ * 結果SEのフラグをリセット（ゲーム開始時に呼ぶ）
+ */
+export function resetResultSE() {
+  lastResultPlayed = null;
+  lastItemDay = null;
 }
