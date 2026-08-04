@@ -154,7 +154,7 @@ export function render() {
 
   // 9軒モード・夜モードのクラス設定
   const isLarge = getPreset() === 'large';
-  const isNight = c.ph === 'night';
+  const isNight = c.ph === 'night' || c.ph === 'morning';
   const mapMine = document.getElementById('map-mine');
   const mapFoe = document.getElementById('map-foe');
   mapMine.classList.toggle('large', isLarge);
