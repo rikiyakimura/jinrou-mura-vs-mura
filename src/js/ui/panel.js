@@ -395,7 +395,7 @@ export function renderPanel() {
     // 自分の村人が死亡した場合、赤フラッシュ + SE + シェイク（ホットシートでは無効）
     if (ra && G.mode !== 'pvp' && G._deathFlashPlayed !== G.day) {
       G._deathFlashPlayed = G.day;
-      playSE('hole');
+      playSE('death');
       document.body.classList.add('shake');
       setTimeout(() => document.body.classList.remove('shake'), 400);
       const flash = document.createElement('div');
