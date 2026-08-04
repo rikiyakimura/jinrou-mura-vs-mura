@@ -66,3 +66,10 @@
 .board.is-sub .map.large .house .hname{font-size:8px}
 .board.is-sub .map.large .house .occ{font-size:10px;min-height:14px}
 .board.is-sub .map.large .house .role{font-size:7.5px;min-height:10px}
+
+/* 相手の村の背景を左右反転 */
+#map-foe{background:none}
+#map-foe::before{content:'';position:absolute;inset:0;background:url('/map/5_day.webp') center/cover no-repeat;transform:scaleX(-1);z-index:0}
+#map-foe.night::before{background-image:url('/map/5_night.webp')}
+#map-foe.large::before{background:url('/map/9_day.webp') center/110% no-repeat;transform:scaleX(-1)}
+#map-foe.large.night::before{background-image:url('/map/9_night.webp')}
