@@ -160,6 +160,8 @@ function pickRoute(h) {
   const pitKey = prev !== null && prev !== h ? edgeKey(prev, h) : null;
   if (pitKey && o.pitEdge && o.pitEdge.includes(pitKey)) {
     playSE('hole');
+    document.body.classList.add('shake');
+    setTimeout(() => document.body.classList.remove('shake'), 400);
     const had = [];
     if (v.permit) had.push('護衛届');
     if (v.madClaw) had.push('狂人の爪');
