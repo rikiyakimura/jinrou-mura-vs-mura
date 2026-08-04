@@ -8,8 +8,11 @@ const tracks = {
   night: new Audio('/music/NIGHT.mp3')
 };
 
-// 全トラックをループ設定
-Object.values(tracks).forEach(t => t.loop = true);
+// 全トラックをループ設定 + 音量0.5
+Object.values(tracks).forEach(t => {
+  t.loop = true;
+  t.volume = 0.5;
+});
 
 let current = null;
 let unlocked = false;
