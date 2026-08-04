@@ -65,7 +65,11 @@ export function getTrackForPhase(ph, isDone) {
 const seSharpening = new Audio('/SE/sharpening.mp3');
 const seCasual = new Audio('/SE/casual.mp3');
 const seConfirm = new Audio('/SE/confirm button.mp3');
+const seSharpenStart = new Audio('/SE/sharpen_start.mp3');
+const seSharpenSuccess = new Audio('/SE/sharpen_success.mp3');
+const seSharpenMiss = new Audio('/SE/sharpen_miss.mp3');
 let lastSharpeningDay = null;
+let lastSharpenResultDay = null;
 
 /**
  * SEを再生
@@ -82,5 +86,18 @@ export function playSE(name, day) {
   } else if (name === 'confirm') {
     seConfirm.currentTime = 0;
     seConfirm.play().catch(() => {});
+  } else if (name === 'sharpen_start') {
+    seSharpenStart.currentTime = 0;
+    seSharpenStart.play().catch(() => {});
+  } else if (name === 'sharpen_success') {
+    if (day !== undefined && day === lastSharpenResultDay) return;
+    lastSharpenResultDay = day;
+    seSharpenSuccess.currentTime = 0;
+    seSharpenSuccess.play().catch(() => {});
+  } else if (name === 'sharpen_miss') {
+    if (day !== undefined && day === lastSharpenResultDay) return;
+    lastSharpenResultDay = day;
+    seSharpenMiss.currentTime = 0;
+    seSharpenMiss.play().catch(() => {});
   }
 }

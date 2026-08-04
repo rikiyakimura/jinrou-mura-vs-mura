@@ -250,6 +250,10 @@ export function renderPanel() {
     const sharpenDone = s !== null && G.tickIdx >= sharpenEnd;  // 完了後ずっと（状態用）
     const justFinished = s !== null && G.tickIdx === sharpenEnd;  // 完了した瞬間（アニメーション用）
     const heardCount = sharpenDone ? st.filter(t => t <= G.tickIdx && o.route[t - 1] === wl.house).length : 0;
+    // 研ぎ完了時にSEを再生
+    if (justFinished) {
+      playSE(heardCount >= 2 ? 'sharpen_miss' : 'sharpen_success', G.day);
+    }
     const row = [1, 2, 3, 4, 5].map(i => {
       let cl = 'tick';
       if (i <= G.tickIdx) cl += ' done';

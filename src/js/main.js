@@ -249,7 +249,7 @@ function pickAttackHouse(h) {
  * 爪研ぎ開始
  */
 function startSharpen() {
-  playSE('casual');
+  playSE('sharpen_start');
   me().sharpenStart = G.tickIdx + 1;
   render();
 }
@@ -258,7 +258,7 @@ function startSharpen() {
  * 狂人の爪研ぎ開始
  */
 function startSharpenMad() {
-  playSE('casual');
+  playSE('sharpen_start');
   me().madStart = G.tickIdx + 1;
   render();
 }
