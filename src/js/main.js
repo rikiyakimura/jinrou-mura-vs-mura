@@ -127,7 +127,7 @@ async function chooseExplorer(id) {
   if (G.mode === 'online') {
     if (!startProcessing()) return;  // 即座にボタン無効化
   }
-  playSE('confirm');
+  playSE('person');
 
   const v = me();
   v.explorer = id;
@@ -148,6 +148,7 @@ async function chooseExplorer(id) {
  * 経路を1つずつ選択
  */
 function pickRoute(h) {
+  playSE('person');
   const v = me(), o = opp();
   const prev = v.route.length ? v.route[v.route.length - 1] : null;
   v.route.push(h);
