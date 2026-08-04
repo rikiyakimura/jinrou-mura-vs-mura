@@ -9,6 +9,7 @@ import { drawMap } from './map.js';
 import { renderLedger } from './ledger.js';
 import { renderPanel } from './panel.js';
 import { canAttack, routeValid } from '../game/resolve.js';
+import { playTrack, getTrackForPhase } from '../audio.js';
 
 // 外部関数
 let _placeNext = null;
@@ -226,6 +227,10 @@ export function render() {
   }
   renderPanel();
   renderEmoteBar();
+
+  // BGM切り替え
+  const track = getTrackForPhase(c.ph, false);
+  playTrack(track);
 }
 
 // routeValidをラップ

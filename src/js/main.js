@@ -32,6 +32,9 @@ import { setPlayerName } from './online/supabase.js';
 
 // プリロード
 import { preloadCritical, preloadPortraits } from './preload.js';
+
+// オーディオ
+import { unlockAudio, playTrack } from './audio.js';
 import { updateGameState, syncIdxFromDB } from './online/sync.js';
 
 // ========== エモート表示 ==========
@@ -510,7 +513,14 @@ window.G = G;
 
 initLedgerSwipe();
 initItemClickHandlers();
+
+// 最初のクリックでaudio解禁、タイトル曲を再生開始
+document.addEventListener('click', () => {
+  unlockAudio();
+}, { once: true });
+
 showTitle();
+playTrack('title');
 
 // 背景・アイテム画像を即座にプリロード開始
 setTimeout(() => preloadCritical(), 100);

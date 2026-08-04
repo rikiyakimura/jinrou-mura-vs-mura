@@ -18,6 +18,7 @@ import {
   restartOnlineGame
 } from '../online/onlineFlow.js';
 import { renderEmoteBar, hideEmoteBar } from './render.js';
+import { playTrack } from '../audio.js';
 
 // タイトル画面のオプション
 export let TITLE_OPT = { madmanDog: false, medium: false, pit: false, large: false };
@@ -49,6 +50,7 @@ export function showTitle() {
   selectedMode = null;
   cleanupOnlineSubscriptions();
   hideEmoteBar();
+  playTrack('title');
 
   const el = document.getElementById('veil');
   el.style.display = 'flex';
