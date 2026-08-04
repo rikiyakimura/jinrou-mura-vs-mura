@@ -1,0 +1,94 @@
+/* アイテム詳細モーダル */
+.item-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+}
+
+.item-modal.open {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.item-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.item-modal-content {
+  position: relative;
+  background: var(--indigo);
+  border: 1px solid var(--indigo-edge);
+  border-radius: 8px;
+  padding: 24px;
+  max-width: 320px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.item-modal-image {
+  width: 120px;
+  height: auto;
+  margin-bottom: 16px;
+  border-radius: 4px;
+}
+
+.item-modal-name {
+  font-family: var(--mincho);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--kinari);
+  margin: 0 0 12px;
+  letter-spacing: 0.1em;
+}
+
+.item-modal-desc {
+  font-family: var(--mincho);
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--kinari-dim);
+  margin: 0 0 20px;
+  text-align: left;
+}
+
+.item-modal-close {
+  font-family: var(--gothic);
+  font-size: 13px;
+  padding: 8px 24px;
+  background: var(--indigo-lift);
+  border: 1px solid var(--indigo-edge);
+  border-radius: 4px;
+  color: var(--kinari);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.item-modal-close:hover {
+  background: var(--indigo-edge);
+}
+
+/* ステータスバーのアイテムリストのクリック可能スタイル */
+.status-items span {
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.status-items span:hover {
+  opacity: 0.8;
+}
+
+/* アイテムアイコンのクリック可能スタイル */
+.item-icon,
+.item-icon-sm {
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+
+.item-icon:hover,
+.item-icon-sm:hover {
+  transform: scale(1.1);
+}

@@ -24,6 +24,7 @@ import {
   restartGame
 } from './ui/veil.js';
 import { toggleLedger, openLedger, closeLedger, initLedgerSwipe } from './ui/ledger.js';
+import { initItemClickHandlers } from './ui/itemModal.js';
 
 // オンライン
 import { submitOnlineAction, setOnlineFlowCallbacks, advanceOnline, surrenderOnline, endOnlineGame, sendEmote, canSendEmote, markPlayerLeft, startProcessing, endProcessing } from './online/onlineFlow.js';
@@ -508,6 +509,7 @@ window.G = G;
 // ========== 初期化 ==========
 
 initLedgerSwipe();
+initItemClickHandlers();
 showTitle();
 
 // 背景・アイテム画像を即座にプリロード開始
