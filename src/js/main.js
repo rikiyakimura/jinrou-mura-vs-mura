@@ -61,6 +61,7 @@ function showEmoteToast(emote) {
  * 村人を1人ずつ配置
  */
 async function placeNext(h) {
+  playSE('casual');
   const v = me();
   v.people[v.placeIdx].house = h;
   v.placeIdx++;
@@ -87,6 +88,7 @@ async function placeNext(h) {
  * 落とし穴を配置
  */
 function placePit(key) {
+  playSE('casual');
   const v = me();
   const config = getConfig();
   if (!v.pitEdge) v.pitEdge = [];
@@ -247,6 +249,7 @@ function pickAttackHouse(h) {
  * 爪研ぎ開始
  */
 function startSharpen() {
+  playSE('casual');
   me().sharpenStart = G.tickIdx + 1;
   render();
 }
@@ -255,6 +258,7 @@ function startSharpen() {
  * 狂人の爪研ぎ開始
  */
 function startSharpenMad() {
+  playSE('casual');
   me().madStart = G.tickIdx + 1;
   render();
 }
@@ -263,6 +267,7 @@ function startSharpenMad() {
  * ティック進行
  */
 function advanceTick() {
+  playSE('casual');
   try {
     G.tickIdx++;
     const v = me();
@@ -449,25 +454,25 @@ setPanelCallbacks({
 // ========== グローバル関数登録 ==========
 // HTMLのonclick属性から呼び出すため
 
-window._toggleOpt = toggleOpt;
+window._toggleOpt = (...args) => { playSE('casual'); toggleOpt(...args); };
 window._pick = pick;
-window._selectMode = selectMode;
+window._selectMode = (...args) => { playSE('casual'); selectMode(...args); };
 window._showOptions = showOptions;
 window._startGame = startGame;
-window._hideVeil = () => hideVeil(render);
-window._toggleSwap = toggleSwap;
+window._hideVeil = () => { playSE('casual'); hideVeil(render); };
+window._toggleSwap = () => { playSE('casual'); toggleSwap(); };
 
 // オンライン用
-window._showOnlineMenu = showOnlineMenu;
-window._showOnlineOptions = showOnlineOptions;
+window._showOnlineMenu = () => { playSE('casual'); showOnlineMenu(); };
+window._showOnlineOptions = (...args) => { playSE('casual'); showOnlineOptions(...args); };
 window._savePlayerName = (name) => setPlayerName(name.trim() || '名無し');
-window._toggleOptOnline = toggleOptOnline;
+window._toggleOptOnline = (...args) => { playSE('casual'); toggleOptOnline(...args); };
 window._showCreateRoom = showCreateRoom;
-window._showJoinRoom = showJoinRoom;
+window._showJoinRoom = () => { playSE('casual'); showJoinRoom(); };
 window._joinRoom = doJoinRoom;
 window._startMatchmaking = startMatchmaking;
-window._cancelRoom = cancelRoom;
-window._cancelMatchmaking = cancelMatchmakingAction;
+window._cancelRoom = () => { playSE('casual'); cancelRoom(); };
+window._cancelMatchmaking = () => { playSE('casual'); cancelMatchmakingAction(); };
 window._confirmPit = confirmPit;
 window._chooseExplorer = chooseExplorer;
 window._confirmRoute = confirmRoute;
@@ -477,14 +482,15 @@ window._advanceTick = advanceTick;
 window._finishDay = finishDayOnline;
 window._confirmNight = confirmNightOnline;
 window._nextFromMorning = nextFromMorningOnline;
-window._showTitle = showTitle;
-window._restartGame = restartGame;
+window._showTitle = () => { playSE('casual'); showTitle(); };
+window._restartGame = () => { playSE('casual'); restartGame(); };
 window._quitGame = async () => {
   const msg = G.mode === 'online'
     ? '降参して終了しますか？（相手の勝ちになります）'
     : 'ゲームを終了しますか？';
 
   if (confirm(msg)) {
+    playSE('casual');
     if (G.mode === 'online') {
       await surrenderOnline();
     }
@@ -493,6 +499,7 @@ window._quitGame = async () => {
   }
 };
 window._backToTitle = async () => {
+  playSE('casual');
   // 決着後にタイトルに戻る（降参ではない）
   if (G.mode === 'online') {
     await markPlayerLeft();
@@ -502,13 +509,14 @@ window._backToTitle = async () => {
 };
 window._sendEmote = async (emote) => {
   if (G.mode !== 'online') return;
+  playSE('casual');
   const success = await sendEmote(emote);
   if (success) {
     // 送信成功時、一時的にボタンを無効化表示（CSSで対応）
     render();
   }
 };
-window._toggleEmoteBar = toggleEmoteBar;
+window._toggleEmoteBar = () => { playSE('casual'); toggleEmoteBar(); };
 window._render = render;
 window._selectAttack = (id) => { playSE('casual'); me().attackTarget = id; render(); };
 window._selectProtect = (id) => { playSE('casual'); me().protectTarget = id; render(); };
