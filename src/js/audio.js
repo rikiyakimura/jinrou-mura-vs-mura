@@ -63,7 +63,7 @@ export function getTrackForPhase(ph, isDone) {
 
 // SE
 const seSharpening = new Audio('/SE/sharpening.mp3');
-const sePerson = new Audio('/SE/person.mp3');
+const seCasual = new Audio('/SE/casual.mp3');
 const seConfirm = new Audio('/SE/confirm button.mp3');
 let lastSharpeningDay = null;
 
@@ -76,9 +76,9 @@ export function playSE(name, day) {
     lastSharpeningDay = day;
     seSharpening.currentTime = 0;
     seSharpening.play().catch(() => {});
-  } else if (name === 'person') {
-    sePerson.currentTime = 0;
-    sePerson.play().catch(() => {});
+  } else if (name === 'casual') {
+    seCasual.currentTime = 0;
+    seCasual.play().catch(() => {});
   } else if (name === 'confirm') {
     seConfirm.currentTime = 0;
     seConfirm.play().catch(() => {});

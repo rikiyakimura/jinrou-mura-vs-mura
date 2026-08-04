@@ -127,7 +127,7 @@ async function chooseExplorer(id) {
   if (G.mode === 'online') {
     if (!startProcessing()) return;  // 即座にボタン無効化
   }
-  playSE('person');
+  playSE('casual');
 
   const v = me();
   v.explorer = id;
@@ -148,7 +148,7 @@ async function chooseExplorer(id) {
  * 経路を1つずつ選択
  */
 function pickRoute(h) {
-  playSE('person');
+  playSE('casual');
   const v = me(), o = opp();
   const prev = v.route.length ? v.route[v.route.length - 1] : null;
   v.route.push(h);
@@ -238,7 +238,7 @@ function pickAttackHouse(h) {
   const v = me(), o = opp();
   const p = o.people.find(x => x.house === h);
   if (!p || !p.alive) return;
-  playSE('person');
+  playSE('casual');
   v.attackTarget = p.id;
   render();
 }
@@ -510,8 +510,8 @@ window._sendEmote = async (emote) => {
 };
 window._toggleEmoteBar = toggleEmoteBar;
 window._render = render;
-window._selectAttack = (id) => { playSE('person'); me().attackTarget = id; render(); };
-window._selectProtect = (id) => { playSE('person'); me().protectTarget = id; render(); };
+window._selectAttack = (id) => { playSE('casual'); me().attackTarget = id; render(); };
+window._selectProtect = (id) => { playSE('casual'); me().protectTarget = id; render(); };
 
 // 覚え書き用
 window.toggleLedger = toggleLedger;
