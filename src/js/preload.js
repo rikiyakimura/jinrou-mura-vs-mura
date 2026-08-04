@@ -21,6 +21,14 @@ const ITEM_IMAGES = [
   '/item/reibainohuda.webp'
 ];
 
+// プリロードするマップ背景画像
+const MAP_IMAGES = [
+  '/map/5_day.webp',
+  '/map/5_night.webp',
+  '/map/9_day.webp',
+  '/map/9_night.webp'
+];
+
 // プリロードした画像の参照を保持（GC回避）
 let criticalImages = null;
 let portraitImages = null;
@@ -47,7 +55,14 @@ export function preloadCritical() {
     criticalImages.push(img);
   }
 
-  console.log(`[Preload] ${criticalImages.length} critical images loading (BG + items)`);
+  // マップ背景画像
+  for (const src of MAP_IMAGES) {
+    const img = new Image();
+    img.src = src;
+    criticalImages.push(img);
+  }
+
+  console.log(`[Preload] ${criticalImages.length} critical images loading (BG + items + maps)`);
 }
 
 /**

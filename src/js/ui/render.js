@@ -152,12 +152,15 @@ export function render() {
 
   const pitPicking = (!pub && c.ph === 'pit');
 
-  // 9軒モードのクラス設定
+  // 9軒モード・夜モードのクラス設定
   const isLarge = getPreset() === 'large';
+  const isNight = c.ph === 'night';
   const mapMine = document.getElementById('map-mine');
   const mapFoe = document.getElementById('map-foe');
   mapMine.classList.toggle('large', isLarge);
   mapFoe.classList.toggle('large', isLarge);
+  mapMine.classList.toggle('night', isNight);
+  mapFoe.classList.toggle('night', isNight);
 
   drawMap(mapMine, M, {
     omniscient: pub ? revealAll : true,
