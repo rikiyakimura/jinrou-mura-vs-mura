@@ -18,7 +18,7 @@ import {
   restartOnlineGame
 } from '../online/onlineFlow.js';
 import { renderEmoteBar, hideEmoteBar } from './render.js';
-import { playTrack } from '../audio.js';
+import { playTrack, playSE } from '../audio.js';
 
 // タイトル画面のオプション
 export let TITLE_OPT = { madmanDog: false, medium: false, pit: false, large: false };
@@ -121,6 +121,7 @@ export function toggleOpt(k) {
  * ゲームを開始
  */
 export function startGame() {
+  playSE('confirm');
   document.body.style.overflow = '';
   if (_newGame) _newGame(selectedMode, { ...TITLE_OPT });
 }

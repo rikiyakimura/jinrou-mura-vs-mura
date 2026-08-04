@@ -63,10 +63,12 @@ export function getTrackForPhase(ph, isDone) {
 
 // SE
 const seSharpening = new Audio('/SE/sharpening.mp3');
+const sePerson = new Audio('/SE/person.mp3');
+const seConfirm = new Audio('/SE/confirm button.mp3');
 let lastSharpeningDay = null;
 
 /**
- * SEを再生（同じ日には1回だけ）
+ * SEを再生
  */
 export function playSE(name, day) {
   if (name === 'sharpening') {
@@ -74,5 +76,11 @@ export function playSE(name, day) {
     lastSharpeningDay = day;
     seSharpening.currentTime = 0;
     seSharpening.play().catch(() => {});
+  } else if (name === 'person') {
+    sePerson.currentTime = 0;
+    sePerson.play().catch(() => {});
+  } else if (name === 'confirm') {
+    seConfirm.currentTime = 0;
+    seConfirm.play().catch(() => {});
   }
 }

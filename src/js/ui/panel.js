@@ -348,7 +348,7 @@ export function renderPanel() {
     }
     if (canAttack(v)) {
       const { cards: attackCards, gridClass: attackGridClass } = villageGridCards(o.people, {
-        onClickAttr: `onclick="G.V[${v.id}].attackTarget={id};window._render()"`,
+        onClickAttr: `onclick="window._selectAttack({id})"`,
         selectedId: v.attackTarget,
         forceVillagerImg: true
       });
@@ -359,7 +359,7 @@ export function renderPanel() {
     }
     if (canProtect(v)) {
       const { cards: protectCards, gridClass: protectGridClass } = villageGridCards(v.people, {
-        onClickAttr: `onclick="G.V[${v.id}].protectTarget={id};window._render()"`,
+        onClickAttr: `onclick="window._selectProtect({id})"`,
         selectedId: v.protectTarget,
         showRole: true,
         excludeRoles: ['guard', 'wolf']

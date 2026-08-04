@@ -34,7 +34,7 @@ import { setPlayerName } from './online/supabase.js';
 import { preloadCritical, preloadPortraits } from './preload.js';
 
 // オーディオ
-import { unlockAudio, playTrack } from './audio.js';
+import { unlockAudio, playTrack, playSE } from './audio.js';
 import { updateGameState, syncIdxFromDB } from './online/sync.js';
 
 // ========== エモート表示 ==========
@@ -107,6 +107,7 @@ function placePit(key) {
 async function confirmPit() {
   if (G.mode === 'online') {
     if (!startProcessing()) return;  // 即座にボタン無効化、既に処理中なら無視
+    playSE('confirm');
     const v = me();
     await submitOnlineAction({
       playerId: G.myPlayerId,
@@ -114,6 +115,7 @@ async function confirmPit() {
       data: { edges: v.pitEdge }
     });
   } else {
+    playSE('confirm');
     advance();
   }
 }
@@ -125,6 +127,7 @@ async function chooseExplorer(id) {
   if (G.mode === 'online') {
     if (!startProcessing()) return;  // 即座にボタン無効化
   }
+  playSE('confirm');
 
   const v = me();
   v.explorer = id;
@@ -211,6 +214,7 @@ async function confirmRoute() {
   if (G.mode === 'online') {
     if (!startProcessing()) return;  // 即座にボタン無効化
   }
+  playSE('confirm');
 
   const v = me();
   v.routeDone = false;
@@ -233,6 +237,7 @@ function pickAttackHouse(h) {
   const v = me(), o = opp();
   const p = o.people.find(x => x.house === h);
   if (!p || !p.alive) return;
+  playSE('person');
   v.attackTarget = p.id;
   render();
 }
@@ -284,6 +289,7 @@ async function finishDayOnline() {
   if (G.mode === 'online') {
     if (!startProcessing()) return;  // 即座にボタン無効化
   }
+  playSE('confirm');
 
   const v = me();
   v.tickDone = false;
@@ -309,6 +315,7 @@ async function confirmNightOnline() {
   if (G.mode === 'online') {
     if (!startProcessing()) return;  // 即座にボタン無効化
   }
+  playSE('confirm');
 
   const v = me();
 
@@ -330,6 +337,7 @@ async function confirmNightOnline() {
  * 朝の結果を確認して次の日へ（オンライン対応ラッパー）
  */
 async function nextFromMorningOnline() {
+  playSE('confirm');
   if (G.mode !== 'online') {
     nextFromMorning();
     return;
@@ -501,6 +509,8 @@ window._sendEmote = async (emote) => {
 };
 window._toggleEmoteBar = toggleEmoteBar;
 window._render = render;
+window._selectAttack = (id) => { playSE('person'); me().attackTarget = id; render(); };
+window._selectProtect = (id) => { playSE('person'); me().protectTarget = id; render(); };
 
 // 覚え書き用
 window.toggleLedger = toggleLedger;
