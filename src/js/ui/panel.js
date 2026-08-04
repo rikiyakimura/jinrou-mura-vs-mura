@@ -461,8 +461,8 @@ export function renderPanel() {
       </div>
       <div class="final-actions">
         <div class="btnrow" style="justify-content:center">
-          <button onclick="G.endView=${first};window._render()">${nm(first)}の覚え書き</button>
-          <button onclick="G.endView=${second};window._render()">${nm(second)}の覚え書き</button>
+          <button onclick="window._playSE('casual');G.endView=${first};window._render()">${nm(first)}の覚え書き</button>
+          <button onclick="window._playSE('casual');G.endView=${second};window._render()">${nm(second)}の覚え書き</button>
           <button class="primary" onclick="window._restartGame()">もう一度</button>
         </div>
         <div class="quitrow" style="border:none;margin-top:12px">

@@ -483,7 +483,7 @@ window._finishDay = finishDayOnline;
 window._confirmNight = confirmNightOnline;
 window._nextFromMorning = nextFromMorningOnline;
 window._showTitle = () => { playSE('casual'); showTitle(); };
-window._restartGame = () => { playSE('casual'); restartGame(); };
+window._restartGame = () => { playSE('confirm'); restartGame(); };
 window._quitGame = async () => {
   const msg = G.mode === 'online'
     ? '降参して終了しますか？（相手の勝ちになります）'
@@ -520,6 +520,7 @@ window._toggleEmoteBar = () => { playSE('casual'); toggleEmoteBar(); };
 window._render = render;
 window._selectAttack = (id) => { playSE('casual'); me().attackTarget = id; render(); };
 window._selectProtect = (id) => { playSE('casual'); me().protectTarget = id; render(); };
+window._playSE = playSE;
 
 // 覚え書き用
 window.toggleLedger = toggleLedger;
