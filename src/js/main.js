@@ -34,7 +34,7 @@ import { setPlayerName } from './online/supabase.js';
 import { preloadCritical, preloadPortraits } from './preload.js';
 
 // オーディオ
-import { unlockAudio, playTrack, playSE } from './audio.js';
+import { unlockAudio, playTrack, playSE, toggleMute, isMuted } from './audio.js';
 import { updateGameState, syncIdxFromDB } from './online/sync.js';
 
 // ========== エモート表示 ==========
@@ -535,10 +535,28 @@ window.closeLedger = closeLedger;
 // Gをグローバルに公開（パネルのonclick用）
 window.G = G;
 
+// ========== 音声トグルボタン ==========
+
+function renderAudioToggle() {
+  let btn = document.getElementById('audio-toggle');
+  if (!btn) {
+    btn = document.createElement('button');
+    btn.id = 'audio-toggle';
+    btn.className = 'audio-toggle';
+    btn.onclick = () => {
+      toggleMute();
+      renderAudioToggle();
+    };
+    document.body.appendChild(btn);
+  }
+  btn.textContent = isMuted() ? '🔇' : '🔊';
+}
+
 // ========== 初期化 ==========
 
 initLedgerSwipe();
 initItemClickHandlers();
+renderAudioToggle();
 
 // 最初のクリックでaudio解禁、タイトル曲を再生開始
 document.addEventListener('click', () => {

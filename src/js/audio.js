@@ -16,6 +16,7 @@ Object.values(tracks).forEach(t => {
 
 let current = null;
 let unlocked = false;
+let muted = localStorage.getItem('audioMuted') === 'true';
 
 /**
  * ユーザー操作後に呼ぶ（autoplay制限回避）
@@ -43,7 +44,7 @@ export function playTrack(name) {
 
   current = name;
 
-  if (tracks[name]) {
+  if (tracks[name] && !muted) {
     // 常に再生を試みる（ブラウザがブロックしたらcatchで無視）
     tracks[name].play().then(() => {
       unlocked = true;
@@ -82,6 +83,7 @@ let lastItemDay = null;
  * SEを再生
  */
 export function playSE(name, day) {
+  if (muted) return;
   if (name === 'sharpening') {
     if (day !== undefined && day === lastSharpeningDay) return;
     lastSharpeningDay = day;
@@ -136,4 +138,25 @@ export function playSE(name, day) {
 export function resetResultSE() {
   lastResultPlayed = null;
   lastItemDay = null;
+}
+
+/**
+ * ミュート切り替え
+ */
+export function toggleMute() {
+  muted = !muted;
+  localStorage.setItem('audioMuted', muted);
+  if (muted) {
+    Object.values(tracks).forEach(t => t.pause());
+  } else {
+    if (current && tracks[current]) tracks[current].play().catch(() => {});
+  }
+  return muted;
+}
+
+/**
+ * ミュート状態を取得
+ */
+export function isMuted() {
+  return muted;
 }
