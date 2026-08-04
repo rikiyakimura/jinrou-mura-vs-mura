@@ -6,7 +6,7 @@
 
 // 状態
 import { G, me, opp, cur, who, houseName, log, madmanOf, mediumOf } from './state.js';
-import { TICKS, ADJ, edgeKey, ROLE_LABEL, HLABEL, getConfig } from './constants.js';
+import { TICKS, ADJ, edgeKey, ROLE_LABEL, HLABEL, getConfig, EDGES } from './constants.js';
 
 // ゲームロジック
 import { newGame, advance, startDay, finishDay, confirmNight, nextFromMorning, setFlowCallbacks } from './game/flow.js';
@@ -264,12 +264,33 @@ function startSharpenMad() {
 }
 
 /**
+ * 指定ティックまでに取得しているアイテム数を計算（落とし穴考慮）
+ */
+function itemsHeldAtTick(v, o, tick) {
+  if (!v.route || tick <= 0) return 0;
+  let held = { permit: false, mad: false, medium: false };
+  for (let i = 0; i < tick && i < v.route.length; i++) {
+    // 落とし穴チェック（前のマスから移動時）
+    if (i > 0 && v.route[i - 1] !== v.route[i]) {
+      const pitKey = edgeKey(v.route[i - 1], v.route[i]);
+      if (o.pitEdge && o.pitEdge.includes(pitKey)) {
+        held = { permit: false, mad: false, medium: false };
+      }
+    }
+    const h = v.route[i];
+    if (h === G.permitHouse[v.id]) held.permit = true;
+    if (G.madHouse && G.madHouse[v.id] && h === G.madHouse[v.id]) held.mad = true;
+    if (G.mediumHouse && G.mediumHouse[v.id] && h === G.mediumHouse[v.id]) held.medium = true;
+  }
+  return (held.permit ? 1 : 0) + (held.mad ? 1 : 0) + (held.medium ? 1 : 0);
+}
+
+/**
  * ティック進行
  */
 function advanceTick() {
   playSE('casual');
   try {
-    G.tickIdx++;
     const v = me();
     if (!v) {
       console.error('advanceTick: me() returned undefined');
@@ -279,6 +300,13 @@ function advanceTick() {
     if (!o || !o.route) {
       console.error('advanceTick: opp() or opp().route undefined', { o, route: o?.route });
       return;
+    }
+    // アイテム取得SE（進行前と後で比較）
+    const itemsBefore = itemsHeldAtTick(v, o, G.tickIdx);
+    G.tickIdx++;
+    const itemsAfter = itemsHeldAtTick(v, o, G.tickIdx);
+    if (itemsAfter > itemsBefore) {
+      playSE('item');
     }
     if (overlapSoFar(v, o.route) >= SPOIL) v.spoiled = true;
     if (G.tickIdx >= TICKS) v.tickDone = true;
