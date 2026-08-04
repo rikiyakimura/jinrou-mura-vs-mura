@@ -25,8 +25,10 @@ const ITEM_IMAGES = [
 const MAP_IMAGES = [
   '/map/5_day.webp',
   '/map/5_night.webp',
+  '/map/5_loss.webp',
   '/map/9_day.webp',
-  '/map/9_night.webp'
+  '/map/9_night.webp',
+  '/map/9_loss.webp'
 ];
 
 // プリロードした画像の参照を保持（GC回避）

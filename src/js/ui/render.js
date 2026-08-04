@@ -152,10 +152,23 @@ export function render() {
 
   const pitPicking = (!pub && c.ph === 'pit');
 
-  // 9軒モード・夜モード・夜明けモードのクラス設定
+  // 9軒モード・夜モード・夜明けモード・負けモードのクラス設定
   const isLarge = getPreset() === 'large';
   const isNight = c.ph === 'night';
   const isDawn = c.ph === 'morning';
+  const isEnd = c.ph === 'end' || c.ph === 'unknown' || G.done;
+  // 負け判定（終了時のみ）
+  let isLoss = false;
+  if (isEnd) {
+    const myId = G.myPlayerId || 1;
+    const myAlive = M.people ? M.people.filter(p => p.alive).length : 0;
+    const oppAlive = F.people ? F.people.filter(p => p.alive).length : 0;
+    if (G.instantWin) {
+      isLoss = G.instantWin !== myId && G.instantWin !== 'draw';
+    } else {
+      isLoss = myAlive < oppAlive;
+    }
+  }
   const mapMine = document.getElementById('map-mine');
   const mapFoe = document.getElementById('map-foe');
   mapMine.classList.toggle('large', isLarge);
@@ -164,6 +177,8 @@ export function render() {
   mapFoe.classList.toggle('night', isNight);
   mapMine.classList.toggle('dawn', isDawn);
   mapFoe.classList.toggle('dawn', isDawn);
+  mapMine.classList.toggle('loss', isLoss);
+  mapFoe.classList.toggle('loss', isLoss);
 
   drawMap(mapMine, M, {
     omniscient: pub ? revealAll : true,
