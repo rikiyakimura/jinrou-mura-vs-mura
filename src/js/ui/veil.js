@@ -3,7 +3,7 @@
  */
 
 import { G, cur, who } from '../state.js';
-import { getPlayerName, setPlayerName, getCurrentUserId } from '../online/supabase.js';
+import { getPlayerName, setPlayerName, getCurrentUserId, ensureSignedIn } from '../online/supabase.js';
 import { showStatsPopup } from './statsPopup.js';
 import {
   createRoom,
@@ -247,6 +247,9 @@ export async function showCreateRoom() {
   el.classList.add('menu-screen');
   el.innerHTML = `<div class="inner"><div class="loading">ルームを作成中...</div></div>`;
 
+  // サインイン完了を待つ
+  await ensureSignedIn();
+
   const { room, error } = await createRoom(playerName, { ...TITLE_OPT });
 
   if (error) {
@@ -325,6 +328,9 @@ export async function doJoinRoom() {
 
   errorEl.style.display = 'none';
 
+  // サインイン完了を待つ
+  await ensureSignedIn();
+
   const { room, error } = await joinRoom(code, playerName);
 
   if (error) {
@@ -349,6 +355,9 @@ export async function startMatchmaking() {
   const el = document.getElementById('veil');
   el.classList.remove('menu-screen');
   el.innerHTML = `<div class="inner"><div class="loading">対戦相手を探しています...</div></div>`;
+
+  // サインイン完了を待つ
+  await ensureSignedIn();
 
   const { queueId, room, matched, error, isHost } = await joinMatchmakingQueue(playerName, { ...TITLE_OPT });
 
