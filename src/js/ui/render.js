@@ -90,9 +90,9 @@ export function render() {
   const oppId = myId === 1 ? 2 : 1;
   const myName = G.myPlayerName || '自分';
   const oppName = G.opponentName || '相手';
-  // オンラインモードでは自分→相手の順で表示
-  const M = pub ? (G.mode === 'online' ? G.V[myId] : G.V[G.endView]) : me();
-  const F = pub ? (G.mode === 'online' ? G.V[oppId] : G.V[other(G.endView)]) : opp();
+  // 結果発表時は endView で切り替え可能
+  const M = pub ? G.V[G.endView] : me();
+  const F = pub ? G.V[other(G.endView)] : opp();
 
   // 地図タイトル
   const mineTitle = pub

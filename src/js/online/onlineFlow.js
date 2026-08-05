@@ -149,7 +149,7 @@ export async function startOnlineGameAsHost(room, opt) {
     madHouse: { 1: null, 2: null },
     mediumHouse: { 1: null, 2: null },
     handoffs: 0,
-    endView: 1,
+    endView: onlineState.myPlayerId,
     publicLog: [],
     done: false,
     swap: false,
@@ -214,6 +214,7 @@ export async function startOnlineGameAsGuest(room) {
   savedG.myPlayerId = 2;
   savedG.myPlayerName = onlineState.myPlayerName;
   savedG.opponentName = room.host_player_name;
+  savedG.endView = 2;  // 自分の覚え書きを最初に表示
 
   // プリセットを設定（ホストの設定に合わせる）
   setPreset(savedG.opt.large ? 'large' : 'classic');
@@ -338,6 +339,7 @@ function onGameStateChange(newState) {
     savedG.myPlayerId = onlineState.myPlayerId;
     savedG.myPlayerName = onlineState.myPlayerName;
     savedG.opponentName = onlineState.opponentName;
+    savedG.endView = onlineState.myPlayerId;  // 自分の覚え書きを最初に表示
 
     // プリセットを設定（ホストの設定に合わせる）
     setPreset(savedG.opt.large ? 'large' : 'classic');
@@ -890,7 +892,7 @@ export async function restartOnlineGame(renderCallback) {
     madHouse: { 1: null, 2: null },
     mediumHouse: { 1: null, 2: null },
     handoffs: 0,
-    endView: 1,
+    endView: myPlayerId,
     publicLog: [],
     done: false,
     swap: false,
