@@ -491,11 +491,20 @@ window._toggleSwap = () => { playSE('casual'); toggleSwap(); };
 
 // オンライン用
 window._showOnlineMenu = () => { playSE('casual'); showOnlineMenu(); };
-window._showMyStats = () => {
+window._showMyStats = async () => {
   playSE('casual');
-  const userId = getCurrentUserId();
+  let userId = getCurrentUserId();
+  // まだサインインしていなければ待つ
+  if (!userId) {
+    await ensureSignedIn();
+    userId = getCurrentUserId();
+  }
   const name = getPlayerName() || '自分';
-  if (userId) showStatsPopup(userId, name);
+  if (userId) {
+    showStatsPopup(userId, name);
+  } else {
+    alert('サインインに失敗しました。ページを再読み込みしてください。');
+  }
 };
 window._showOnlineOptions = (...args) => { playSE('casual'); showOnlineOptions(...args); };
 window._savePlayerName = (name) => setPlayerName(name.trim() || '名無し');

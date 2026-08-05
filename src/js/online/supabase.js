@@ -36,9 +36,10 @@ export async function ensureSignedIn() {
   // 匿名サインイン
   const { data, error } = await supabase.auth.signInAnonymously();
   if (error) {
-    console.error('Anonymous sign-in failed:', error);
+    console.error('Anonymous sign-in failed:', error.message, error);
     return null;
   }
+  console.log('Anonymous sign-in success:', data.user?.id);
   currentUser = data.user;
   await ensurePlayerRecord();
   return currentUser;
@@ -50,18 +51,27 @@ export async function ensureSignedIn() {
 async function ensurePlayerRecord() {
   if (!currentUser) return;
 
-  const { data: existing } = await supabase
+  const { data: existing, error: selectErr } = await supabase
     .from('players')
     .select('id')
     .eq('id', currentUser.id)
     .single();
 
+  if (selectErr && selectErr.code !== 'PGRST116') {
+    console.error('Player record check failed:', selectErr);
+  }
+
   if (!existing) {
     const name = getPlayerName() || '名無し';
-    await supabase.from('players').insert({
+    const { error: insertErr } = await supabase.from('players').insert({
       id: currentUser.id,
       display_name: name
     });
+    if (insertErr) {
+      console.error('Player record insert failed:', insertErr);
+    } else {
+      console.log('Player record created:', currentUser.id);
+    }
   }
 }
 
