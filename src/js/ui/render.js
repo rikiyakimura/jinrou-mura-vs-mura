@@ -18,7 +18,7 @@ let _pickRoute = null;
 let _pickAttackHouse = null;
 
 // エモート一覧
-const EMOTES = ['👍', '😊', '🤔', '⏳', '🙏', '😅', '❤️', '💀', '😏', '😜', '🤭', '👋'];
+const EMOTES = ['👍', '😊', '🤔', '⏳', '🙏', '😅', '❤️', '💀', '😏', '😜', '🤭', '👋', '😤', '👀', '🔥'];
 
 // エモートバーの開閉状態
 let emoteBarOpen = false;

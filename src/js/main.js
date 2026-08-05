@@ -539,12 +539,38 @@ window._sendEmote = async (emote) => {
 };
 window._openTextChat = () => {
   if (G.mode !== 'online') return;
-  const text = prompt('メッセージを入力:');
-  if (text && text.trim()) {
-    const msg = text.trim().slice(0, 50); // 最大50文字
+  // カスタムダイアログを作成
+  const overlay = document.createElement('div');
+  overlay.className = 'text-chat-overlay';
+  overlay.innerHTML = `
+    <div class="text-chat-dialog">
+      <input type="text" id="text-chat-input" maxlength="50" placeholder="メッセージを入力...">
+      <div class="text-chat-btns">
+        <button onclick="window._sendTextChat()">送信</button>
+        <button onclick="window._closeTextChat()">×</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  // 即座にフォーカス
+  const input = document.getElementById('text-chat-input');
+  setTimeout(() => input.focus(), 10);
+  // Enterで送信
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') window._sendTextChat();
+  });
+};
+window._sendTextChat = () => {
+  const input = document.getElementById('text-chat-input');
+  const text = input?.value?.trim();
+  if (text) {
     playSE('casual');
-    sendEmote(msg);
+    sendEmote(text.slice(0, 50));
   }
+  window._closeTextChat();
+};
+window._closeTextChat = () => {
+  document.querySelector('.text-chat-overlay')?.remove();
 };
 window._toggleEmoteBar = () => { playSE('casual'); toggleEmoteBar(); };
 window._render = render;
