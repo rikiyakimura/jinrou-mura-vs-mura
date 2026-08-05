@@ -399,6 +399,12 @@ export function renderPanel() {
     const n2 = G.mode === 'cpu' ? '相手の村' : G.mode === 'online' ? `${oppName}の村` : '2Pの村';
     const ra = G.mode === 'online' ? r[myId === 1 ? 'a' : 'b'] : r.a;
     const rb = G.mode === 'online' ? r[myId === 1 ? 'b' : 'a'] : r.b;
+    el.innerHTML = H(`${G.day}日目・夜明け`, `
+      <p class="lead">${n1}：${ra ? `<b>${ra}</b>が死んだ。` : '誰も欠けていない。'}</p>
+      <p class="lead">${n2}：${rb ? `<b>${rb}</b>が死んだ。` : '誰も欠けていない。'}</p>
+      <p>失敗の理由は、襲われた側にしか分からない。</p>
+      <div class="btnrow"><button class="primary" ${G.mode === 'online' && isProcessing() ? 'disabled' : ''} onclick="window._nextFromMorning()">${G.day >= getConfig().DAYS ? '決着を見る' : '次の日へ'}</button></div>
+      ${quitBtn}`);
     // 自分の村人が死亡した場合、赤フラッシュ + SE + シェイク（ホットシートでは無効）
     if (ra && G.mode !== 'pvp' && G._deathFlashPlayed !== G.day) {
       G._deathFlashPlayed = G.day;
@@ -423,12 +429,6 @@ export function renderPanel() {
       document.body.appendChild(flash);
       setTimeout(() => flash.remove(), 500);
     }
-    el.innerHTML = H(`${G.day}日目・夜明け`, `
-      <p class="lead">${n1}：${ra ? `<b>${ra}</b>が死んだ。` : '誰も欠けていない。'}</p>
-      <p class="lead">${n2}：${rb ? `<b>${rb}</b>が死んだ。` : '誰も欠けていない。'}</p>
-      <p>失敗の理由は、襲われた側にしか分からない。</p>
-      <div class="btnrow"><button class="primary" ${G.mode === 'online' && isProcessing() ? 'disabled' : ''} onclick="window._nextFromMorning()">${G.day >= getConfig().DAYS ? '決着を見る' : '次の日へ'}</button></div>
-      ${quitBtn}`);
     return;
   }
 
