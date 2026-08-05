@@ -1,18 +1,7 @@
-const CACHE_NAME = 'jinrou-v1';
-const STATIC_ASSETS = [
-  '/',
-  '/manifest.json',
-  '/icon-192.png',
-  '/icon-512.png'
-];
+const CACHE_NAME = 'jinrou-v2';
 
-// インストール時に静的アセットをキャッシュ
+// インストール時にキャッシュ
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_ASSETS);
-    })
-  );
   self.skipWaiting();
 });
 
@@ -28,7 +17,7 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// ネットワーク優先、失敗時はキャッシュから
+// キャッシュ優先、バックグラウンドで更新
 self.addEventListener('fetch', (event) => {
   // API呼び出しはキャッシュしない
   if (event.request.url.includes('supabase')) {
@@ -36,9 +25,10 @@ self.addEventListener('fetch', (event) => {
   }
 
   event.respondWith(
-    fetch(event.request)
-      .then((response) => {
-        // 成功したらキャッシュに保存
+    caches.match(event.request).then((cached) => {
+      // キャッシュがあれば即座に返す
+      const fetchPromise = fetch(event.request).then((response) => {
+        // 成功したらキャッシュを更新
         if (response.ok) {
           const clone = response.clone();
           caches.open(CACHE_NAME).then((cache) => {
@@ -46,10 +36,9 @@ self.addEventListener('fetch', (event) => {
           });
         }
         return response;
-      })
-      .catch(() => {
-        // オフライン時はキャッシュから
-        return caches.match(event.request);
-      })
+      }).catch(() => cached);
+
+      return cached || fetchPromise;
+    })
   );
 });
