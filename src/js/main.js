@@ -28,7 +28,7 @@ import { initItemClickHandlers } from './ui/itemModal.js';
 
 // オンライン
 import { submitOnlineAction, setOnlineFlowCallbacks, advanceOnline, surrenderOnline, endOnlineGame, sendEmote, canSendEmote, markPlayerLeft, startProcessing, endProcessing } from './online/onlineFlow.js';
-import { setPlayerName, getCurrentUserId, ensureSignedIn, updateStats, getPlayerName } from './online/supabase.js';
+import { setPlayerName, getCurrentUserId, ensureSignedIn, updateStats, getPlayerName, recordOpponentDisconnect } from './online/supabase.js';
 import { showStatsPopup } from './ui/statsPopup.js';
 
 // プリロード
@@ -450,10 +450,10 @@ setOnlineFlowCallbacks({
   showEmoteToast,
   onTimeout: () => {
     alert('相手が応答しません。勝利です。');
-    const mapSize = getPreset();
-    const myId = G.myPlayerId || 1;
-    const survivors = G.V && G.V[myId] ? alive(G.V[myId]).length : 0;
-    updateStats('online', 'win', { mapSize, survivors, isShutout: false, isExpel: false });
+    // 相手の切断カウントをインクリメント（自分の勝利は記録しない）
+    if (G.opponentUserId) {
+      recordOpponentDisconnect(G.opponentUserId);
+    }
     endOnlineGame();
     showTitle();
   }

@@ -188,24 +188,28 @@ export async function updateStats(mode, result, options = {}) {
 }
 
 /**
- * 切断回数を記録（自分が切断した場合）
+ * 相手の切断回数を記録（Edge Function経由）
+ * @param {string} opponentId - 切断した相手のID
  */
-export async function recordDisconnect() {
-  if (!currentUser) return;
+export async function recordOpponentDisconnect(opponentId) {
+  if (!opponentId) return;
 
-  const { data: current } = await supabase
-    .from('players')
-    .select('online_disconnect')
-    .eq('id', currentUser.id)
-    .single();
+  try {
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/record-opponent-disconnect`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SUPABASE_KEY}`
+      },
+      body: JSON.stringify({ opponent_id: opponentId })
+    });
 
-  if (current) {
-    await supabase
-      .from('players')
-      .update({
-        online_disconnect: (current.online_disconnect || 0) + 1
-      })
-      .eq('id', currentUser.id);
+    if (!response.ok) {
+      const error = await response.json();
+      console.error('Failed to record opponent disconnect:', error);
+    }
+  } catch (error) {
+    console.error('Error calling Edge Function:', error);
   }
 }
 
