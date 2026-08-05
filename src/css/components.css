@@ -122,7 +122,7 @@ button.back:hover{color:var(--kinari)}
 
 /* 画面シェイク（落とし穴） */
 @keyframes shake{0%,100%{transform:translateY(0)}10%,30%,50%,70%,90%{transform:translateY(-5px)}20%,40%,60%,80%{transform:translateY(5px)}}
-body.shake{animation:shake .4s ease-in-out}
+.wrap.shake{animation:shake .4s ease-in-out}
 
 /* 赤フラッシュ（死亡演出） */
 @keyframes red-flash{0%{opacity:0.6}100%{opacity:0}}
