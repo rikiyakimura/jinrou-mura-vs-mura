@@ -341,8 +341,8 @@ export function renderPanel() {
   if (c.ph === 'night') {
     let b = '';
     if (v.heardToday !== null) {
-      // 爪研ぎ音SE（聞こえた時のみ、同じ日に1回だけ）
-      if (v.heardToday) playSE('sharpening', G.day);
+      // 爪研ぎ音SE（聞こえた時のみ、同じ日に1回だけ、0.5秒遅延）
+      if (v.heardToday) setTimeout(() => playSE('sharpening', G.day), 500);
       const where = [...new Set(v.route)].map(h => houseName(o, h)).join('・');
       const exRole = v.people[v.explorer] ? v.people[v.explorer].role : null;
       if (exRole === 'dog') {
