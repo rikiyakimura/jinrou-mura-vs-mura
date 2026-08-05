@@ -8,7 +8,6 @@ import { showStatsPopup } from './statsPopup.js';
 import {
   createRoom,
   joinRoom,
-  fetchRoom,
   subscribeToRoom,
   joinMatchmakingQueue,
   subscribeToMatchmaking,
@@ -264,26 +263,13 @@ export async function showCreateRoom() {
 
   currentRoom = room;
 
-  // ルームの変更を監視
+  // ルームの変更を監視（guest_user_idが揃うまで待つ）
   unsubscribeRoom = subscribeToRoom(room.id, async (updatedRoom) => {
-    if (updatedRoom.status === 'playing' && updatedRoom.guest_player_name) {
-      // ゲスト参加 → 最新のルームデータを取得してゲーム開始
+    if (updatedRoom.host_user_id && updatedRoom.guest_user_id) {
+      // 両方のユーザーIDが揃った → ゲーム開始
       cleanupOnlineSubscriptions();
-
-      // guest_user_idが設定されるまでリトライ（最大5回）
-      let finalRoom = null;
-      for (let i = 0; i < 5; i++) {
-        const { room: freshRoom } = await fetchRoom(room.id);
-        if (freshRoom?.guest_user_id) {
-          finalRoom = freshRoom;
-          break;
-        }
-        console.log(`Waiting for guest_user_id... attempt ${i + 1}/5`);
-        await new Promise(r => setTimeout(r, 300));
-      }
-      finalRoom = finalRoom || updatedRoom;
-      console.log('Host starting game with room:', { host_user_id: finalRoom.host_user_id, guest_user_id: finalRoom.guest_user_id });
-      startOnlineGameAsHost(finalRoom, { ...TITLE_OPT });
+      console.log('Host starting game with room:', { host_user_id: updatedRoom.host_user_id, guest_user_id: updatedRoom.guest_user_id });
+      startOnlineGameAsHost(updatedRoom, { ...TITLE_OPT });
       hideVeil(_render);
     }
   });
@@ -401,21 +387,9 @@ export async function startMatchmaking() {
   // 待機中
   matchmakingQueueId = queueId;
   unsubscribeMatchmaking = subscribeToMatchmaking(queueId, async (room) => {
-    // マッチ成功
+    // マッチ成功（両方のユーザーIDが揃っているはず）
     cleanupOnlineSubscriptions();
-
-    // guest_user_idが設定されるまでリトライ（最大5回）
-    let finalRoom = null;
-    for (let i = 0; i < 5; i++) {
-      const { room: freshRoom } = await fetchRoom(room.id);
-      if (freshRoom?.guest_user_id) {
-        finalRoom = freshRoom;
-        break;
-      }
-      console.log(`Waiting for guest_user_id... attempt ${i + 1}/5`);
-      await new Promise(r => setTimeout(r, 300));
-    }
-    currentRoom = finalRoom || room;
+    currentRoom = room;
     // キューに登録した側はホスト
     await startOnlineGameAsHost(currentRoom, { ...TITLE_OPT });
     hideVeil(_render);
