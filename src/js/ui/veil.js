@@ -265,12 +265,15 @@ export async function showCreateRoom() {
 
   // ルームの変更を監視（guest_user_idが揃うまで待つ）
   unsubscribeRoom = subscribeToRoom(room.id, async (updatedRoom) => {
+    console.log('[v2] Room update received:', { host_user_id: updatedRoom.host_user_id, guest_user_id: updatedRoom.guest_user_id, status: updatedRoom.status });
     if (updatedRoom.host_user_id && updatedRoom.guest_user_id) {
       // 両方のユーザーIDが揃った → ゲーム開始
       cleanupOnlineSubscriptions();
-      console.log('Host starting game with room:', { host_user_id: updatedRoom.host_user_id, guest_user_id: updatedRoom.guest_user_id });
+      console.log('[v2] Starting game - both IDs present');
       startOnlineGameAsHost(updatedRoom, { ...TITLE_OPT });
       hideVeil(_render);
+    } else {
+      console.log('[v2] Waiting for both user IDs...');
     }
   });
 
