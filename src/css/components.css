@@ -188,16 +188,28 @@ button.back:hover{color:var(--kinari)}
 /* 戦績ポップアップ */
 .stats-popup-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:10002;display:flex;align-items:center;justify-content:center;padding:20px}
 .stats-popup{background:var(--indigo);border:1px solid var(--indigo-edge);border-radius:8px;width:100%;max-width:300px;overflow:hidden}
+.stats-popup-wide{max-width:360px}
 .stats-popup-header{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--indigo-edge);background:var(--indigo-lift)}
 .stats-popup-title{font-family:var(--mincho);font-size:16px;font-weight:600;color:var(--kinari)}
 .stats-popup-close{background:transparent;border:none;color:var(--kinari-faint);font-size:20px;cursor:pointer;padding:0 4px;line-height:1}
 .stats-popup-close:hover{color:var(--kinari)}
-.stats-popup-body{padding:16px}
+.stats-popup-body{padding:16px;max-height:70vh;overflow-y:auto}
 .stats-loading,.stats-no-data{color:var(--kinari-faint);font-size:14px;text-align:center;padding:20px 0}
 .stats-me-badge{display:inline-block;background:var(--moon);color:var(--indigo);font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;margin-bottom:12px}
 .stats-section{margin-bottom:16px}
 .stats-section:last-child{margin-bottom:0}
-.stats-section-title{font-size:13px;color:var(--kinari-faint);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--indigo-edge)}
+.stats-section-header{margin-bottom:8px}
+.stats-section-title{font-size:14px;font-weight:600;color:var(--kinari)}
+.stats-section-meta{display:block;font-size:11px;color:var(--kinari-faint);margin-top:2px}
+.stats-table{width:100%;border-collapse:collapse;font-size:13px}
+.stats-table th,.stats-table td{padding:5px 8px;text-align:center}
+.stats-table th{color:var(--kinari-faint);font-weight:400;border-bottom:1px solid var(--indigo-edge)}
+.stats-table td:first-child{text-align:left;color:var(--kinari-dim)}
+.stats-table td{color:var(--kinari)}
+.stats-table td.win{color:var(--kuchiba);font-weight:600}
+.stats-table td.loss{color:var(--akane-glow);font-weight:600}
+.stats-table td.draw{color:var(--kinari-faint)}
+.stats-table td.special{color:var(--moon)}
 .stats-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:14px}
 .stats-row.total{margin-top:6px;padding-top:6px;border-top:1px solid var(--indigo-edge)}
 .stats-label{color:var(--kinari-dim)}

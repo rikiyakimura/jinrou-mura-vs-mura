@@ -5,8 +5,8 @@
  */
 
 // 状態
-import { G, me, opp, cur, who, houseName, log, madmanOf, mediumOf } from './state.js';
-import { TICKS, ADJ, edgeKey, ROLE_LABEL, HLABEL, getConfig, RULES } from './constants.js';
+import { G, me, opp, cur, who, houseName, log, madmanOf, mediumOf, alive } from './state.js';
+import { TICKS, ADJ, edgeKey, ROLE_LABEL, HLABEL, getConfig, RULES, getPreset } from './constants.js';
 
 // ゲームロジック
 import { newGame, advance, startDay, finishDay, confirmNight, nextFromMorning, setFlowCallbacks } from './game/flow.js';
@@ -450,7 +450,10 @@ setOnlineFlowCallbacks({
   showEmoteToast,
   onTimeout: () => {
     alert('相手が応答しません。勝利です。');
-    updateStats('online', 'win');
+    const mapSize = getPreset();
+    const myId = G.myPlayerId || 1;
+    const survivors = G.V && G.V[myId] ? alive(G.V[myId]).length : 0;
+    updateStats('online', 'win', { mapSize, survivors, isShutout: false, isExpel: false });
     endOnlineGame();
     showTitle();
   }

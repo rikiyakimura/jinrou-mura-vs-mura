@@ -3,7 +3,7 @@
  */
 
 import { G, wolfOf, guardOf, mediumOf, madActive, log, logRoute, houseName, alive } from '../state.js';
-import { TICKS, SHARPEN, SPOIL as SPOIL_CONST, EXPOSE, ROLE_LABEL, getConfig } from '../constants.js';
+import { TICKS, SHARPEN, SPOIL as SPOIL_CONST, EXPOSE, ROLE_LABEL, getConfig, getPreset } from '../constants.js';
 import { updateStats } from '../online/supabase.js';
 
 // SPOILをエクスポート
@@ -300,19 +300,35 @@ export function finish(hideVeil) {
     const myId = G.mode === 'online' ? G.myPlayerId : 1;
     const oppId = other(myId);
     const mode = G.mode === 'online' ? 'online' : 'cpu';
+    const mapSize = getPreset(); // 'classic' or 'large'
+    const myAlive = alive(G.V[myId]).length;
+    const oppAlive = alive(G.V[oppId]).length;
+    const maxVillagers = mapSize === 'large' ? 9 : 5;
+
     let result;
+    let isExpel = false;
+
     if (G.instantWin === 'draw') {
       result = 'draw';
     } else if (G.instantWin) {
       result = G.instantWin === myId ? 'win' : 'loss';
+      // instantWinは人狼追放による勝利
+      isExpel = true;
     } else {
-      const myAlive = alive(G.V[myId]).length;
-      const oppAlive = alive(G.V[oppId]).length;
       if (myAlive > oppAlive) result = 'win';
       else if (myAlive < oppAlive) result = 'loss';
       else result = 'draw';
     }
-    updateStats(mode, result);
+
+    // 完封勝利: 自分の村が全員生存で勝利
+    const isShutout = result === 'win' && myAlive === maxVillagers;
+
+    updateStats(mode, result, {
+      mapSize,
+      isShutout,
+      isExpel: isExpel && result === 'win',
+      survivors: myAlive
+    });
   }
 
   if (hideVeil) hideVeil();

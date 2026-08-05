@@ -107,16 +107,95 @@ export async function getPlayerStats(playerId = null) {
  * 戦績を更新
  * @param {'online'|'cpu'} mode - ゲームモード
  * @param {'win'|'loss'|'draw'} result - 結果
+ * @param {object} options - 追加オプション
+ * @param {'classic'|'large'} options.mapSize - マップサイズ
+ * @param {boolean} options.isShutout - 完封勝利か
+ * @param {boolean} options.isExpel - 追放勝利か
+ * @param {number} options.survivors - 生存者数
+ * @param {boolean} options.isDisconnect - 切断勝利か（相手が切断）
  */
-export async function updateStats(mode, result) {
+export async function updateStats(mode, result, options = {}) {
   if (!currentUser) return;
 
-  const column = `${mode}_${result === 'win' ? 'wins' : result === 'loss' ? 'losses' : 'draws'}`;
+  const { mapSize = 'classic', isShutout = false, isExpel = false, survivors = 0, isDisconnect = false } = options;
 
-  // 現在の値を取得してインクリメント
+  // 更新するカラムを収集
+  const updates = {
+    last_played_at: new Date().toISOString()
+  };
+
+  // 勝敗カラム
+  const resultCol = `${mode}_${result === 'win' ? 'wins' : result === 'loss' ? 'losses' : 'draws'}_${mapSize}`;
+
+  // 現在の値を取得
+  const columns = [
+    resultCol,
+    `${mode}_survivors_${mapSize}`,
+    `${mode}_max_streak`,
+    `${mode}_current_streak`
+  ];
+  if (isShutout) columns.push(`${mode}_shutout_${mapSize}`);
+  if (isExpel) columns.push(`${mode}_expel_${mapSize}`);
+  if (mode === 'online' && isDisconnect) columns.push('online_disconnect');
+
   const { data: current } = await supabase
     .from('players')
-    .select(column)
+    .select(columns.join(','))
+    .eq('id', currentUser.id)
+    .single();
+
+  if (!current) return;
+
+  // 勝敗をインクリメント
+  updates[resultCol] = (current[resultCol] || 0) + 1;
+
+  // 生存者数を加算
+  const survivorsCol = `${mode}_survivors_${mapSize}`;
+  updates[survivorsCol] = (current[survivorsCol] || 0) + survivors;
+
+  // 連勝記録
+  const currentStreakCol = `${mode}_current_streak`;
+  const maxStreakCol = `${mode}_max_streak`;
+  if (result === 'win') {
+    const newStreak = (current[currentStreakCol] || 0) + 1;
+    updates[currentStreakCol] = newStreak;
+    if (newStreak > (current[maxStreakCol] || 0)) {
+      updates[maxStreakCol] = newStreak;
+    }
+  } else {
+    updates[currentStreakCol] = 0;
+  }
+
+  // 完封勝利
+  if (isShutout && result === 'win') {
+    const shutoutCol = `${mode}_shutout_${mapSize}`;
+    updates[shutoutCol] = (current[shutoutCol] || 0) + 1;
+  }
+
+  // 追放勝利
+  if (isExpel && result === 'win') {
+    const expelCol = `${mode}_expel_${mapSize}`;
+    updates[expelCol] = (current[expelCol] || 0) + 1;
+  }
+
+  // 切断（オンラインのみ、相手が切断して自分が勝った場合ではなく、自分が切断した場合）
+  // ※ここでは isDisconnect は「切断勝利」として使用しない。切断ペナルティは別処理で。
+
+  await supabase
+    .from('players')
+    .update(updates)
+    .eq('id', currentUser.id);
+}
+
+/**
+ * 切断回数を記録（自分が切断した場合）
+ */
+export async function recordDisconnect() {
+  if (!currentUser) return;
+
+  const { data: current } = await supabase
+    .from('players')
+    .select('online_disconnect')
     .eq('id', currentUser.id)
     .single();
 
@@ -124,8 +203,7 @@ export async function updateStats(mode, result) {
     await supabase
       .from('players')
       .update({
-        [column]: (current[column] || 0) + 1,
-        last_played_at: new Date().toISOString()
+        online_disconnect: (current.online_disconnect || 0) + 1
       })
       .eq('id', currentUser.id);
   }
