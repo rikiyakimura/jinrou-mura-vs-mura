@@ -106,7 +106,7 @@ button.back:hover{color:var(--kinari)}
 .spinner{width:20px;height:20px;border:2px solid var(--indigo-edge);border-top-color:var(--kuchiba);border-radius:50%;animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-.loading{color:var(--kinari-faint);font-size:14px}
+.loading{color:var(--indigo-edge);font-size:14px}
 .error{color:var(--akane-glow);font-size:13px;margin-top:10px}
 
 .timeout-display{font-size:14px;color:var(--kinari-faint);margin-top:10px}
@@ -224,7 +224,7 @@ button.back:hover{color:var(--kinari)}
 
 /* タイトル画面の成績・遊び方ボタン */
 .title-sub-btns{display:flex;gap:12px;justify-content:center;margin-top:20px}
-.stats-btn{font-size:14px;padding:10px 24px;background:transparent;border:1px solid var(--kinari-faint);color:var(--kinari-faint)}
+.stats-btn{font-size:14px;padding:10px 24px;background:transparent;border:1px solid var(--indigo-edge);color:var(--indigo-edge)}
 .stats-btn:hover{border-color:var(--kuchiba);color:var(--kuchiba);background:transparent}
 
 /* ルールポップアップ */
