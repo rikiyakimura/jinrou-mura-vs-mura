@@ -11,6 +11,7 @@ let currentRoomId = null;
 let gameStateChannel = null;
 let actionsChannel = null;
 let emotesChannel = null;
+let presenceChannel = null;
 
 // エモートクールダウン
 let lastEmoteTime = 0;
@@ -150,6 +151,48 @@ export function subscribeToEmotes(roomId, myPlayerId, onEmote) {
     if (emotesChannel) {
       supabase.removeChannel(emotesChannel);
       emotesChannel = null;
+    }
+  };
+}
+
+/**
+ * プレゼンス（オンライン状態）を監視
+ * @param {string} roomId - ルームID
+ * @param {number} myPlayerId - 自分のプレイヤーID（1 or 2）
+ * @param {function} onOpponentLeave - 相手が切断した時のコールバック
+ */
+export function subscribeToPresence(roomId, myPlayerId, onOpponentLeave) {
+  presenceChannel = supabase.channel(`presence:${roomId}`, {
+    config: {
+      presence: {
+        key: String(myPlayerId)
+      }
+    }
+  });
+
+  presenceChannel
+    .on('presence', { event: 'leave' }, ({ leftPresences }) => {
+      // 相手が離脱した場合
+      for (const presence of leftPresences) {
+        if (presence.player_id !== myPlayerId && onOpponentLeave) {
+          onOpponentLeave();
+        }
+      }
+    })
+    .subscribe(async (status) => {
+      if (status === 'SUBSCRIBED') {
+        // 自分のプレゼンスを登録
+        await presenceChannel.track({
+          player_id: myPlayerId,
+          online_at: new Date().toISOString()
+        });
+      }
+    });
+
+  return () => {
+    if (presenceChannel) {
+      supabase.removeChannel(presenceChannel);
+      presenceChannel = null;
     }
   };
 }
@@ -320,6 +363,10 @@ export function unsubscribeAll() {
   if (emotesChannel) {
     supabase.removeChannel(emotesChannel);
     emotesChannel = null;
+  }
+  if (presenceChannel) {
+    supabase.removeChannel(presenceChannel);
+    presenceChannel = null;
   }
   currentRoomId = null;
 }

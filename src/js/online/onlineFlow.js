@@ -13,6 +13,7 @@ import {
   subscribeToGameState,
   subscribeToActions,
   subscribeToEmotes,
+  subscribeToPresence,
   sendAction,
   sendEmote as sendEmoteToDb,
   canSendEmote,
@@ -247,6 +248,9 @@ function setupSync() {
 
   // エモートを監視
   subscribeToEmotes(roomId, myPlayerId, onEmoteReceived);
+
+  // プレゼンス（相手のオンライン状態）を監視
+  subscribeToPresence(roomId, myPlayerId, onOpponentLeave);
 }
 
 /**
@@ -255,6 +259,21 @@ function setupSync() {
 function onEmoteReceived(emote) {
   if (_showEmoteToast) {
     _showEmoteToast(emote);
+  }
+}
+
+/**
+ * 相手が切断した時
+ */
+function onOpponentLeave() {
+  // 切断タイマーをキャンセル（あれば）
+  if (disconnectTimerId) {
+    clearTimeout(disconnectTimerId);
+    disconnectTimerId = null;
+  }
+  // タイムアウト処理を呼び出し（勝利扱い）
+  if (_onTimeout) {
+    _onTimeout();
   }
 }
 
