@@ -4,7 +4,7 @@
  * - 自動マッチング
  */
 
-import { supabase, getPlayerId, getPlayerName } from './supabase.js';
+import { supabase, getPlayerId, getPlayerName, getCurrentUserId } from './supabase.js';
 
 // 4桁のルームコード生成
 function generateRoomCode() {
@@ -30,6 +30,7 @@ export async function createRoom(playerName, options = {}) {
     .insert({
       room_code: roomCode,
       host_player_name: playerName,
+      host_user_id: getCurrentUserId(),
       game_options: options,
       status: 'waiting'
     })
@@ -78,6 +79,7 @@ export async function joinRoom(roomCode, playerName) {
     .from('rooms')
     .update({
       guest_player_name: playerName,
+      guest_user_id: getCurrentUserId(),
       status: 'playing'
     })
     .eq('id', room.id)

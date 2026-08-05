@@ -3,7 +3,8 @@
  */
 
 import { G, cur, who } from '../state.js';
-import { getPlayerName, setPlayerName } from '../online/supabase.js';
+import { getPlayerName, setPlayerName, getCurrentUserId } from '../online/supabase.js';
+import { showStatsPopup } from './statsPopup.js';
 import {
   createRoom,
   joinRoom,
@@ -66,6 +67,7 @@ export function showTitle() {
       <button class="big" onclick="window._selectMode('pvp')">2人で対戦<span class="note">1台を交代で使う</span></button>
       <button class="big" onclick="window._showOnlineMenu()">オンライン対戦<span class="note">遠くの相手と</span></button>
     </div>
+    <button class="stats-btn" onclick="window._showMyStats()">成績</button>
   </div>`;
 }
 

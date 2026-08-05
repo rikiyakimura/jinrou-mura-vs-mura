@@ -43,6 +43,8 @@ let onlineState = {
   myPlayerId: null,   // 1 or 2
   myPlayerName: null,
   opponentName: null,
+  myUserId: null,     // Supabase user ID
+  opponentUserId: null,
   isHost: false,
   pendingAction: null,
   waitingForOpponent: false,
@@ -122,6 +124,8 @@ export async function startOnlineGameAsHost(room, opt) {
   onlineState.myPlayerId = 1;
   onlineState.myPlayerName = getPlayerName() || room.host_player_name;
   onlineState.opponentName = room.guest_player_name;
+  onlineState.myUserId = room.host_user_id;
+  onlineState.opponentUserId = room.guest_user_id;
   onlineState.isHost = true;
 
   // プリセットを設定
@@ -158,7 +162,9 @@ export async function startOnlineGameAsHost(room, opt) {
     roomId: room.id,
     myPlayerId: 1,
     myPlayerName: onlineState.myPlayerName,
-    opponentName: room.guest_player_name
+    opponentName: room.guest_player_name,
+    myUserId: room.host_user_id,
+    opponentUserId: room.guest_user_id
   };
 
   setG(newG);
@@ -186,6 +192,8 @@ export async function startOnlineGameAsGuest(room) {
   onlineState.myPlayerId = 2;
   onlineState.myPlayerName = getPlayerName() || room.guest_player_name;
   onlineState.opponentName = room.host_player_name;
+  onlineState.myUserId = room.guest_user_id;
+  onlineState.opponentUserId = room.host_user_id;
   onlineState.isHost = false;
 
   // ホストが作成したゲーム状態を取得（リトライ付き）
@@ -214,6 +222,8 @@ export async function startOnlineGameAsGuest(room) {
   savedG.myPlayerId = 2;
   savedG.myPlayerName = onlineState.myPlayerName;
   savedG.opponentName = room.host_player_name;
+  savedG.myUserId = room.guest_user_id;
+  savedG.opponentUserId = room.host_user_id;
   savedG.endView = 2;  // 自分の覚え書きを最初に表示
 
   // プリセットを設定（ホストの設定に合わせる）
@@ -339,6 +349,8 @@ function onGameStateChange(newState) {
     savedG.myPlayerId = onlineState.myPlayerId;
     savedG.myPlayerName = onlineState.myPlayerName;
     savedG.opponentName = onlineState.opponentName;
+    savedG.myUserId = onlineState.myUserId;
+    savedG.opponentUserId = onlineState.opponentUserId;
     savedG.endView = onlineState.myPlayerId;  // 自分の覚え書きを最初に表示
 
     // プリセットを設定（ホストの設定に合わせる）
@@ -826,6 +838,8 @@ export function endOnlineGame() {
     myPlayerId: null,
     myPlayerName: null,
     opponentName: null,
+    myUserId: null,
+    opponentUserId: null,
     isHost: false,
     pendingAction: null,
     waitingForOpponent: false,
@@ -900,7 +914,9 @@ export async function restartOnlineGame(renderCallback) {
     roomId: onlineState.roomId,
     myPlayerId: myPlayerId,
     myPlayerName: onlineState.myPlayerName,
-    opponentName: onlineState.opponentName
+    opponentName: onlineState.opponentName,
+    myUserId: onlineState.myUserId,
+    opponentUserId: onlineState.opponentUserId
   };
 
   setG(newG);

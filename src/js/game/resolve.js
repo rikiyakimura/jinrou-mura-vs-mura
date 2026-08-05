@@ -4,6 +4,7 @@
 
 import { G, wolfOf, guardOf, mediumOf, madActive, log, logRoute, houseName, alive } from '../state.js';
 import { TICKS, SHARPEN, SPOIL as SPOIL_CONST, EXPOSE, ROLE_LABEL, getConfig } from '../constants.js';
+import { updateStats } from '../online/supabase.js';
 
 // SPOILをエクスポート
 export const SPOIL = SPOIL_CONST;
@@ -293,5 +294,26 @@ export function finish(hideVeil) {
   [1, 2].forEach(p => applyReveal(G.V[p]));
   G.done = true;
   G.idx = G.sched.length - 1;
+
+  // 戦績を更新（pvpは対象外）
+  if (G.mode === 'cpu' || G.mode === 'online') {
+    const myId = G.mode === 'online' ? G.myPlayerId : 1;
+    const oppId = other(myId);
+    const mode = G.mode === 'online' ? 'online' : 'cpu';
+    let result;
+    if (G.instantWin === 'draw') {
+      result = 'draw';
+    } else if (G.instantWin) {
+      result = G.instantWin === myId ? 'win' : 'loss';
+    } else {
+      const myAlive = alive(G.V[myId]).length;
+      const oppAlive = alive(G.V[oppId]).length;
+      if (myAlive > oppAlive) result = 'win';
+      else if (myAlive < oppAlive) result = 'loss';
+      else result = 'draw';
+    }
+    updateStats(mode, result);
+  }
+
   if (hideVeil) hideVeil();
 }

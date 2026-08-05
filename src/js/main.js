@@ -28,7 +28,8 @@ import { initItemClickHandlers } from './ui/itemModal.js';
 
 // オンライン
 import { submitOnlineAction, setOnlineFlowCallbacks, advanceOnline, surrenderOnline, endOnlineGame, sendEmote, canSendEmote, markPlayerLeft, startProcessing, endProcessing } from './online/onlineFlow.js';
-import { setPlayerName } from './online/supabase.js';
+import { setPlayerName, getCurrentUserId, ensureSignedIn, updateStats, getPlayerName } from './online/supabase.js';
+import { showStatsPopup } from './ui/statsPopup.js';
 
 // プリロード
 import { preloadCritical, preloadPortraits } from './preload.js';
@@ -490,6 +491,12 @@ window._toggleSwap = () => { playSE('casual'); toggleSwap(); };
 
 // オンライン用
 window._showOnlineMenu = () => { playSE('casual'); showOnlineMenu(); };
+window._showMyStats = () => {
+  playSE('casual');
+  const userId = getCurrentUserId();
+  const name = getPlayerName() || '自分';
+  if (userId) showStatsPopup(userId, name);
+};
 window._showOnlineOptions = (...args) => { playSE('casual'); showOnlineOptions(...args); };
 window._savePlayerName = (name) => setPlayerName(name.trim() || '名無し');
 window._toggleOptOnline = (...args) => { playSE('casual'); toggleOptOnline(...args); };
@@ -617,6 +624,9 @@ renderAudioToggle();
 document.addEventListener('click', () => {
   unlockAudio();
 }, { once: true });
+
+// Supabase匿名サインイン（バックグラウンドで実行）
+ensureSignedIn().catch(err => console.warn('Sign-in failed:', err));
 
 showTitle();
 playTrack('title');

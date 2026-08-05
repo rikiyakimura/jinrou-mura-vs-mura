@@ -10,6 +10,7 @@ import { renderLedger } from './ledger.js';
 import { renderPanel } from './panel.js';
 import { canAttack, routeValid } from '../game/resolve.js';
 import { playTrack, getTrackForPhase } from '../audio.js';
+import { showStatsPopup } from './statsPopup.js';
 
 // 外部関数
 let _placeNext = null;
@@ -124,7 +125,7 @@ export function render() {
     (G.mode === 'cpu'
       ? `<span>自村 <b>${alive(G.V[1]).length}</b>人</span><span>敵村 <b>${alive(G.V[2]).length}</b>人</span>`
       : (G.mode === 'online'
-        ? `<span>${myName} <b>${alive(G.V[myId]).length}</b>人</span><span>${oppName} <b>${alive(G.V[oppId]).length}</b>人</span>`
+        ? `<span><button class="player-name-btn" data-user-id="${G.myUserId || ''}" data-name="${myName}">${myName}</button> <b>${alive(G.V[myId]).length}</b>人</span><span><button class="player-name-btn" data-user-id="${G.opponentUserId || ''}" data-name="${oppName}">${oppName}</button> <b>${alive(G.V[oppId]).length}</b>人</span>`
         : `<span>1P <b>${alive(G.V[1]).length}</b>人</span><span>2P <b>${alive(G.V[2]).length}</b>人</span>`)) +
     (pub
       ? `<span class="turnbadge pub">${G.mode === 'pvp' ? '1P・2P とも観覧可' : '結果'}</span>`
@@ -132,6 +133,15 @@ export function render() {
       `<span>狼の食事 ${M.fed ? '済' : 'まだ'}</span>` +
       (G.mode === 'cpu' ? '' : (G.mode === 'online' ? '' : `<span class="turnbadge p${w}">${w}P の手番</span>`)) +
       itemLine);
+
+  // 名前ボタンにクリックイベントを設定
+  st.querySelectorAll('.player-name-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const userId = btn.dataset.userId;
+      const name = btn.dataset.name;
+      if (userId) showStatsPopup(userId, name);
+    });
+  });
 
   const wl = wolfOf(M);
   const sharpH = (!pub && M.sharpenStart !== null && wl.alive) ? wl.house : null;
