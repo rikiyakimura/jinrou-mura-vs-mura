@@ -661,3 +661,8 @@ if ('requestIdleCallback' in window) {
 } else {
   setTimeout(() => preloadPortraits(), 1000);
 }
+
+// Service Worker登録（PWA）
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
