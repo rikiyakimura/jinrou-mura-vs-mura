@@ -271,6 +271,7 @@ export function renderEmoteBar() {
     bar.innerHTML = `
       <div class="emote-grid">
         ${EMOTES.map(e => `<button class="emote-btn" onclick="window._sendEmote('${e}')">${e}</button>`).join('')}
+        <button class="emote-btn text-btn" onclick="window._openTextChat()">T</button>
       </div>
       <button class="emote-toggle close" onclick="window._toggleEmoteBar()">×</button>
     `;

@@ -40,12 +40,14 @@ import { updateGameState, syncIdxFromDB } from './online/sync.js';
 // ========== エモート表示 ==========
 
 /**
- * エモートのトースト通知を表示
+ * エモート/テキストのトースト通知を表示
  */
-function showEmoteToast(emote) {
+function showEmoteToast(content) {
   const toast = document.createElement('div');
-  toast.className = 'emote-toast';
-  toast.textContent = `相手: ${emote}`;
+  // 絵文字1-2文字か判定（絵文字は大きく、テキストは通常サイズ）
+  const isEmoji = /^[\p{Emoji}]{1,2}$/u.test(content);
+  toast.className = isEmoji ? 'emote-toast' : 'emote-toast text-msg';
+  toast.textContent = `相手: ${content}`;
   document.body.appendChild(toast);
 
   // 3秒後にフェードアウトして削除
@@ -533,6 +535,15 @@ window._sendEmote = async (emote) => {
   if (success) {
     // 送信成功時、一時的にボタンを無効化表示（CSSで対応）
     render();
+  }
+};
+window._openTextChat = () => {
+  if (G.mode !== 'online') return;
+  const text = prompt('メッセージを入力:');
+  if (text && text.trim()) {
+    const msg = text.trim().slice(0, 50); // 最大50文字
+    playSE('casual');
+    sendEmote(msg);
   }
 };
 window._toggleEmoteBar = () => { playSE('casual'); toggleEmoteBar(); };
