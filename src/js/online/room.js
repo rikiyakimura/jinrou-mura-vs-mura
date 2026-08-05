@@ -38,19 +38,20 @@ export async function fetchRoom(roomId) {
  * ルームを作成（ホスト）
  * @param {string} playerName - プレイヤー名
  * @param {object} options - ゲームオプション
+ * @param {string} [hostUserId] - ホストのユーザーID（省略時は現在のユーザー）
  * @returns {Promise<{room: object, error: string|null}>}
  */
-export async function createRoom(playerName, options = {}) {
+export async function createRoom(playerName, options = {}, hostUserId = null) {
   const roomCode = generateRoomCode();
-  const myUserId = getCurrentUserId();
-  console.log('[createRoom] Creating room with host_user_id:', myUserId);
+  const actualHostUserId = hostUserId || getCurrentUserId();
+  console.log('[createRoom] Creating room with host_user_id:', actualHostUserId);
 
   const { data, error } = await supabase
     .from('rooms')
     .insert({
       room_code: roomCode,
       host_player_name: playerName,
-      host_user_id: myUserId,
+      host_user_id: actualHostUserId,
       game_options: options,
       status: 'waiting'
     })
@@ -62,7 +63,7 @@ export async function createRoom(playerName, options = {}) {
   if (error) {
     // コード重複の場合はリトライ
     if (error.code === '23505') {
-      return createRoom(playerName, options);
+      return createRoom(playerName, options, hostUserId);
     }
     return { room: null, error: error.message };
   }
@@ -159,6 +160,7 @@ export function subscribeToRoom(roomId, callback) {
  */
 export async function joinMatchmakingQueue(playerName, options = {}) {
   const playerId = getPlayerId();
+  const userId = getCurrentUserId();
 
   // まず既存のwaitingエントリを削除
   await supabase
@@ -178,8 +180,8 @@ export async function joinMatchmakingQueue(playerName, options = {}) {
     .single();
 
   if (waiting) {
-    // 相手が見つかった → ルーム作成
-    const { room, error } = await createRoom(waiting.player_name, options);
+    // 相手が見つかった → ルーム作成（待機側のuser_idをホストとして使用）
+    const { room, error } = await createRoom(waiting.player_name, options, waiting.user_id);
     if (error) {
       return { queueId: null, room: null, matched: false, error };
     }
@@ -205,6 +207,7 @@ export async function joinMatchmakingQueue(playerName, options = {}) {
     .insert({
       player_id: playerId,
       player_name: playerName,
+      user_id: userId,
       game_options: options,
       status: 'waiting'
     })
