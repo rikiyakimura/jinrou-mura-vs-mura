@@ -450,6 +450,7 @@ setOnlineFlowCallbacks({
   showEmoteToast,
   onTimeout: () => {
     alert('相手が応答しません。勝利です。');
+    updateStats('online', 'win');
     endOnlineGame();
     showTitle();
   }
