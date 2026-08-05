@@ -219,7 +219,8 @@ export function render() {
 
   applyStage(c, pub);
 
-  if (pub && !revealAll) {
+  if (pub && !revealAll && G.mode === 'pvp') {
+    // ホットシートのみ覚え書きを隠す（CPU・オンラインは常に表示）
     document.getElementById('ledger').innerHTML = '<div class="entry none">覚え書きは各自の手番でだけ開く。</div>';
     document.getElementById('ledger-title').textContent = '覚え書き';
   } else {
