@@ -1,6 +1,6 @@
 .veil{position:fixed;top:0;left:0;right:0;bottom:0;width:100vw;height:100vh;background:#0A0D13;z-index:9999;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;overflow:auto}
 /* 複数背景: 前面の画像, 背面のぼかし（ストレッチ） */
-.veil.title-screen{background:url('../assets/BG/topBG.webp') center top/auto 100% no-repeat,url('../assets/BG/nontitleBGblur.webp') 0 0/100% 100% no-repeat;align-items:flex-start;padding-top:60vh}
+.veil.title-screen{background:url('../assets/BG/topBG.webp') center top/auto 100% no-repeat,url('../assets/BG/nontitleBGblur.webp') 0 0/100% 100% no-repeat;align-items:flex-start;padding-top:60vh;overflow:hidden}
 .veil.menu-screen{background:url('../assets/BG/nontitleBG.webp') center center/auto 100% no-repeat,url('../assets/BG/nontitleBGblur.webp') 0 0/100% 100% no-repeat}
 /* ルーム作成・参加画面は背景なし */
 .veil.menu-screen:has(.room-created),.veil.menu-screen:has(.join-room){background:#0A0D13}

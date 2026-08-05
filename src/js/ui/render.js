@@ -276,6 +276,10 @@ export function renderEmoteBar() {
   // オンラインモードでなければ表示しない
   if (!G || G.mode !== 'online') return;
 
+  // タイトル画面・メニュー画面では表示しない（待機画面は除く）
+  const veil = document.getElementById('veil');
+  if (veil && veil.style.display !== 'none' && !veil.innerHTML.includes('waiting')) return;
+
   const bar = document.createElement('div');
   bar.id = 'emote-bar';
   bar.className = emoteBarOpen ? 'emote-bar open' : 'emote-bar';
