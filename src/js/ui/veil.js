@@ -61,9 +61,9 @@ export function showTitle() {
 
   el.innerHTML = `<div class="inner">
     <div class="modebtns">
-      <button class="primary big" onclick="window._selectMode('cpu')">対CPU<span class="note">1人で遊ぶ</span></button>
+      <button class="big" onclick="window._selectMode('cpu')">対CPU<span class="note">1人で遊ぶ</span></button>
       <button class="big" onclick="window._selectMode('pvp')">2人で対戦<span class="note">1台を交代で使う</span></button>
-      <button class="big online" onclick="window._showOnlineMenu()">オンライン対戦<span class="note">遠くの相手と</span></button>
+      <button class="big" onclick="window._showOnlineMenu()">オンライン対戦<span class="note">遠くの相手と</span></button>
     </div>
   </div>`;
 }
@@ -175,7 +175,7 @@ export function showOnlineMenu() {
       <input type="text" id="player-name" value="${savedName}" placeholder="ニックネーム" maxlength="10" oninput="window._savePlayerName(this.value)" onchange="window._savePlayerName(this.value)" onblur="window._savePlayerName(this.value)">
     </div>
     <div class="online-btns">
-      <button class="primary big" onclick="window._showOnlineOptions('create')">ルームを作る<span class="note">コードを相手に伝える</span></button>
+      <button class="big" onclick="window._showOnlineOptions('create')">ルームを作る<span class="note">コードを相手に伝える</span></button>
       <button class="big" onclick="window._showJoinRoom()">ルームに参加<span class="note">コードを入力する</span></button>
       <button class="big match" onclick="window._showOnlineOptions('match')">対戦相手を探す<span class="note">自動マッチング</span></button>
     </div>
