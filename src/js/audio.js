@@ -73,6 +73,7 @@ const seLoss = new Audio('/SE/loss.mp3');
 const seItem = new Audio('/SE/item.mp3');
 const seHole = new Audio('/SE/hole.mp3');
 const seWolfHowl = new Audio('/SE/wolf_howl.mp3');
+const seSuccess = new Audio('/SE/success.mp3');
 let lastSharpeningDay = null;
 let lastSharpenResultDay = null;
 let lastResultPlayed = null;
@@ -128,6 +129,9 @@ export function playSE(name, day) {
   } else if (name === 'wolf_howl') {
     seWolfHowl.currentTime = 0;
     seWolfHowl.play().catch(() => {});
+  } else if (name === 'success') {
+    seSuccess.currentTime = 0;
+    seSuccess.play().catch(() => {});
   }
 }
 
