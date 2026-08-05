@@ -162,10 +162,14 @@ function pickRoute(h) {
     playSE('hole');
     const scrollY = window.scrollY;
     document.body.classList.add('shake');
-    setTimeout(() => {
-      document.body.classList.remove('shake');
-      window.scrollTo(0, scrollY);
-    }, 400);
+    const keepScroll = () => {
+      if (document.body.classList.contains('shake')) {
+        window.scrollTo(0, scrollY);
+        requestAnimationFrame(keepScroll);
+      }
+    };
+    requestAnimationFrame(keepScroll);
+    setTimeout(() => document.body.classList.remove('shake'), 400);
     const had = [];
     if (v.permit) had.push('護衛届');
     if (v.madClaw) had.push('狂人の爪');
