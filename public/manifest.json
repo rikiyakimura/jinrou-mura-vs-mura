@@ -1,6 +1,6 @@
 {
   "name": "人狼 村vs村",
-  "short_name": "人狼",
+  "short_name": "人狼 村vs村",
   "description": "2人対戦の人狼ゲーム",
   "start_url": "/",
   "display": "standalone",
