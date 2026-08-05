@@ -240,12 +240,22 @@ export function subscribeToMatchmaking(queueId, onMatched) {
       },
       async (payload) => {
         if (payload.new.status === 'matched' && payload.new.room_id) {
-          // ルーム情報を取得
-          const { data: room } = await supabase
-            .from('rooms')
-            .select('*')
-            .eq('id', payload.new.room_id)
-            .single();
+          // ルーム情報を取得（guest_user_idが設定されるまでリトライ）
+          let room = null;
+          for (let i = 0; i < 10; i++) {
+            const { data } = await supabase
+              .from('rooms')
+              .select('*')
+              .eq('id', payload.new.room_id)
+              .single();
+
+            if (data && data.guest_user_id) {
+              room = data;
+              break;
+            }
+            console.log('[subscribeToMatchmaking] Waiting for guest_user_id... attempt ' + (i + 1) + '/10');
+            await new Promise(r => setTimeout(r, 300));
+          }
 
           if (room) {
             onMatched(room);
