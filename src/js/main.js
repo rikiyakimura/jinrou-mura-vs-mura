@@ -446,7 +446,12 @@ setOnlineFlowCallbacks({
   hideVeil: () => hideVeil(render),
   showOnlineWaiting,
   showTitle,
-  showEmoteToast
+  showEmoteToast,
+  onTimeout: () => {
+    alert('相手が応答しません。勝利です。');
+    endOnlineGame();
+    showTitle();
+  }
 });
 
 // render.jsのコールバック

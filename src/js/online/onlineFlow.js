@@ -94,6 +94,10 @@ const POLL_INTERVAL_MS = 3000;
 let expectedIdxAfterTrigger = null;  // トリガー発火後の期待idx
 let setupActionsFetched = false;  // place/pitアクションを取得済みか
 
+// 切断検知用
+let disconnectTimerId = null;
+const DISCONNECT_TIMEOUT_SEC = 15;
+
 /**
  * コールバック設定
  */
@@ -260,11 +264,23 @@ function onEmoteReceived(emote) {
 function onConnectionChange(status) {
   if (!onlineState.waitingForOpponent) return;
 
-  if (status === 'error') {
-    if (_showOnlineWaiting) {
-      _showOnlineWaiting('接続が切れました。再接続中...', 'error');
+  if (status === 'error' || status === 'disconnected') {
+    // 切断検知 → 15秒タイマー開始
+    if (!disconnectTimerId) {
+      if (_showOnlineWaiting) {
+        _showOnlineWaiting(`接続が切れました。${DISCONNECT_TIMEOUT_SEC}秒以内に再接続しない場合、勝利となります。`, 'error');
+      }
+      disconnectTimerId = setTimeout(() => {
+        disconnectTimerId = null;
+        if (_onTimeout) _onTimeout();
+      }, DISCONNECT_TIMEOUT_SEC * 1000);
     }
   } else if (status === 'connected') {
+    // 再接続 → タイマーキャンセル
+    if (disconnectTimerId) {
+      clearTimeout(disconnectTimerId);
+      disconnectTimerId = null;
+    }
     if (_showOnlineWaiting) {
       _showOnlineWaiting('相手の操作を待っています...', 'normal');
     }
@@ -780,6 +796,10 @@ export function endOnlineGame() {
   unsubscribeAll();
   clearTimeoutTimer();
   stopReadyPolling();
+  if (disconnectTimerId) {
+    clearTimeout(disconnectTimerId);
+    disconnectTimerId = null;
+  }
   onlineState = {
     roomId: null,
     myPlayerId: null,
