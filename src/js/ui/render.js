@@ -139,6 +139,7 @@ export function render() {
     btn.addEventListener('click', () => {
       const userId = btn.dataset.userId;
       const name = btn.dataset.name;
+      console.log('Name button clicked:', { name, userId, myUserId: G.myUserId, oppUserId: G.opponentUserId });
       if (userId) showStatsPopup(userId, name);
     });
   });

@@ -120,6 +120,7 @@ export function setOnlineFlowCallbacks(callbacks) {
  * @param {object} opt - ゲームオプション
  */
 export async function startOnlineGameAsHost(room, opt) {
+  console.log('startOnlineGameAsHost room:', { host_user_id: room.host_user_id, guest_user_id: room.guest_user_id });
   onlineState.roomId = room.id;
   onlineState.myPlayerId = 1;
   onlineState.myPlayerName = getPlayerName() || room.host_player_name;
@@ -188,6 +189,7 @@ export async function startOnlineGameAsHost(room, opt) {
  * @param {object} room - ルームオブジェクト
  */
 export async function startOnlineGameAsGuest(room) {
+  console.log('startOnlineGameAsGuest room:', { host_user_id: room.host_user_id, guest_user_id: room.guest_user_id });
   onlineState.roomId = room.id;
   onlineState.myPlayerId = 2;
   onlineState.myPlayerName = getPlayerName() || room.guest_player_name;
