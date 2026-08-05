@@ -249,7 +249,8 @@ export async function showCreateRoom() {
   el.innerHTML = `<div class="inner"><div class="loading">ルームを作成中...</div></div>`;
 
   // サインイン完了を待つ
-  await ensureSignedIn();
+  const user = await ensureSignedIn();
+  console.log('[showCreateRoom] Signed in as:', user?.id);
 
   const { room, error } = await createRoom(playerName, { ...TITLE_OPT });
 
@@ -334,7 +335,8 @@ export async function doJoinRoom() {
   errorEl.style.display = 'none';
 
   // サインイン完了を待つ
-  await ensureSignedIn();
+  const user = await ensureSignedIn();
+  console.log('[doJoinRoom] Signed in as:', user?.id);
 
   const { room, error } = await joinRoom(code, playerName);
 

@@ -42,18 +42,22 @@ export async function fetchRoom(roomId) {
  */
 export async function createRoom(playerName, options = {}) {
   const roomCode = generateRoomCode();
+  const myUserId = getCurrentUserId();
+  console.log('[createRoom] Creating room with host_user_id:', myUserId);
 
   const { data, error } = await supabase
     .from('rooms')
     .insert({
       room_code: roomCode,
       host_player_name: playerName,
-      host_user_id: getCurrentUserId(),
+      host_user_id: myUserId,
       game_options: options,
       status: 'waiting'
     })
     .select()
     .single();
+
+  console.log('[createRoom] Room created:', { host_user_id: data?.host_user_id, guest_user_id: data?.guest_user_id });
 
   if (error) {
     // コード重複の場合はリトライ
