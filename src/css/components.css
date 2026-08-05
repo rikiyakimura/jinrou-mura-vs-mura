@@ -158,6 +158,9 @@ body.shake{animation:shake .4s ease-in-out}
 .explorer-card.excluded{opacity:.4;cursor:not-allowed;pointer-events:none}
 .explorer-card.excluded img{filter:grayscale(100%)}
 .explorer-card .status{font-size:10px;color:var(--akane-glow);margin-top:2px}
+.explorer-card.is-explorer{border-color:var(--moon)}
+.explorer-card .explorer-badge{position:absolute;top:4px;left:4px;background:var(--moon);color:var(--indigo);font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px}
+.explorer-card{position:relative}
 
 /* アイテムアイコン */
 .item-icon{width:32px;height:32px;vertical-align:middle;margin-right:6px}

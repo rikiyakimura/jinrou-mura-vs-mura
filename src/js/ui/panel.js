@@ -81,6 +81,7 @@ function villageGridCards(people, options = {}) {
     let statusLabel = '';
     let cardClass = 'explorer-card';
     let clickAttr = '';
+    const isExplorer = options.explorerId === person.id;
 
     if (!isAlive) {
       statusLabel = '<span class="status">死亡</span>';
@@ -94,6 +95,9 @@ function villageGridCards(people, options = {}) {
       clickAttr = options.onClickAttr ? options.onClickAttr.replace('{id}', person.id) : '';
       if (isSelected) cardClass += ' sel';
     }
+    if (isExplorer) {
+      cardClass += ' is-explorer';
+    }
 
     const roleLabel = options.showRole
       ? ROLE_LABEL[person.role]
@@ -101,6 +105,7 @@ function villageGridCards(people, options = {}) {
 
     return `<div class="${cardClass}" ${clickAttr}>
       ${imgKey ? `<img src="${imgSrc}" alt="${person.name}">` : ''}
+      ${isExplorer ? '<span class="explorer-badge">探索者</span>' : ''}
       <span class="name">${person.name}</span>
       <span class="role">${roleLabel}</span>
       ${statusLabel}
@@ -354,7 +359,8 @@ export function renderPanel() {
       const { cards: attackCards, gridClass: attackGridClass } = villageGridCards(o.people, {
         onClickAttr: `onclick="window._selectAttack({id})"`,
         selectedId: v.attackTarget,
-        forceVillagerImg: true
+        forceVillagerImg: true,
+        explorerId: o.explorer
       });
       b += `<p class="lead">爪は研げた。相手の村の誰を襲う？ 下のカードか、相手の村の地図の家をタップして選ぶ。人狼を狙うと空振りになる。</p>
         <div class="explorer-grid ${attackGridClass}">${attackCards}</div>`;
@@ -366,7 +372,8 @@ export function renderPanel() {
         onClickAttr: `onclick="window._selectProtect({id})"`,
         selectedId: v.protectTarget,
         showRole: true,
-        excludeRoles: ['guard', 'wolf']
+        excludeRoles: ['guard', 'wolf'],
+        explorerId: v.explorer
       });
       b += `<p class="good">護衛届がある。味方1人を守れる（護衛自身と人狼は守れない）。</p>
         <div class="explorer-grid ${protectGridClass}">${protectCards}</div>`;
