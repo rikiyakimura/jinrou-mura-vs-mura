@@ -103,7 +103,8 @@ export function render() {
     : (G.mode === 'online' ? `${oppName}の村の地図` : '相手の村の地図');
   document.getElementById('t-mine').textContent = mineTitle;
   document.getElementById('t-foe').textContent = foeTitle;
-  document.getElementById('ledger-title').textContent = pub ? `覚え書き（${vname(M)}）` : '覚え書き';
+  const ledgerOwner = G.mode === 'online' ? (M.id === myId ? myName : oppName) + 'の村' : vname(M);
+  document.getElementById('ledger-title').textContent = pub ? `覚え書き（${ledgerOwner}）` : '覚え書き';
 
   const st = document.getElementById('status');
   // アイテム取得行を構築（非pub時のみ）
