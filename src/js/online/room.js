@@ -62,6 +62,8 @@ export async function joinRoom(roomCode, playerName) {
     .eq('room_code', roomCode.toUpperCase())
     .single();
 
+  console.log('[joinRoom] Found room:', { host_user_id: room?.host_user_id, guest_user_id: room?.guest_user_id });
+
   if (findError || !room) {
     return { room: null, error: 'ルームが見つかりません' };
   }
@@ -74,18 +76,23 @@ export async function joinRoom(roomCode, playerName) {
     return { room: null, error: 'このルームは満員です' };
   }
 
+  const myUserId = getCurrentUserId();
+  console.log('[joinRoom] My user ID:', myUserId);
+
   // ゲストとして参加
   const { data, error } = await supabase
     .from('rooms')
     .update({
       guest_player_name: playerName,
-      guest_user_id: getCurrentUserId(),
+      guest_user_id: myUserId,
       status: 'playing'
     })
     .eq('id', room.id)
     .eq('status', 'waiting') // 競合防止
     .select()
     .single();
+
+  console.log('[joinRoom] After update:', { host_user_id: data?.host_user_id, guest_user_id: data?.guest_user_id });
 
   if (error || !data) {
     return { room: null, error: '参加に失敗しました。もう一度お試しください' };
