@@ -49,17 +49,11 @@ function stake3(t) {
 }
 
 /**
- * 爪研ぎを始めるか判断
+ * 爪研ぎを始めるか判断（プレイヤーのルートは見ない）
  */
 function cpuSharpen(v, o, tick) {
-  const w = wolfOf(v);
-  const route = o.route;
-  let hit = 0;
-  for (let i = 0; i < SHARPEN; i++) {
-    if (route[tick + i - 1] === w.house) hit++;
-  }
-  if (hit >= 2) return false; // 2度居合わせられるなら開始しない
-  return Math.random() < 0.85;
+  // 公平のため、相手のルートは見ずに判断
+  return Math.random() < 0.75;
 }
 
 /**
