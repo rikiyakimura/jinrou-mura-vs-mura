@@ -403,8 +403,12 @@ export function renderPanel() {
     if (ra && G.mode !== 'pvp' && G._deathFlashPlayed !== G.day) {
       G._deathFlashPlayed = G.day;
       playSE('wolf_howl');
+      const scrollY = window.scrollY;
       document.body.classList.add('shake');
-      setTimeout(() => document.body.classList.remove('shake'), 400);
+      setTimeout(() => {
+        document.body.classList.remove('shake');
+        window.scrollTo(0, scrollY);
+      }, 400);
       const flash = document.createElement('div');
       flash.className = 'death-flash';
       document.body.appendChild(flash);
