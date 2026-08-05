@@ -3,6 +3,7 @@
  */
 
 import { G, cur, who } from '../state.js';
+import { RULES } from '../constants.js';
 import { getPlayerName, setPlayerName, getCurrentUserId, ensureSignedIn } from '../online/supabase.js';
 import { showStatsPopup } from './statsPopup.js';
 import {
@@ -67,7 +68,10 @@ export function showTitle() {
       <button class="big" onclick="window._selectMode('pvp')">2人で対戦<span class="note">1台を交代で使う</span></button>
       <button class="big" onclick="window._showOnlineMenu()">オンライン対戦<span class="note">遠くの相手と</span></button>
     </div>
-    <button class="stats-btn" onclick="window._showMyStats()">成績</button>
+    <div class="title-sub-btns">
+      <button class="stats-btn" onclick="window._showMyStats()">成績</button>
+      <button class="stats-btn" onclick="window._showRules()">遊び方</button>
+    </div>
   </div>`;
 }
 
@@ -524,4 +528,40 @@ export function hideVeil(render) {
   document.body.classList.add('game-active');
   document.querySelector('.wrap').style.display = '';
   if (render) render();
+}
+
+/**
+ * ルールポップアップを表示
+ */
+export function showRulesPopup() {
+  hideRulesPopup();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'rules-popup-overlay';
+  overlay.className = 'stats-popup-overlay';
+  overlay.innerHTML = `
+    <div class="stats-popup rules-popup">
+      <div class="stats-popup-header">
+        <span class="stats-popup-title">遊び方</span>
+        <button class="stats-popup-close" onclick="window._hideRulesPopup()">×</button>
+      </div>
+      <div class="stats-popup-body rules-body">
+        <ul>
+          ${RULES.map(rule => `<li>${rule}</li>`).join('')}
+        </ul>
+      </div>
+    </div>
+  `;
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) hideRulesPopup();
+  });
+  document.body.appendChild(overlay);
+}
+
+/**
+ * ルールポップアップを閉じる
+ */
+export function hideRulesPopup() {
+  const existing = document.getElementById('rules-popup-overlay');
+  if (existing) existing.remove();
 }

@@ -21,7 +21,7 @@ import {
   showVeilIfNeeded, hideVeil, setVeilCallbacks,
   showOnlineMenu, showOnlineOptions, toggleOptOnline, showCreateRoom, showJoinRoom, doJoinRoom,
   startMatchmaking, cancelRoom, cancelMatchmakingAction, showOnlineWaiting,
-  restartGame
+  restartGame, showRulesPopup, hideRulesPopup
 } from './ui/veil.js';
 import { toggleLedger, openLedger, closeLedger, initLedgerSwipe } from './ui/ledger.js';
 import { initItemClickHandlers } from './ui/itemModal.js';
@@ -492,6 +492,8 @@ window._toggleSwap = () => { playSE('casual'); toggleSwap(); };
 
 // オンライン用
 window._showOnlineMenu = () => { playSE('casual'); showOnlineMenu(); };
+window._showRules = () => { playSE('casual'); showRulesPopup(); };
+window._hideRulesPopup = () => hideRulesPopup();
 window._showMyStats = async () => {
   playSE('casual');
   let userId = getCurrentUserId();

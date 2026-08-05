@@ -210,6 +210,14 @@ button.back:hover{color:var(--kinari)}
 .player-name-btn{background:transparent;border:none;color:inherit;font:inherit;padding:0;cursor:pointer;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:3px}
 .player-name-btn:hover{color:var(--kuchiba)}
 
-/* タイトル画面の成績ボタン */
-.stats-btn{margin-top:20px;font-size:14px;padding:10px 24px;background:transparent;border:1px solid var(--kinari-faint);color:var(--kinari-faint)}
+/* タイトル画面の成績・遊び方ボタン */
+.title-sub-btns{display:flex;gap:12px;justify-content:center;margin-top:20px}
+.stats-btn{font-size:14px;padding:10px 24px;background:transparent;border:1px solid var(--kinari-faint);color:var(--kinari-faint)}
 .stats-btn:hover{border-color:var(--kuchiba);color:var(--kuchiba);background:transparent}
+
+/* ルールポップアップ */
+.rules-popup{max-width:480px}
+.rules-body{max-height:60vh;overflow-y:auto}
+.rules-body ul{margin:0;padding:0 0 0 20px;font-size:13px;line-height:1.7;color:var(--kinari-dim)}
+.rules-body li{margin-bottom:10px}
+.rules-body li b{color:var(--kuchiba)}
