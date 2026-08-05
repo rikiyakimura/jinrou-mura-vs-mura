@@ -449,7 +449,7 @@ setOnlineFlowCallbacks({
   showTitle,
   showEmoteToast,
   onTimeout: () => {
-    alert('相手が応答しません。勝利です。');
+    alert('相手の接続が切れました。対戦終了です。');
     // 相手の切断カウントをインクリメント（自分の勝利は記録しない）
     if (G.opponentUserId) {
       recordOpponentDisconnect(G.opponentUserId);

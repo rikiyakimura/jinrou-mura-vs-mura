@@ -89,7 +89,7 @@ export async function showStatsPopup(playerId, playerName = '不明') {
     <div class="stats-section">
       <div class="stats-section-header">
         <span class="stats-section-title">${title}</span>
-        <span class="stats-section-meta">総対戦: ${s.total}戦 / 連勝記録: ${s.maxStreak} / 現在連勝: ${s.currentStreak}${showDisconnect ? ` / 切断: ${s.disconnect}回` : ''}</span>
+        <span class="stats-section-meta">総対戦: ${s.total}戦 / 連勝記録: ${s.maxStreak} / 現在連勝: ${s.currentStreak}${showDisconnect ? ` / 中断・切断: ${s.disconnect}回` : ''}</span>
       </div>
       <table class="stats-table">
         <thead>
