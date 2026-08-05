@@ -17,6 +17,11 @@ button.quit:hover:not(:disabled){background:var(--indigo-lift);color:var(--kinar
 .btnrow.tickbtns{gap:8px}
 .btnrow.tickbtns button{flex:1 1 0;min-width:0}
 
+.final-btns{display:flex;flex-direction:column;gap:9px;align-items:center}
+.ledger-btns{display:flex;gap:9px}
+.ledger-btns button{flex:1 1 0;min-width:0}
+@media(min-width:600px){.final-btns{flex-direction:row;justify-content:center}}
+
 .chips{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 14px}
 .chip{background:var(--indigo-lift);border:1px solid var(--indigo-edge);border-radius:2px;padding:7px 13px;cursor:pointer;font-size:13.5px;transition:border-color .15s,background .15s}
 .chip:hover{border-color:var(--kinari-faint)}
