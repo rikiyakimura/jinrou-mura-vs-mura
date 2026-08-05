@@ -68,6 +68,7 @@ export async function showStatsPopup(playerId, playerName = '不明') {
     const avgSurvC = totalC > 0 ? (survC / totalC).toFixed(1) : '-';
     const avgSurvL = totalL > 0 ? (survL / totalL).toFixed(1) : '-';
     const maxStreak = stats[`${prefix}_max_streak`] || 0;
+    const currentStreak = stats[`${prefix}_current_streak`] || 0;
     const disconnect = stats[`${prefix}_disconnect`] || 0;
     return {
       wC, lC, dC, wL, lL, dL,
@@ -76,7 +77,7 @@ export async function showStatsPopup(playerId, playerName = '不明') {
       shutoutC, shutoutL,
       expelC, expelL,
       avgSurvC, avgSurvL,
-      maxStreak, disconnect
+      maxStreak, currentStreak, disconnect
     };
   };
 
@@ -88,7 +89,7 @@ export async function showStatsPopup(playerId, playerName = '不明') {
     <div class="stats-section">
       <div class="stats-section-header">
         <span class="stats-section-title">${title}</span>
-        <span class="stats-section-meta">総対戦: ${s.total}戦 / 連勝記録: ${s.maxStreak}${showDisconnect ? ` / 切断: ${s.disconnect}回` : ''}</span>
+        <span class="stats-section-meta">総対戦: ${s.total}戦 / 連勝記録: ${s.maxStreak} / 現在連勝: ${s.currentStreak}${showDisconnect ? ` / 切断: ${s.disconnect}回` : ''}</span>
       </div>
       <table class="stats-table">
         <thead>
@@ -99,8 +100,8 @@ export async function showStatsPopup(playerId, playerName = '不明') {
           <tr><td>負け</td><td class="loss">${s.lC}</td><td class="loss">${s.lL}</td></tr>
           <tr><td>引分</td><td class="draw">${s.dC}</td><td class="draw">${s.dL}</td></tr>
           <tr><td>勝率</td><td>${s.rateC}%</td><td>${s.rateL}%</td></tr>
-          <tr><td>完封</td><td class="special">${s.shutoutC}</td><td class="special">${s.shutoutL}</td></tr>
-          <tr><td>追放</td><td class="special">${s.expelC}</td><td class="special">${s.expelL}</td></tr>
+          <tr><td>完封（死亡者0）</td><td class="special">${s.shutoutC}</td><td class="special">${s.shutoutL}</td></tr>
+          <tr><td>相手人狼追放</td><td class="special">${s.expelC}</td><td class="special">${s.expelL}</td></tr>
           <tr><td>平均生存</td><td>${s.avgSurvC}人</td><td>${s.avgSurvL}人</td></tr>
         </tbody>
       </table>
