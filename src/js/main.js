@@ -160,9 +160,21 @@ function pickRoute(h) {
   const pitKey = prev !== null && prev !== h ? edgeKey(prev, h) : null;
   if (pitKey && o.pitEdge && o.pitEdge.includes(pitKey)) {
     playSE('hole');
+    const scrollY = window.scrollY;
     const wrap = document.querySelector('.wrap');
+    wrap.style.position = 'fixed';
+    wrap.style.top = `-${scrollY}px`;
+    wrap.style.left = '0';
+    wrap.style.right = '0';
     wrap.classList.add('shake');
-    setTimeout(() => wrap.classList.remove('shake'), 400);
+    setTimeout(() => {
+      wrap.classList.remove('shake');
+      wrap.style.position = '';
+      wrap.style.top = '';
+      wrap.style.left = '';
+      wrap.style.right = '';
+      window.scrollTo(0, scrollY);
+    }, 400);
     const had = [];
     if (v.permit) had.push('護衛届');
     if (v.madClaw) had.push('狂人の爪');

@@ -403,9 +403,21 @@ export function renderPanel() {
     if (ra && G.mode !== 'pvp' && G._deathFlashPlayed !== G.day) {
       G._deathFlashPlayed = G.day;
       playSE('wolf_howl');
+      const scrollY = window.scrollY;
       const wrap = document.querySelector('.wrap');
+      wrap.style.position = 'fixed';
+      wrap.style.top = `-${scrollY}px`;
+      wrap.style.left = '0';
+      wrap.style.right = '0';
       wrap.classList.add('shake');
-      setTimeout(() => wrap.classList.remove('shake'), 400);
+      setTimeout(() => {
+        wrap.classList.remove('shake');
+        wrap.style.position = '';
+        wrap.style.top = '';
+        wrap.style.left = '';
+        wrap.style.right = '';
+        window.scrollTo(0, scrollY);
+      }, 400);
       const flash = document.createElement('div');
       flash.className = 'death-flash';
       document.body.appendChild(flash);
