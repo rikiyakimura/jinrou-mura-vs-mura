@@ -58,6 +58,7 @@ export function showTitle() {
   el.classList.remove('menu-screen');
   document.body.style.overflow = 'hidden';
   document.body.classList.remove('game-active');
+  document.querySelector('.wrap').style.display = 'none';
 
   el.innerHTML = `<div class="inner">
     <div class="modebtns">
@@ -504,5 +505,6 @@ export function hideVeil(render) {
   el.classList.remove('title-screen', 'menu-screen');
   document.body.style.overflow = '';
   document.body.classList.add('game-active');
+  document.querySelector('.wrap').style.display = '';
   if (render) render();
 }
