@@ -8,6 +8,7 @@ import { showStatsPopup } from './statsPopup.js';
 import {
   createRoom,
   joinRoom,
+  fetchRoom,
   subscribeToRoom,
   joinMatchmakingQueue,
   subscribeToMatchmaking,
@@ -263,11 +264,15 @@ export async function showCreateRoom() {
   currentRoom = room;
 
   // ルームの変更を監視
-  unsubscribeRoom = subscribeToRoom(room.id, (updatedRoom) => {
+  unsubscribeRoom = subscribeToRoom(room.id, async (updatedRoom) => {
     if (updatedRoom.status === 'playing' && updatedRoom.guest_player_name) {
-      // ゲスト参加 → ゲーム開始
+      // ゲスト参加 → 最新のルームデータを取得してゲーム開始
       cleanupOnlineSubscriptions();
-      startOnlineGameAsHost(updatedRoom, { ...TITLE_OPT });
+      // Realtimeのデータは不完全な場合があるので再取得
+      const { room: freshRoom } = await fetchRoom(room.id);
+      const finalRoom = freshRoom || updatedRoom;
+      console.log('Host starting game with room:', { host_user_id: finalRoom.host_user_id, guest_user_id: finalRoom.guest_user_id });
+      startOnlineGameAsHost(finalRoom, { ...TITLE_OPT });
       hideVeil(_render);
     }
   });
@@ -386,9 +391,11 @@ export async function startMatchmaking() {
   unsubscribeMatchmaking = subscribeToMatchmaking(queueId, async (room) => {
     // マッチ成功
     cleanupOnlineSubscriptions();
-    currentRoom = room;
+    // Realtimeのデータは不完全な場合があるので再取得
+    const { room: freshRoom } = await fetchRoom(room.id);
+    currentRoom = freshRoom || room;
     // キューに登録した側はホスト
-    await startOnlineGameAsHost(room, { ...TITLE_OPT });
+    await startOnlineGameAsHost(currentRoom, { ...TITLE_OPT });
     hideVeil(_render);
   });
 

@@ -17,6 +17,24 @@ function generateRoomCode() {
 }
 
 /**
+ * ルームをIDで取得
+ * @param {string} roomId - ルームID
+ * @returns {Promise<{room: object, error: string|null}>}
+ */
+export async function fetchRoom(roomId) {
+  const { data, error } = await supabase
+    .from('rooms')
+    .select('*')
+    .eq('id', roomId)
+    .single();
+
+  if (error) {
+    return { room: null, error: error.message };
+  }
+  return { room: data, error: null };
+}
+
+/**
  * ルームを作成（ホスト）
  * @param {string} playerName - プレイヤー名
  * @param {object} options - ゲームオプション
