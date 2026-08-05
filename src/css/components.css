@@ -63,7 +63,10 @@ button.quit:hover:not(:disabled){background:var(--indigo-lift);color:var(--kinar
 
 .madsec{margin-top:12px;padding-top:10px;border-top:1px solid var(--indigo-edge)}
 .madhead{font-size:13.5px;color:var(--kinari);display:flex;align-items:center;gap:8px}
-.madhead b{color:var(--akane-glow)}
+.madhead b{color:#C77DFF}
+
+button.madman{background:#9D4EDD;color:#FFF;border-color:#9D4EDD;font-weight:700}
+button.madman:hover:not(:disabled){background:#C77DFF}
 
 p.dim{color:var(--kinari-faint)}
 p.small,.small{font-size:12px;line-height:1.6}

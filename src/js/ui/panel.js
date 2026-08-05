@@ -316,7 +316,7 @@ export function renderPanel() {
       if (G._madHelp) b += `<p class="dim small">人狼とは別に狂人を研がせられる。人狼に研がせず狂人だけ鳴らせば、相手を狼の家から遠ざけられる。捕まっても何も起きない。</p>`;
       if (ms !== null) b += `<p class="good">狂人はティック${ms}〜${Math.min(ms + SHARPEN - 1, TICKS)}で研いでいる。</p>`;
       b += `<div class="ticks">${mrow}</div>`;
-      if (ms === null && canSharpenMad(v)) b += `<div class="btnrow"><button class="danger" onclick="window._startSharpenMad()">狂人を研がせる</button></div>`;
+      if (ms === null && canSharpenMad(v)) b += `<div class="btnrow"><button class="madman" onclick="window._startSharpenMad()">狂人を研がせる</button></div>`;
       b += `</div>`;
     }
 
