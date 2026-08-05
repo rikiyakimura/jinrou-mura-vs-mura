@@ -6,7 +6,7 @@
 
 // 状態
 import { G, me, opp, cur, who, houseName, log, madmanOf, mediumOf } from './state.js';
-import { TICKS, ADJ, edgeKey, ROLE_LABEL, HLABEL, getConfig } from './constants.js';
+import { TICKS, ADJ, edgeKey, ROLE_LABEL, HLABEL, getConfig, RULES } from './constants.js';
 
 // ゲームロジック
 import { newGame, advance, startDay, finishDay, confirmNight, nextFromMorning, setFlowCallbacks } from './game/flow.js';
@@ -639,6 +639,12 @@ document.addEventListener('click', () => {
 
 // Supabase匿名サインイン（バックグラウンドで実行）
 ensureSignedIn().catch(err => console.warn('Sign-in failed:', err));
+
+// ルール要約を動的に描画
+const rulesList = document.getElementById('rules-list');
+if (rulesList) {
+  rulesList.innerHTML = RULES.map(rule => `<li>${rule}</li>`).join('');
+}
 
 showTitle();
 playTrack('title');
