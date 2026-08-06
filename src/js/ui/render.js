@@ -24,54 +24,19 @@ const EMOTES = ['👍', '😊', '🤔', '⏳', '🙏', '😅', '❤️', '💀',
 // エモートバーの開閉状態
 let emoteBarOpen = false;
 
-// 自動再生状態
-let autoPlaybackActive = false;
-let autoPlaybackIndex = 0;
-let autoPlaybackTimeout = null;
-let autoPlaybackCallback = null;
+// 落とし穴エフェクト状態
+let pitFallEffect = false;
+let pitFallTimeout = null;
 
 /**
- * 経路の自動再生を開始
- * @param {Function} onComplete - 完了時のコールバック
+ * 落とし穴エフェクトをトリガー
  */
-export function startRouteAutoPlayback(onComplete) {
-  if (autoPlaybackActive) return;
-  autoPlaybackActive = true;
-  autoPlaybackIndex = 0;
-  autoPlaybackCallback = onComplete;
-  render();
-  scheduleNextAutoPlayback();
-}
-
-/**
- * 次の自動再生ステップをスケジュール
- */
-function scheduleNextAutoPlayback() {
-  autoPlaybackTimeout = setTimeout(() => {
-    autoPlaybackIndex++;
-    if (autoPlaybackIndex >= TICKS) {
-      // 完了
-      const cb = autoPlaybackCallback;
-      stopRouteAutoPlayback();
-      if (cb) cb();
-    } else {
-      render();
-      scheduleNextAutoPlayback();
-    }
-  }, 450);
-}
-
-/**
- * 自動再生を停止
- */
-export function stopRouteAutoPlayback() {
-  if (autoPlaybackTimeout) {
-    clearTimeout(autoPlaybackTimeout);
-    autoPlaybackTimeout = null;
-  }
-  autoPlaybackActive = false;
-  autoPlaybackIndex = 0;
-  autoPlaybackCallback = null;
+export function triggerPitFallEffect() {
+  pitFallEffect = true;
+  if (pitFallTimeout) clearTimeout(pitFallTimeout);
+  pitFallTimeout = setTimeout(() => {
+    pitFallEffect = false;
+  }, 600);
 }
 
 export function setRenderCallbacks(callbacks) {
@@ -199,21 +164,13 @@ export function render() {
   const mineTokens = [], foeTokens = [];
   let minePortrait = null, foePortrait = null;
   if (!pub) {
-    if (autoPlaybackActive && M.route.length) {
-      // 自動再生中: 自分の探索者を順番に表示
-      const idx = Math.min(autoPlaybackIndex, M.route.length - 1);
-      foePortrait = {
-        house: M.route[idx],
-        person: M.people[M.explorer],
-        isMine: true,
-        isAutoplay: true
-      };
-    } else if (c.ph === 'route' && M.route.length) {
+    if (c.ph === 'route' && M.route.length) {
       // 経路選択中: 相手の村に自分の探索者を表示
       foePortrait = {
         house: M.route[M.route.length - 1],
         person: M.people[M.explorer],
-        isMine: true
+        isMine: true,
+        isPitFall: pitFallEffect
       };
     } else if ((c.ph === 'ticks' || c.ph === 'night') && G.tickIdx > 0) {
       // ティック進行中/夜: 両方の探索者を表示

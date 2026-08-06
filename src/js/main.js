@@ -14,7 +14,7 @@ import { runCPU } from './game/cpu.js';
 import { overlapSoFar, SPOIL, finish } from './game/resolve.js';
 
 // UI
-import { render, toggleSwap, setRenderCallbacks, toggleEmoteBar, startRouteAutoPlayback } from './ui/render.js';
+import { render, toggleSwap, setRenderCallbacks, toggleEmoteBar, triggerPitFallEffect } from './ui/render.js';
 import { renderPanel, setPanelCallbacks } from './ui/panel.js';
 import {
   showTitle, selectMode, showOptions, toggleOpt, pick, startGame,
@@ -163,6 +163,7 @@ function pickRoute(h) {
   const pitKey = prev !== null && prev !== h ? edgeKey(prev, h) : null;
   if (pitKey && o.pitEdge && o.pitEdge.includes(pitKey)) {
     playSE('hole');
+    triggerPitFallEffect();
     const scrollY = window.scrollY;
     const wrap = document.querySelector('.wrap');
     wrap.style.position = 'fixed';
@@ -228,15 +229,8 @@ function pickRoute(h) {
     playSE('item');
   }
 
-  if (v.route.length >= TICKS) {
-    v.routeDone = true;
-    // 経路が完成したら自動再生
-    startRouteAutoPlayback(() => {
-      render(); // 再生完了後に再描画（確定ボタン表示）
-    });
-  } else {
-    render();
-  }
+  if (v.route.length >= TICKS) v.routeDone = true;
+  render();
 }
 
 /**

@@ -192,7 +192,7 @@ export function drawMap(el, village, o) {
 
   // 探索者ポートレート（丸ワイプ）
   if (o.explorerPortrait) {
-    const { house, person, isMine, isAutoplay } = o.explorerPortrait;
+    const { house, person, isMine, isPitFall } = o.explorerPortrait;
     if (house && person) {
       const savedPortrait = isMine ? savedPortraitMine : savedPortraitFoe;
       const newLeft = POS[house][0] + '%';
@@ -201,23 +201,29 @@ export function drawMap(el, village, o) {
       if (savedPortrait) {
         // 既存の要素を再利用（CSS transitionが効く）
         const oldLeft = savedPortrait.style.left;
-        savedPortrait.classList.toggle('autoplay', !!isAutoplay);
         savedPortrait.style.left = newLeft;
         savedPortrait.style.top = newTop;
         el.appendChild(savedPortrait);
 
         // 位置が変わった時だけパルスアニメーション
         if (oldLeft !== newLeft) {
-          savedPortrait.classList.remove('moving');
+          savedPortrait.classList.remove('moving', 'pitfall');
           void savedPortrait.offsetWidth; // reflow
           savedPortrait.classList.add('moving');
+        }
+
+        // 落とし穴エフェクト
+        if (isPitFall) {
+          savedPortrait.classList.remove('pitfall');
+          void savedPortrait.offsetWidth;
+          savedPortrait.classList.add('pitfall');
         }
       } else {
         // 新規作成
         const portrait = document.createElement('div');
         portrait.id = 'portrait-' + (isMine ? 'mine' : 'foe');
         portrait.className = 'explorer-portrait' + (isMine ? '' : ' foe');
-        if (isAutoplay) portrait.classList.add('autoplay');
+        if (isPitFall) portrait.classList.add('pitfall');
 
         const imgKey = NAME_TO_KEY[person.name];
         const role = isMine ? person.role : 'villager';

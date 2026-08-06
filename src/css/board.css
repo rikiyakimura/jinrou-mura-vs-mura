@@ -93,6 +93,8 @@
 .explorer-portrait.autoplay{transition-duration:.35s}
 .explorer-portrait.moving{animation:portrait-pulse .5s ease-out}
 @keyframes portrait-pulse{0%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-50%) scale(1.12)}100%{transform:translate(-50%,-50%) scale(1)}}
+.explorer-portrait.pitfall{animation:portrait-pitfall .6s ease-out}
+@keyframes portrait-pitfall{0%{transform:translate(-50%,-50%) scale(1);filter:none}25%{transform:translate(-50%,-40%) scale(1.15);filter:brightness(1.5)}50%{transform:translate(-50%,-60%) scale(0.9);filter:brightness(0.6)}100%{transform:translate(-50%,-50%) scale(1);filter:none}}
 /* 9軒モード */
 .map.large .explorer-portrait{width:36px;height:36px;border-width:2px}
 /* サブボード */
