@@ -24,35 +24,23 @@ const EMOTES = ['👍', '😊', '🤔', '⏳', '🙏', '😅', '❤️', '💀',
 // エモートバーの開閉状態
 let emoteBarOpen = false;
 
-// 落とし穴エフェクト状態（自分用）
-let pitFallEffect = false;
-let pitFallTimeout = null;
-
-// 相手の落とし穴エフェクト状態
-let oppPitFallEffect = false;
-let oppPitFallTimeout = null;
+// 落とし穴エフェクト状態（一度だけトリガー）
+let pitFallTrigger = false;
+let oppPitFallTrigger = false;
 let lastCheckedTickIdx = -1;
 
 /**
- * 落とし穴エフェクトをトリガー（自分）
+ * 落とし穴エフェクトをトリガー（自分）- 一度だけ
  */
 export function triggerPitFallEffect() {
-  pitFallEffect = true;
-  if (pitFallTimeout) clearTimeout(pitFallTimeout);
-  pitFallTimeout = setTimeout(() => {
-    pitFallEffect = false;
-  }, 600);
+  pitFallTrigger = true;
 }
 
 /**
- * 相手の落とし穴エフェクトをトリガー
+ * 相手の落とし穴エフェクトをトリガー - 一度だけ
  */
 function triggerOppPitFallEffect() {
-  oppPitFallEffect = true;
-  if (oppPitFallTimeout) clearTimeout(oppPitFallTimeout);
-  oppPitFallTimeout = setTimeout(() => {
-    oppPitFallEffect = false;
-  }, 600);
+  oppPitFallTrigger = true;
 }
 
 export function setRenderCallbacks(callbacks) {
@@ -183,11 +171,13 @@ export function render() {
   if (!pub) {
     if (c.ph === 'route' && M.route.length) {
       // 経路選択中: 相手の村に自分の探索者を表示
+      const shouldTriggerPitFall = pitFallTrigger;
+      pitFallTrigger = false; // 一度だけ
       foePortrait = {
         house: M.route[M.route.length - 1],
         person: M.people[M.explorer],
         isMine: true,
-        isPitFall: pitFallEffect
+        isPitFall: shouldTriggerPitFall
       };
     } else if ((c.ph === 'ticks' || c.ph === 'night') && G.tickIdx > 0) {
       // ティック進行中/夜: 両方の探索者を表示
@@ -211,11 +201,13 @@ export function render() {
         lastCheckedTickIdx = G.tickIdx;
       }
       if (F.route[G.tickIdx - 1]) {
+        const shouldTriggerOppPitFall = oppPitFallTrigger;
+        oppPitFallTrigger = false; // 一度だけ
         minePortrait = {
           house: F.route[G.tickIdx - 1],
           person: F.people[F.explorer],
           isMine: false,
-          isPitFall: oppPitFallEffect
+          isPitFall: shouldTriggerOppPitFall
         };
       }
     }
