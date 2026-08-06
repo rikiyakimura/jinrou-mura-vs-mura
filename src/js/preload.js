@@ -38,6 +38,9 @@ const EFFECT_IMAGES = [
 
 // プリロードした画像の参照を保持（GC回避）
 let criticalImages = null;
+
+// 死亡エフェクトGIFのBlob（再利用可能）
+let deathGifBlob = null;
 let portraitImages = null;
 
 /**
@@ -99,4 +102,26 @@ export function preloadPortraits() {
   }
 
   console.log(`[Preload] ${portraitImages.length} portrait images queued`);
+}
+
+/**
+ * 死亡エフェクトGIFをBlobとしてプリロード
+ */
+export async function preloadDeathGif() {
+  if (deathGifBlob) return;
+  try {
+    const res = await fetch('/finge_transparent.gif');
+    deathGifBlob = await res.blob();
+    console.log('[Preload] Death GIF blob loaded');
+  } catch (e) {
+    console.error('[Preload] Failed to load death GIF:', e);
+  }
+}
+
+/**
+ * 死亡エフェクトGIFの新しいBlob URLを取得（毎回アニメーションが最初から再生される）
+ */
+export function getDeathGifUrl() {
+  if (!deathGifBlob) return '/finge_transparent.gif';
+  return URL.createObjectURL(deathGifBlob);
 }

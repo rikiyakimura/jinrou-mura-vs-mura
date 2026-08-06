@@ -33,7 +33,7 @@ import { setPlayerName, getCurrentUserId, ensureSignedIn, updateStats, getPlayer
 import { showStatsPopup } from './ui/statsPopup.js';
 
 // プリロード
-import { preloadCritical, preloadPortraits } from './preload.js';
+import { preloadCritical, preloadPortraits, preloadDeathGif } from './preload.js';
 
 // オーディオ
 import { unlockAudio, playTrack, playSE, toggleMute, isMuted, setVolume, getVolume } from './audio.js';
@@ -730,6 +730,8 @@ playTrack('title');
 
 // 背景・アイテム画像を即座にプリロード開始
 setTimeout(() => preloadCritical(), 100);
+// 死亡エフェクトGIFをBlobとしてプリロード
+setTimeout(() => preloadDeathGif(), 200);
 
 // ポートレート画像はアイドル時にプリロード
 if ('requestIdleCallback' in window) {

@@ -8,6 +8,7 @@ import { other } from '../utils.js';
 import { sharpenTicks, overlapSoFar, madSharpenTicks, canSharpen, canSharpenMad, madManualNeeded, canAttack, canProtect, protectReason } from '../game/resolve.js';
 import { isProcessing } from '../online/onlineFlow.js';
 import { playSE } from '../audio.js';
+import { getDeathGifUrl } from '../preload.js';
 
 // 外部関数（main.jsから注入）
 let _render = null;
@@ -414,12 +415,21 @@ export function renderPanel() {
     // 自分の村人が死亡した場合、GIF + 赤フラッシュ + SE + シェイク（ホットシートでは無効）
     if (ra && G.mode !== 'pvp' && G._deathFlashPlayed !== G.day) {
       G._deathFlashPlayed = G.day;
-      // GIFエフェクト（フラグメントでアニメーションリセット、キャッシュは維持）
+      // 既存のGIFを削除
+      document.querySelectorAll('.death-gif').forEach(el => {
+        if (el.src.startsWith('blob:')) URL.revokeObjectURL(el.src);
+        el.remove();
+      });
+      // GIFエフェクト（Blob URLで毎回アニメーションリセット）
+      const gifUrl = getDeathGifUrl();
       const gifEffect = document.createElement('img');
       gifEffect.className = 'death-gif';
-      gifEffect.src = '/finge_transparent.gif#' + Date.now();
+      gifEffect.src = gifUrl;
       document.body.appendChild(gifEffect);
-      setTimeout(() => gifEffect.remove(), 2000);
+      setTimeout(() => {
+        if (gifUrl.startsWith('blob:')) URL.revokeObjectURL(gifUrl);
+        gifEffect.remove();
+      }, 2000);
       // SE + シェイク
       playSE('wolf_howl');
       const scrollY = window.scrollY;
