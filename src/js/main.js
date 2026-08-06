@@ -650,7 +650,11 @@ window._toggleVolumeSlider = () => {
 
 window._setVolume = (val) => {
   setVolume(val / 100);
-  renderAudioToggle();
+  // スライダー再描画せず、表示だけ更新
+  const valueEl = document.querySelector('.volume-value');
+  const iconEl = document.querySelector('.audio-toggle');
+  if (valueEl) valueEl.textContent = val + '%';
+  if (iconEl) iconEl.textContent = getVolumeIcon(val / 100);
 };
 
 // ========== 初期化 ==========
