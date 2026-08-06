@@ -15,6 +15,10 @@ export function drawMap(el, village, o) {
   const config = getConfig();
   const { HOUSES, EDGES, POS, HLABEL } = config;
 
+  // ポートレートを保存してから消す（CSS transitionを維持するため）
+  const savedPortraitMine = el.querySelector('#portrait-mine');
+  const savedPortraitFoe = el.querySelector('#portrait-foe');
+
   el.innerHTML = '';
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('viewBox', '0 0 100 100');
@@ -185,4 +189,53 @@ export function drawMap(el, village, o) {
     s.style.top = (POS[t.house][1] + 13) + '%';
     el.appendChild(s);
   });
+
+  // 探索者ポートレート（丸ワイプ）
+  if (o.explorerPortrait) {
+    const { house, person, isMine, isAutoplay } = o.explorerPortrait;
+    if (house && person) {
+      const savedPortrait = isMine ? savedPortraitMine : savedPortraitFoe;
+      const newLeft = POS[house][0] + '%';
+      const newTop = (POS[house][1] + 10) + '%';
+
+      if (savedPortrait) {
+        // 既存の要素を再利用（CSS transitionが効く）
+        const oldLeft = savedPortrait.style.left;
+        savedPortrait.classList.toggle('autoplay', !!isAutoplay);
+        savedPortrait.style.left = newLeft;
+        savedPortrait.style.top = newTop;
+        el.appendChild(savedPortrait);
+
+        // 位置が変わった時だけパルスアニメーション
+        if (oldLeft !== newLeft) {
+          savedPortrait.classList.remove('moving');
+          void savedPortrait.offsetWidth; // reflow
+          savedPortrait.classList.add('moving');
+        }
+      } else {
+        // 新規作成
+        const portrait = document.createElement('div');
+        portrait.id = 'portrait-' + (isMine ? 'mine' : 'foe');
+        portrait.className = 'explorer-portrait' + (isMine ? '' : ' foe');
+        if (isAutoplay) portrait.classList.add('autoplay');
+
+        const imgKey = NAME_TO_KEY[person.name];
+        const role = isMine ? person.role : 'villager';
+        portrait.innerHTML = `<img src="/portraits/${imgKey}_${role}.webp" alt="${person.name}">`;
+
+        portrait.style.left = newLeft;
+        portrait.style.top = newTop;
+        el.appendChild(portrait);
+      }
+    }
+  }
+}
+
+/**
+ * 探索者ポートレートを削除
+ */
+export function removeExplorerPortrait(el, isMine) {
+  const portraitId = 'portrait-' + (isMine ? 'mine' : 'foe');
+  const portrait = el.querySelector('#' + portraitId);
+  if (portrait) portrait.remove();
 }

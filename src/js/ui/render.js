@@ -24,6 +24,56 @@ const EMOTES = ['👍', '😊', '🤔', '⏳', '🙏', '😅', '❤️', '💀',
 // エモートバーの開閉状態
 let emoteBarOpen = false;
 
+// 自動再生状態
+let autoPlaybackActive = false;
+let autoPlaybackIndex = 0;
+let autoPlaybackTimeout = null;
+let autoPlaybackCallback = null;
+
+/**
+ * 経路の自動再生を開始
+ * @param {Function} onComplete - 完了時のコールバック
+ */
+export function startRouteAutoPlayback(onComplete) {
+  if (autoPlaybackActive) return;
+  autoPlaybackActive = true;
+  autoPlaybackIndex = 0;
+  autoPlaybackCallback = onComplete;
+  render();
+  scheduleNextAutoPlayback();
+}
+
+/**
+ * 次の自動再生ステップをスケジュール
+ */
+function scheduleNextAutoPlayback() {
+  autoPlaybackTimeout = setTimeout(() => {
+    autoPlaybackIndex++;
+    if (autoPlaybackIndex >= TICKS) {
+      // 完了
+      const cb = autoPlaybackCallback;
+      stopRouteAutoPlayback();
+      if (cb) cb();
+    } else {
+      render();
+      scheduleNextAutoPlayback();
+    }
+  }, 450);
+}
+
+/**
+ * 自動再生を停止
+ */
+export function stopRouteAutoPlayback() {
+  if (autoPlaybackTimeout) {
+    clearTimeout(autoPlaybackTimeout);
+    autoPlaybackTimeout = null;
+  }
+  autoPlaybackActive = false;
+  autoPlaybackIndex = 0;
+  autoPlaybackCallback = null;
+}
+
 export function setRenderCallbacks(callbacks) {
   _placeNext = callbacks.placeNext;
   _placePit = callbacks.placePit;
@@ -147,14 +197,40 @@ export function render() {
   const wl = wolfOf(M);
   const sharpH = (!pub && M.sharpenStart !== null && wl.alive) ? wl.house : null;
   const mineTokens = [], foeTokens = [];
+  let minePortrait = null, foePortrait = null;
   if (!pub) {
-    if (c.ph === 'route' && M.route.length) {
-      foeTokens.push({ house: M.route[M.route.length - 1], label: M.people[M.explorer].name, mine: true });
-    } else if ((c.ph === 'ticks' || c.ph === 'night') && G.tickIdx > 0 && M.route[G.tickIdx - 1]) {
-      foeTokens.push({ house: M.route[G.tickIdx - 1], label: M.people[M.explorer].name, mine: true });
-    }
-    if ((c.ph === 'ticks' || c.ph === 'night') && G.tickIdx > 0 && F.route[G.tickIdx - 1]) {
-      mineTokens.push({ house: F.route[G.tickIdx - 1], label: F.people[F.explorer].name, mine: false });
+    if (autoPlaybackActive && M.route.length) {
+      // 自動再生中: 自分の探索者を順番に表示
+      const idx = Math.min(autoPlaybackIndex, M.route.length - 1);
+      foePortrait = {
+        house: M.route[idx],
+        person: M.people[M.explorer],
+        isMine: true,
+        isAutoplay: true
+      };
+    } else if (c.ph === 'route' && M.route.length) {
+      // 経路選択中: 相手の村に自分の探索者を表示
+      foePortrait = {
+        house: M.route[M.route.length - 1],
+        person: M.people[M.explorer],
+        isMine: true
+      };
+    } else if ((c.ph === 'ticks' || c.ph === 'night') && G.tickIdx > 0) {
+      // ティック進行中/夜: 両方の探索者を表示
+      if (M.route[G.tickIdx - 1]) {
+        foePortrait = {
+          house: M.route[G.tickIdx - 1],
+          person: M.people[M.explorer],
+          isMine: true
+        };
+      }
+      if (F.route[G.tickIdx - 1]) {
+        minePortrait = {
+          house: F.route[G.tickIdx - 1],
+          person: F.people[F.explorer],
+          isMine: false
+        };
+      }
     }
   }
 
@@ -208,7 +284,8 @@ export function render() {
     edgePick: pitPicking,
     onEdgePick: _placePit,
     pickable: (!pub && c.ph === 'place') ? (h => freeHouse(M, h)) : null,
-    onPick: _placeNext
+    onPick: _placeNext,
+    explorerPortrait: minePortrait
   });
 
   const nightPick = (!pub && c.ph === 'night' && canAttack(M));
@@ -226,7 +303,8 @@ export function render() {
     pitEdge: (pub ? (revealAll ? F.pitEdge : null) : (F.pitSeen && F.pitSeen.length > 0 ? F.pitSeen : null)),
     attackTargetHouse: (nightPick && M.attackTarget !== null) ? F.people[M.attackTarget].house : null,
     pickable: (!pub && c.ph === 'route') ? routeValidWrapper : (nightPick ? (h => !!personAt(F, h)) : null),
-    onPick: (!pub && c.ph === 'route') ? _pickRoute : (nightPick ? _pickAttackHouse : null)
+    onPick: (!pub && c.ph === 'route') ? _pickRoute : (nightPick ? _pickAttackHouse : null),
+    explorerPortrait: foePortrait
   });
 
   applyStage(c, pub);

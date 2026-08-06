@@ -85,3 +85,16 @@
 #map-foe.large.loss::before{background-image:url('/map/9_loss.webp')}
 #map-foe.large.dawn::before{background-image:url('/map/9_night.webp')}
 #map-foe.large.dawn::after{content:'';position:absolute;inset:0;background:url('/map/9_day.webp') center/110% no-repeat;transform:scaleX(-1);opacity:0.5;z-index:0;pointer-events:none}
+
+/* 探索者ポートレート（丸ワイプ） */
+.explorer-portrait{position:absolute;transform:translate(-50%,-50%);width:44px;height:44px;border-radius:50%;border:3px solid var(--moon);box-shadow:0 0 12px rgba(0,0,0,0.6),0 0 0 1px rgba(255,255,255,0.1);z-index:10;overflow:hidden;pointer-events:none;transition:left .5s cubic-bezier(.4,0,.2,1),top .5s cubic-bezier(.4,0,.2,1)}
+.explorer-portrait img{width:100%;height:100%;object-fit:cover;object-position:top}
+.explorer-portrait.foe{border-color:var(--kuchiba)}
+.explorer-portrait.autoplay{transition-duration:.35s}
+.explorer-portrait.moving{animation:portrait-pulse .5s ease-out}
+@keyframes portrait-pulse{0%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-50%) scale(1.12)}100%{transform:translate(-50%,-50%) scale(1)}}
+/* 9軒モード */
+.map.large .explorer-portrait{width:36px;height:36px;border-width:2px}
+/* サブボード */
+.board.is-sub .explorer-portrait{width:30px;height:30px;border-width:2px}
+@media (prefers-reduced-motion:reduce){.explorer-portrait{transition:none}.explorer-portrait.moving{animation:none}}
