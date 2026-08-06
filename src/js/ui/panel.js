@@ -416,7 +416,7 @@ export function renderPanel() {
       G._deathFlashPlayed = G.day;
       // GIFエフェクト（最初に追加、キャッシュ回避で毎回再生）
       const gifEffect = document.createElement('img');
-      gifEffect.src = '/finge_transparent.gif?' + Date.now();
+      gifEffect.src = '/finge_transparent.gif';
       gifEffect.className = 'death-gif';
       document.body.appendChild(gifEffect);
       setTimeout(() => gifEffect.remove(), 2000);
