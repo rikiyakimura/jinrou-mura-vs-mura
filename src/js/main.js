@@ -126,29 +126,23 @@ async function confirmPit() {
 }
 
 /**
- * 探索者を選択（プレビュー、まだ確定しない）
+ * 探索者を選択
  */
-function chooseExplorer(id) {
+async function chooseExplorer(id) {
+  if (G.mode === 'online') {
+    if (!startProcessing()) return;  // 即座にボタン無効化
+  }
   playSE('casual');
+
   const v = me();
   v.explorer = id;
   v.mediumResult = null;
-  render();
-}
-
-/**
- * 探索者を確定して次へ
- */
-async function confirmExplorer() {
-  const v = me();
-  if (v.explorer === null) return;
 
   if (G.mode === 'online') {
-    if (!startProcessing()) return;
     await submitOnlineAction({
       playerId: G.myPlayerId,
       phase: 'explorer',
-      data: { personId: v.explorer }
+      data: { personId: id }
     });
   } else {
     advance();
@@ -271,16 +265,6 @@ function pickAttackHouse(h) {
   playSE('casual');
   v.attackTarget = p.id;
   render();
-}
-
-/**
- * 探索者を地図から選択
- */
-function pickExplorerHouse(h) {
-  const v = me();
-  const p = v.people.find(x => x.house === h);
-  if (!p || !p.alive) return;
-  chooseExplorer(p.id);
 }
 
 /**
@@ -480,15 +464,13 @@ setRenderCallbacks({
   placeNext,
   placePit,
   pickRoute,
-  pickAttackHouse,
-  pickExplorerHouse
+  pickAttackHouse
 });
 
 // panel.jsのコールバック
 setPanelCallbacks({
   render,
   chooseExplorer,
-  confirmExplorer,
   confirmPit,
   confirmRoute,
   startSharpen,
@@ -541,7 +523,6 @@ window._cancelRoom = () => { playSE('casual'); cancelRoom(); };
 window._cancelMatchmaking = () => { playSE('casual'); cancelMatchmakingAction(); };
 window._confirmPit = confirmPit;
 window._chooseExplorer = chooseExplorer;
-window._confirmExplorer = confirmExplorer;
 window._confirmRoute = confirmRoute;
 window._startSharpen = startSharpen;
 window._startSharpenMad = startSharpenMad;

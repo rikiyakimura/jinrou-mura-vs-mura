@@ -17,7 +17,6 @@ let _placeNext = null;
 let _placePit = null;
 let _pickRoute = null;
 let _pickAttackHouse = null;
-let _pickExplorerHouse = null;
 
 // エモート一覧
 const EMOTES = ['👍', '😊', '🤔', '⏳', '🙏', '😅', '❤️', '💀', '😏', '😜', '🤭', '👋', '😤', '👀', '🔥'];
@@ -30,7 +29,6 @@ export function setRenderCallbacks(callbacks) {
   _placePit = callbacks.placePit;
   _pickRoute = callbacks.pickRoute;
   _pickAttackHouse = callbacks.pickAttackHouse;
-  _pickExplorerHouse = callbacks.pickExplorerHouse;
 }
 
 const isNarrow = () => !!(window.matchMedia && window.matchMedia('(max-width:820px)').matches);
@@ -200,7 +198,6 @@ export function render() {
   mapMine.classList.toggle('loss', myLoss);
   mapFoe.classList.toggle('loss', oppLoss);
 
-  const explorerPick = (!pub && c.ph === 'explorer');
   drawMap(mapMine, M, {
     omniscient: pub ? revealAll : true,
     sharpenHouse: sharpH,
@@ -210,8 +207,8 @@ export function render() {
     pitEdge: (pub ? (revealAll ? M.pitEdge : null) : M.pitEdge),
     edgePick: pitPicking,
     onEdgePick: _placePit,
-    pickable: (!pub && c.ph === 'place') ? (h => freeHouse(M, h)) : (explorerPick ? (h => !!personAt(M, h) && personAt(M, h).alive) : null),
-    onPick: explorerPick ? _pickExplorerHouse : _placeNext
+    pickable: (!pub && c.ph === 'place') ? (h => freeHouse(M, h)) : null,
+    onPick: _placeNext
   });
 
   const nightPick = (!pub && c.ph === 'night' && canAttack(M));
