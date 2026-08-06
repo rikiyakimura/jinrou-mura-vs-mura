@@ -3,7 +3,7 @@
  */
 
 import { G, cur, who, me, opp, wolfOf, guardOf, alive, vname, freeHouse, personAt, guardAway } from '../state.js';
-import { TICKS, getPreset, getConfig } from '../constants.js';
+import { TICKS, getPreset, getConfig, edgeKey } from '../constants.js';
 import { other } from '../utils.js';
 import { drawMap } from './map.js';
 import { renderLedger } from './ledger.js';
@@ -24,18 +24,34 @@ const EMOTES = ['👍', '😊', '🤔', '⏳', '🙏', '😅', '❤️', '💀',
 // エモートバーの開閉状態
 let emoteBarOpen = false;
 
-// 落とし穴エフェクト状態
+// 落とし穴エフェクト状態（自分用）
 let pitFallEffect = false;
 let pitFallTimeout = null;
 
+// 相手の落とし穴エフェクト状態
+let oppPitFallEffect = false;
+let oppPitFallTimeout = null;
+let lastCheckedTickIdx = -1;
+
 /**
- * 落とし穴エフェクトをトリガー
+ * 落とし穴エフェクトをトリガー（自分）
  */
 export function triggerPitFallEffect() {
   pitFallEffect = true;
   if (pitFallTimeout) clearTimeout(pitFallTimeout);
   pitFallTimeout = setTimeout(() => {
     pitFallEffect = false;
+  }, 600);
+}
+
+/**
+ * 相手の落とし穴エフェクトをトリガー
+ */
+function triggerOppPitFallEffect() {
+  oppPitFallEffect = true;
+  if (oppPitFallTimeout) clearTimeout(oppPitFallTimeout);
+  oppPitFallTimeout = setTimeout(() => {
+    oppPitFallEffect = false;
   }, 600);
 }
 
@@ -99,6 +115,7 @@ export function render() {
   if (G._shown !== G.idx) {
     G.swap = false;
     G._shown = G.idx;
+    lastCheckedTickIdx = -1; // 新しいフェーズでリセット
     if (document.body.classList) document.body.classList.remove('ledger-open');
   }
   const pub = (w === 0), revealAll = (c.ph === 'end');
@@ -181,11 +198,24 @@ export function render() {
           isMine: true
         };
       }
+      // 相手が落とし穴に落ちたかチェック
+      if (G.tickIdx > lastCheckedTickIdx && G.tickIdx >= 2) {
+        const prevHouse = F.route[G.tickIdx - 2];
+        const currHouse = F.route[G.tickIdx - 1];
+        if (prevHouse && currHouse && prevHouse !== currHouse) {
+          const pitKey = edgeKey(prevHouse, currHouse);
+          if (M.pitEdge && M.pitEdge.includes(pitKey)) {
+            triggerOppPitFallEffect();
+          }
+        }
+        lastCheckedTickIdx = G.tickIdx;
+      }
       if (F.route[G.tickIdx - 1]) {
         minePortrait = {
           house: F.route[G.tickIdx - 1],
           person: F.people[F.explorer],
-          isMine: false
+          isMine: false,
+          isPitFall: oppPitFallEffect
         };
       }
     }
