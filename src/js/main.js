@@ -5,13 +5,14 @@
  */
 
 // 状態
-import { G, me, opp, cur, who, houseName, log, madmanOf, mediumOf, alive } from './state.js';
+import { G, me, opp, cur, who, houseName, log, madmanOf, mediumOf, alive, freeHouse, wolfOf } from './state.js';
+import { shuf } from './utils.js';
 import { TICKS, ADJ, edgeKey, ROLE_LABEL, HLABEL, getConfig, RULES, getPreset } from './constants.js';
 
 // ゲームロジック
 import { newGame, advance, startDay, finishDay, confirmNight, nextFromMorning, setFlowCallbacks } from './game/flow.js';
 import { runCPU } from './game/cpu.js';
-import { overlapSoFar, SPOIL, finish } from './game/resolve.js';
+import { overlapSoFar, SPOIL, finish, sharpenTicks } from './game/resolve.js';
 
 // UI
 import { render, toggleSwap, setRenderCallbacks, toggleEmoteBar, triggerPitFallEffect } from './ui/render.js';
@@ -78,6 +79,38 @@ async function placeNext(h) {
         playerId: G.myPlayerId,
         phase: 'place',
         data: { houses }
+      });
+    } else {
+      advance();
+    }
+  } else {
+    render();
+  }
+}
+
+/**
+ * 残り全員をランダム配置
+ */
+async function placeAllRandom() {
+  playSE('casual');
+  const v = me();
+  const config = getConfig();
+  // 空き家をシャッフル
+  const houses = shuf(config.HOUSES.filter(h => freeHouse(v, h)));
+  // 未配置の村人を順に配置
+  while (v.placeIdx < config.VILLAGERS && houses.length > 0) {
+    v.people[v.placeIdx].house = houses.pop();
+    v.placeIdx++;
+  }
+
+  if (v.placeIdx >= config.VILLAGERS) {
+    if (G.mode === 'online') {
+      if (!startProcessing()) return;
+      const houseData = v.people.map(p => p.house);
+      await submitOnlineAction({
+        playerId: G.myPlayerId,
+        phase: 'place',
+        data: { houses: houseData }
       });
     } else {
       advance();
@@ -303,6 +336,19 @@ function advanceTick() {
       console.error('advanceTick: opp() or opp().route undefined', { o, route: o?.route });
       return;
     }
+
+    // 爪研ぎ中のSE
+    const st = sharpenTicks(v);
+    if (st.includes(G.tickIdx)) {
+      const wl = wolfOf(v);
+      const explorerHouse = o.route[G.tickIdx - 1];
+      if (wl && explorerHouse === wl.house) {
+        playSE('tick_miss');  // 聞かれた
+      } else {
+        playSE('tick_sharpen');  // 聞かれなかった
+      }
+    }
+
     if (overlapSoFar(v, o.route) >= SPOIL) v.spoiled = true;
     if (G.tickIdx >= TICKS) v.tickDone = true;
     render();
@@ -489,6 +535,7 @@ setPanelCallbacks({
 window._toggleOpt = (...args) => { playSE('casual'); toggleOpt(...args); };
 window._pick = pick;
 window._selectMode = (...args) => { playSE('casual'); selectMode(...args); };
+window._placeAllRandom = placeAllRandom;
 window._showOptions = showOptions;
 window._startGame = startGame;
 window._hideVeil = () => { playSE('casual'); hideVeil(render); };

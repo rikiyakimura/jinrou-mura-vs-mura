@@ -31,6 +31,11 @@ const MAP_IMAGES = [
   '/map/9_loss.webp'
 ];
 
+// プリロードするエフェクト画像
+const EFFECT_IMAGES = [
+  '/finge_transparent.gif'
+];
+
 // プリロードした画像の参照を保持（GC回避）
 let criticalImages = null;
 let portraitImages = null;
@@ -64,7 +69,14 @@ export function preloadCritical() {
     criticalImages.push(img);
   }
 
-  console.log(`[Preload] ${criticalImages.length} critical images loading (BG + items + maps)`);
+  // エフェクト画像
+  for (const src of EFFECT_IMAGES) {
+    const img = new Image();
+    img.src = src;
+    criticalImages.push(img);
+  }
+
+  console.log(`[Preload] ${criticalImages.length} critical images loading (BG + items + maps + effects)`);
 }
 
 /**

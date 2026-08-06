@@ -125,7 +125,7 @@ export function renderPanel() {
   const tag = (G.mode === 'cpu' || G.mode === 'online') ? '' : `${v ? v.id : ''}P・`;
   const myName = G.myPlayerName || '自分';
   const myMapLabel = G.mode === 'online' ? `${myName}の村の地図` : '自分の村の地図';
-  const quitBtn = '<div class="quitrow"><button class="quit" onclick="window._quitGame()">やめる</button></div>';
+  const quitBtn = '<div class="quitrow"><button class="quit" onclick="window._quitGame()">ゲームをやめる</button></div>';
 
   if (c.ph === 'place') {
     // 配置完了済みの場合は待機画面を表示
@@ -149,6 +149,7 @@ export function renderPanel() {
           <p style="color:var(--kinari-faint)">残り ${getConfig().VILLAGERS - v.placeIdx} 人</p>
         </div>
       </div>
+      <div class="btnrow"><button class="btn" onclick="window._placeAllRandom()">残りをランダム配置</button></div>
       ${quitBtn}`);
     return;
   }
@@ -410,9 +411,16 @@ export function renderPanel() {
       G._successPlayed = G.day;
       playSE('success');
     }
-    // 自分の村人が死亡した場合、赤フラッシュ + SE + シェイク（ホットシートでは無効）
+    // 自分の村人が死亡した場合、GIF + 赤フラッシュ + SE + シェイク（ホットシートでは無効）
     if (ra && G.mode !== 'pvp' && G._deathFlashPlayed !== G.day) {
       G._deathFlashPlayed = G.day;
+      // GIFエフェクト（最初に追加、キャッシュ回避で毎回再生）
+      const gifEffect = document.createElement('img');
+      gifEffect.src = '/finge_transparent.gif?' + Date.now();
+      gifEffect.className = 'death-gif';
+      document.body.appendChild(gifEffect);
+      setTimeout(() => gifEffect.remove(), 2000);
+      // SE + シェイク
       playSE('wolf_howl');
       const scrollY = window.scrollY;
       const wrap = document.querySelector('.wrap');

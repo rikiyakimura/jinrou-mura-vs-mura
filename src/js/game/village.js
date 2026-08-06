@@ -19,6 +19,9 @@ export function rolesFor(opt) {
   return shuf(r);
 }
 
+// 配置フェーズでの表示順序（役職持ちを先に）
+const ROLE_ORDER = { wolf: 0, guard: 1, madman: 2, dog: 3, medium: 4, villager: 5 };
+
 /**
  * 村を生成
  * @param {number} id - 村のID (1 or 2)
@@ -29,16 +32,22 @@ export function rolesFor(opt) {
  */
 export function mkVillage(id, names, isCPU, opt) {
   const roles = rolesFor(opt);
+  const people = names.map((n, i) => ({
+    id: i,
+    name: n,
+    role: roles[i],
+    house: null,
+    alive: true
+  }));
+  // 役職持ち順にソート（人狼→護衛→特殊役職→村人）
+  people.sort((a, b) => (ROLE_ORDER[a.role] ?? 99) - (ROLE_ORDER[b.role] ?? 99));
+  // ソート後にidを振り直す
+  people.forEach((p, i) => { p.id = i; });
+
   return {
     id,
     isCPU,
-    people: names.map((n, i) => ({
-      id: i,
-      name: n,
-      role: roles[i],
-      house: null,
-      alive: true
-    })),
+    people,
     permit: false,
     fed: false,
     explorer: null,

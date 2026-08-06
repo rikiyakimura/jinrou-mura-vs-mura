@@ -200,13 +200,14 @@ export function drawMap(el, village, o) {
 
       if (savedPortrait) {
         // 既存の要素を再利用（CSS transitionが効く）
-        const oldLeft = savedPortrait.style.left;
+        const oldHouse = savedPortrait.dataset.house;
         savedPortrait.style.left = newLeft;
         savedPortrait.style.top = newTop;
+        savedPortrait.dataset.house = house;
         el.appendChild(savedPortrait);
 
-        // 位置が変わった時だけパルスアニメーション
-        if (oldLeft !== newLeft) {
+        // 家が変わった時だけパルスアニメーション（家IDで比較）
+        if (oldHouse && oldHouse !== house) {
           savedPortrait.classList.remove('moving', 'pitfall');
           void savedPortrait.offsetWidth; // reflow
           savedPortrait.classList.add('moving');
@@ -223,6 +224,7 @@ export function drawMap(el, village, o) {
         const portrait = document.createElement('div');
         portrait.id = 'portrait-' + (isMine ? 'mine' : 'foe');
         portrait.className = 'explorer-portrait' + (isMine ? '' : ' foe');
+        portrait.dataset.house = house;
         if (isPitFall) portrait.classList.add('pitfall');
 
         const imgKey = NAME_TO_KEY[person.name];

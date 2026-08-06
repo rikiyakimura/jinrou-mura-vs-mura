@@ -179,8 +179,8 @@ export function render() {
         isMine: true,
         isPitFall: shouldTriggerPitFall
       };
-    } else if ((c.ph === 'ticks' || c.ph === 'night') && G.tickIdx > 0) {
-      // ティック進行中/夜: 両方の探索者を表示
+    } else if (c.ph === 'ticks' && G.tickIdx > 0) {
+      // ティック進行中: 両方の探索者を表示（夜は表示しない）
       if (M.route[G.tickIdx - 1]) {
         foePortrait = {
           house: M.route[G.tickIdx - 1],
