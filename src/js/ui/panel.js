@@ -414,11 +414,14 @@ export function renderPanel() {
     // 自分の村人が死亡した場合、GIF + 赤フラッシュ + SE + シェイク（ホットシートでは無効）
     if (ra && G.mode !== 'pvp' && G._deathFlashPlayed !== G.day) {
       G._deathFlashPlayed = G.day;
-      // GIFエフェクト（最初に追加、キャッシュ回避で毎回再生）
+      // GIFエフェクト（srcを後から設定してアニメーションをリセット）
       const gifEffect = document.createElement('img');
-      gifEffect.src = '/finge_transparent.gif';
       gifEffect.className = 'death-gif';
       document.body.appendChild(gifEffect);
+      // 次フレームでsrc設定→GIFが最初から再生される
+      requestAnimationFrame(() => {
+        gifEffect.src = '/finge_transparent.gif';
+      });
       setTimeout(() => gifEffect.remove(), 2000);
       // SE + シェイク
       playSE('wolf_howl');
