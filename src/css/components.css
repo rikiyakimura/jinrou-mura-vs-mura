@@ -151,9 +151,11 @@ button.back:hover{color:var(--kinari)}
 .audio-toggle{background:var(--indigo-lift);border:1px solid var(--indigo-edge);border-radius:50%;width:36px;height:36px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--kinari)}
 .audio-toggle:hover{background:#2F3B51}
 .volume-slider-container{display:flex;align-items:center;gap:8px;background:var(--indigo);border:1px solid var(--indigo-edge);border-radius:8px;padding:8px 12px}
-.volume-slider{width:100px;height:6px;-webkit-appearance:none;appearance:none;background:var(--indigo-edge);border-radius:3px;outline:none}
-.volume-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:16px;height:16px;background:var(--kinari);border-radius:50%;cursor:pointer}
-.volume-slider::-moz-range-thumb{width:16px;height:16px;background:var(--kinari);border-radius:50%;cursor:pointer;border:none}
+.volume-slider{width:120px;height:24px;-webkit-appearance:none;appearance:none;background:transparent;outline:none;cursor:pointer}
+.volume-slider::-webkit-slider-runnable-track{height:8px;background:var(--indigo-edge);border-radius:4px}
+.volume-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:24px;height:24px;background:var(--kinari);border-radius:50%;cursor:pointer;margin-top:-8px}
+.volume-slider::-moz-range-track{height:8px;background:var(--indigo-edge);border-radius:4px}
+.volume-slider::-moz-range-thumb{width:24px;height:24px;background:var(--kinari);border-radius:50%;cursor:pointer;border:none}
 .volume-value{color:var(--kinari);font-size:12px;min-width:36px;text-align:right}
 
 /* 村人ポートレート */

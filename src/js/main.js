@@ -636,7 +636,7 @@ function renderAudioToggle() {
     <button class="audio-toggle" onclick="window._toggleVolumeSlider()">${getVolumeIcon(vol)}</button>
     ${volumeSliderOpen ? `
       <div class="volume-slider-container">
-        <input type="range" class="volume-slider" min="0" max="100" value="${Math.round(vol * 100)}" oninput="window._setVolume(this.value)">
+        <input type="range" class="volume-slider" min="0" max="100" value="${Math.round(vol * 100)}" oninput="window._setVolume(this.value)" onchange="window._setVolume(this.value)">
         <span class="volume-value">${Math.round(vol * 100)}%</span>
       </div>
     ` : ''}
