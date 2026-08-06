@@ -35,7 +35,7 @@ import { showStatsPopup } from './ui/statsPopup.js';
 import { preloadCritical, preloadPortraits } from './preload.js';
 
 // オーディオ
-import { unlockAudio, playTrack, playSE, toggleMute, isMuted } from './audio.js';
+import { unlockAudio, playTrack, playSE, toggleMute, isMuted, setVolume, getVolume } from './audio.js';
 import { updateGameState, syncIdxFromDB } from './online/sync.js';
 
 // ========== エモート表示 ==========
@@ -614,20 +614,44 @@ window.G = G;
 
 // ========== 音声トグルボタン ==========
 
-function renderAudioToggle() {
-  let btn = document.getElementById('audio-toggle');
-  if (!btn) {
-    btn = document.createElement('button');
-    btn.id = 'audio-toggle';
-    btn.className = 'audio-toggle';
-    btn.onclick = () => {
-      toggleMute();
-      renderAudioToggle();
-    };
-    document.body.appendChild(btn);
-  }
-  btn.textContent = isMuted() ? '🔇' : '🔊';
+let volumeSliderOpen = false;
+
+function getVolumeIcon(vol) {
+  if (vol === 0) return '🔇';
+  if (vol < 0.5) return '🔉';
+  return '🔊';
 }
+
+function renderAudioToggle() {
+  let container = document.getElementById('audio-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'audio-container';
+    container.className = 'audio-container';
+    document.body.appendChild(container);
+  }
+
+  const vol = getVolume();
+  container.innerHTML = `
+    <button class="audio-toggle" onclick="window._toggleVolumeSlider()">${getVolumeIcon(vol)}</button>
+    ${volumeSliderOpen ? `
+      <div class="volume-slider-container">
+        <input type="range" class="volume-slider" min="0" max="100" value="${Math.round(vol * 100)}" oninput="window._setVolume(this.value)">
+        <span class="volume-value">${Math.round(vol * 100)}%</span>
+      </div>
+    ` : ''}
+  `;
+}
+
+window._toggleVolumeSlider = () => {
+  volumeSliderOpen = !volumeSliderOpen;
+  renderAudioToggle();
+};
+
+window._setVolume = (val) => {
+  setVolume(val / 100);
+  renderAudioToggle();
+};
 
 // ========== 初期化 ==========
 
