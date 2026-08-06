@@ -12,6 +12,7 @@ import { playSE } from '../audio.js';
 // 外部関数（main.jsから注入）
 let _render = null;
 let _chooseExplorer = null;
+let _confirmExplorer = null;
 let _confirmPit = null;
 let _confirmRoute = null;
 let _startSharpen = null;
@@ -25,6 +26,7 @@ let _showTitle = null;
 export function setPanelCallbacks(callbacks) {
   _render = callbacks.render;
   _chooseExplorer = callbacks.chooseExplorer;
+  _confirmExplorer = callbacks.confirmExplorer;
   _confirmPit = callbacks.confirmPit;
   _confirmRoute = callbacks.confirmRoute;
   _startSharpen = callbacks.startSharpen;
@@ -187,8 +189,10 @@ export function renderPanel() {
     if (G.opt && G.opt.madmanDog) {
       extra += '<p>犬飼いを送ると、狂人の贋物を無視して<b>人狼の爪の音だけ</b>を聞き分けられる。狂人を送ると、その夜は狂人の爪が鳴らない。</p>';
     }
+    const explorerSelected = v.explorer !== null;
     const { cards: explorerCards, gridClass } = villageGridCards(v.people, {
       onClickAttr: G.mode === 'online' && isProcessing() ? '' : 'onclick="window._chooseExplorer({id})"',
+      selectedId: v.explorer,
       showRole: true,
       disabled: G.mode === 'online' && isProcessing()
     });
@@ -197,6 +201,9 @@ export function renderPanel() {
       <p class="dim small">ただし人狼を送り、相手の爪研ぎ3ティックすべてに居合わせれば<b>その場で勝てる</b>。</p>
       ${extra ? `<p class="dim small">${extra.replace(/<\/?p>/g, '')}</p>` : ''}
     ` : '';
+    const confirmBtn = explorerSelected
+      ? `<div class="btnrow"><button class="primary" onclick="window._confirmExplorer()" ${G.mode === 'online' && isProcessing() ? 'disabled' : ''}>次へ</button></div>`
+      : '';
     el.innerHTML = H(`${G.day}日目・昼　探索者を選ぶ`, `
       ${med}
       <p class="lead">相手の村へ送る探索者を1人選ぶ。<b>互いに伏せて選ぶ</b>ので、相手が誰を出すかはまだ分からない。
@@ -204,6 +211,7 @@ export function renderPanel() {
       </p>
       ${explorerHelp}
       <div class="explorer-grid ${gridClass}">${explorerCards}</div>
+      ${confirmBtn}
       ${quitBtn}`);
     return;
   }

@@ -126,23 +126,29 @@ async function confirmPit() {
 }
 
 /**
- * 探索者を選択
+ * 探索者を選択（プレビュー、まだ確定しない）
  */
-async function chooseExplorer(id) {
-  if (G.mode === 'online') {
-    if (!startProcessing()) return;  // 即座にボタン無効化
-  }
+function chooseExplorer(id) {
   playSE('casual');
-
   const v = me();
   v.explorer = id;
   v.mediumResult = null;
+  render();
+}
+
+/**
+ * 探索者を確定して次へ
+ */
+async function confirmExplorer() {
+  const v = me();
+  if (v.explorer === null) return;
 
   if (G.mode === 'online') {
+    if (!startProcessing()) return;
     await submitOnlineAction({
       playerId: G.myPlayerId,
       phase: 'explorer',
-      data: { personId: id }
+      data: { personId: v.explorer }
     });
   } else {
     advance();
@@ -482,6 +488,7 @@ setRenderCallbacks({
 setPanelCallbacks({
   render,
   chooseExplorer,
+  confirmExplorer,
   confirmPit,
   confirmRoute,
   startSharpen,
@@ -534,6 +541,7 @@ window._cancelRoom = () => { playSE('casual'); cancelRoom(); };
 window._cancelMatchmaking = () => { playSE('casual'); cancelMatchmakingAction(); };
 window._confirmPit = confirmPit;
 window._chooseExplorer = chooseExplorer;
+window._confirmExplorer = confirmExplorer;
 window._confirmRoute = confirmRoute;
 window._startSharpen = startSharpen;
 window._startSharpenMad = startSharpenMad;
