@@ -268,6 +268,16 @@ function pickAttackHouse(h) {
 }
 
 /**
+ * 探索者を地図から選択
+ */
+function pickExplorerHouse(h) {
+  const v = me();
+  const p = v.people.find(x => x.house === h);
+  if (!p || !p.alive) return;
+  chooseExplorer(p.id);
+}
+
+/**
  * 爪研ぎ開始
  */
 function startSharpen() {
@@ -464,7 +474,8 @@ setRenderCallbacks({
   placeNext,
   placePit,
   pickRoute,
-  pickAttackHouse
+  pickAttackHouse,
+  pickExplorerHouse
 });
 
 // panel.jsのコールバック
