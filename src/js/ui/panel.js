@@ -406,9 +406,7 @@ export function renderPanel() {
       <div class="btnrow"><button class="primary" ${G.mode === 'online' && isProcessing() ? 'disabled' : ''} onclick="window._nextFromMorning()">${G.day >= getConfig().DAYS ? '決着を見る' : '次の日へ'}</button></div>
       ${quitBtn}`);
     // 自分の村人は無事 + 相手を倒した場合、success SE（ホットシートでは無効）
-    console.log('[morning] ra:', ra, 'rb:', rb, 'mode:', G.mode, '_successPlayed:', G._successPlayed, 'day:', G.day);
     if (!ra && rb && G.mode !== 'pvp' && G._successPlayed !== G.day) {
-      console.log('[morning] Playing success SE');
       G._successPlayed = G.day;
       playSE('success');
     }
