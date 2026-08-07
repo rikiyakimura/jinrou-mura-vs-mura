@@ -24,7 +24,7 @@ import {
   startMatchmaking, cancelRoom, cancelMatchmakingAction, showOnlineWaiting,
   restartGame, showRulesPopup, hideRulesPopup
 } from './ui/veil.js';
-import { toggleLedger, openLedger, closeLedger, initLedgerSwipe } from './ui/ledger.js';
+import { toggleLedger, openLedger, closeLedger, initLedgerSwipe, renderLedger } from './ui/ledger.js';
 import { initItemClickHandlers } from './ui/itemModal.js';
 
 // オンライン
@@ -54,6 +54,7 @@ function showEmoteToast(content) {
 
   // 覚え書きに追加（相手のエモート）
   addEmoteToLog(content, false);
+  renderLedger(me());
 
   // 3秒後にフェードアウトして削除
   setTimeout(() => {
@@ -613,6 +614,7 @@ window._sendEmote = async (emote) => {
   if (success) {
     // 覚え書きに追加（自分のエモート）
     addEmoteToLog(emote, true);
+    renderLedger(me());
     // 送信成功時、一時的にボタンを無効化表示（CSSで対応）
     render();
   }
@@ -650,6 +652,7 @@ window._sendTextChat = async () => {
     if (success) {
       // 覚え書きに追加（自分のテキスト）
       addEmoteToLog(msg, true);
+      renderLedger(me());
     }
   }
   window._closeTextChat();
