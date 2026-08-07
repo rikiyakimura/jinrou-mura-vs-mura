@@ -90,9 +90,10 @@ const seWolfHowl = new Audio('/SE/wolf_howl.mp3');
 const seSuccess = new Audio('/SE/success.mp3');
 const seTickSharpen = new Audio('/SE/tick_sharpen.mp3');
 const seTickMiss = new Audio('/SE/tick_miss.mp3');
+const seHeavyPunch = new Audio('/SE/heavy_punch.mp3');
 
 // 全SEをまとめて管理
-const allSE = [seSharpening, seCasual, seConfirm, seSharpenStart, seSharpenSuccess, seSharpenMiss, seWin, seLoss, seItem, seHole, seWolfHowl, seSuccess, seTickSharpen, seTickMiss];
+const allSE = [seSharpening, seCasual, seConfirm, seSharpenStart, seSharpenSuccess, seSharpenMiss, seWin, seLoss, seItem, seHole, seWolfHowl, seSuccess, seTickSharpen, seTickMiss, seHeavyPunch];
 
 let lastSharpeningDay = null;
 let lastSharpenResultDay = null;
@@ -172,6 +173,10 @@ export function playSE(name, day) {
     seTickMiss.volume = masterVolume;
     seTickMiss.currentTime = 0;
     seTickMiss.play().catch(() => {});
+  } else if (name === 'heavy_punch') {
+    seHeavyPunch.volume = masterVolume;
+    seHeavyPunch.currentTime = 0;
+    seHeavyPunch.play().catch(() => {});
   }
 }
 

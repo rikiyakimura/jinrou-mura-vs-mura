@@ -431,6 +431,7 @@ export function renderPanel() {
         gifEffect.remove();
       }, 2000);
       // SE + シェイク
+      playSE('heavy_punch');
       playSE('wolf_howl');
       const scrollY = window.scrollY;
       const wrap = document.querySelector('.wrap');
