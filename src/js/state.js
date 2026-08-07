@@ -87,6 +87,25 @@ export function log(v, t, cls) {
   d.lines.push({ t, cls });
 }
 
+// エモートをログに追加
+export function addEmoteToLog(content, isOwn) {
+  const v = me();
+  if (!v || !v.log) return;
+
+  const currentDay = state.G.day;
+  let dayEntry = v.log.find(d => d.day === currentDay);
+
+  if (!dayEntry) {
+    dayEntry = { day: currentDay, lines: [] };
+    v.log.push(dayEntry);
+  }
+
+  dayEntry.lines.push({
+    t: isOwn ? `自分: ${content}` : `相手: ${content}`,
+    cls: isOwn ? 'emote-own' : 'emote-opp'
+  });
+}
+
 // 経路をログに保存（覚え書きの地図表示用）
 export function logRoute(v, route, explorer, isOwn) {
   let d = v.log.find(x => x.day === state.G.day);

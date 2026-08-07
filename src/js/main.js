@@ -5,7 +5,7 @@
  */
 
 // 状態
-import { G, me, opp, cur, who, houseName, log, madmanOf, mediumOf, alive, freeHouse, wolfOf } from './state.js';
+import { G, me, opp, cur, who, houseName, log, madmanOf, mediumOf, alive, freeHouse, wolfOf, addEmoteToLog } from './state.js';
 import { shuf } from './utils.js';
 import { TICKS, ADJ, edgeKey, ROLE_LABEL, HLABEL, getConfig, RULES, getPreset } from './constants.js';
 
@@ -51,6 +51,9 @@ function showEmoteToast(content) {
   toast.className = isEmoji ? 'emote-toast' : 'emote-toast text-msg';
   toast.textContent = `相手: ${content}`;
   document.body.appendChild(toast);
+
+  // 覚え書きに追加（相手のエモート）
+  addEmoteToLog(content, false);
 
   // 3秒後にフェードアウトして削除
   setTimeout(() => {
@@ -608,6 +611,8 @@ window._sendEmote = async (emote) => {
   playSE('casual');
   const success = await sendEmote(emote);
   if (success) {
+    // 覚え書きに追加（自分のエモート）
+    addEmoteToLog(emote, true);
     // 送信成功時、一時的にボタンを無効化表示（CSSで対応）
     render();
   }
@@ -635,12 +640,17 @@ window._openTextChat = () => {
     if (e.key === 'Enter') window._sendTextChat();
   });
 };
-window._sendTextChat = () => {
+window._sendTextChat = async () => {
   const input = document.getElementById('text-chat-input');
   const text = input?.value?.trim();
   if (text) {
     playSE('casual');
-    sendEmote(text.slice(0, 50));
+    const msg = text.slice(0, 50);
+    const success = await sendEmote(msg);
+    if (success) {
+      // 覚え書きに追加（自分のテキスト）
+      addEmoteToLog(msg, true);
+    }
   }
   window._closeTextChat();
 };
