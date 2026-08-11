@@ -742,6 +742,20 @@ if (rulesList) {
   rulesList.innerHTML = RULES.map(rule => `<li>${rule}</li>`).join('');
 }
 
+// Stripe決済後のリダイレクト処理
+const urlParams = new URLSearchParams(window.location.search);
+const supportResult = urlParams.get('support');
+if (supportResult === 'success') {
+  // URLパラメータを削除
+  window.history.replaceState({}, '', window.location.pathname);
+  // 少し遅延してアラート表示（タイトル画面表示後）
+  setTimeout(() => {
+    alert('ご支援ありがとうございます！オンライン対戦が無制限になりました。');
+  }, 500);
+} else if (supportResult === 'cancel') {
+  window.history.replaceState({}, '', window.location.pathname);
+}
+
 showTitle();
 playTrack('title');
 

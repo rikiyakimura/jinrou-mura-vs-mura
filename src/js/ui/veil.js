@@ -291,9 +291,49 @@ export async function doSupport() {
     return;
   }
 
-  // TODO: Stripe決済処理
-  // 今は仮実装としてアラートを表示
-  alert('Stripe決済は準備中です。金額: ' + amount + '円');
+  const userId = getCurrentUserId();
+  if (!userId) {
+    alert('ユーザー情報の取得に失敗しました。ページを再読み込みしてください。');
+    return;
+  }
+
+  // ボタンを無効化
+  const btn = document.getElementById('support-btn');
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = '処理中...';
+  }
+
+  try {
+    const SUPABASE_URL = 'https://zdrdpiikttpjxztcvgrk.supabase.co';
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/create-checkout`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ user_id: userId, amount }),
+    });
+
+    const data = await response.json();
+
+    if (data.error) {
+      alert('エラー: ' + data.error);
+      return;
+    }
+
+    if (data.url) {
+      // Stripe Checkoutページにリダイレクト
+      window.location.href = data.url;
+    }
+  } catch (error) {
+    console.error('Support error:', error);
+    alert('決済の開始に失敗しました。しばらく待ってからお試しください。');
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = '支援する';
+    }
+  }
 }
 
 /**
