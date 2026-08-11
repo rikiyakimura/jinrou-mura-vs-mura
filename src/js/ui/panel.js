@@ -489,14 +489,28 @@ export function renderPanel() {
     };
     let verdict, head, note = '';
     if (G.instantWin) {
-      head = `${G.day}日目の昼、決着した`;
-      if (G.instantWin === 'draw') { verdict = '引き分け'; note = '双方の人狼が同時に暴かれた。'; }
-      else {
-        const won = (G.mode === 'cpu' || G.mode === 'online') ? (G.instantWin === myId) : null;
-        verdict = G.mode === 'cpu' ? (won ? '勝ち' : '負け')
-          : G.mode === 'online' ? (won ? '勝ち' : '負け')
-          : `${G.instantWin}P の勝ち`;
-        note = `${nm(other(G.instantWin))}の人狼が暴かれた。生存数は問わない。`;
+      if (G.starved) {
+        // 餓死による終了
+        head = `${G.day}日目の夜、決着した`;
+        if (G.instantWin === 'draw') { verdict = '引き分け'; note = '双方の人狼が同時に餓死した。'; }
+        else {
+          const won = (G.mode === 'cpu' || G.mode === 'online') ? (G.instantWin === myId) : null;
+          verdict = G.mode === 'cpu' ? (won ? '勝ち' : '負け')
+            : G.mode === 'online' ? (won ? '勝ち' : '負け')
+            : `${G.instantWin}P の勝ち`;
+          note = `${nm(other(G.instantWin))}の人狼が餓死した。`;
+        }
+      } else {
+        // 人狼追放による終了
+        head = `${G.day}日目の昼、決着した`;
+        if (G.instantWin === 'draw') { verdict = '引き分け'; note = '双方の人狼が同時に暴かれた。'; }
+        else {
+          const won = (G.mode === 'cpu' || G.mode === 'online') ? (G.instantWin === myId) : null;
+          verdict = G.mode === 'cpu' ? (won ? '勝ち' : '負け')
+            : G.mode === 'online' ? (won ? '勝ち' : '負け')
+            : `${G.instantWin}P の勝ち`;
+          note = `${nm(other(G.instantWin))}の人狼が暴かれた。生存数は問わない。`;
+        }
       }
     } else {
       head = `${getConfig().DAYS}夜が明けた`;

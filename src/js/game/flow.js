@@ -47,6 +47,7 @@ export function newGame(mode, opt) {
     day: 1,
     tickIdx: 0,
     instantWin: null,
+    starved: false,
     permitHouse: { 1: null, 2: null },
     madHouse: { 1: null, 2: null },
     mediumHouse: { 1: null, 2: null },

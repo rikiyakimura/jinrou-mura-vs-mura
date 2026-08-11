@@ -264,6 +264,7 @@ export function resolveNight() {
   const bStarved = (B.hungryStreak || 0) >= 3;
 
   if (aStarved || bStarved) {
+    G.starved = true;
     if (aStarved) {
       const w = wolfOf(A);
       w.alive = false;
