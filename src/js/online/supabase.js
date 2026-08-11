@@ -226,6 +226,98 @@ export async function updateDisplayName(name) {
     .eq('id', currentUser.id);
 }
 
+/**
+ * JST日付を取得（YYYY-MM-DD形式）
+ */
+function getJSTDate() {
+  const now = new Date();
+  const jst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+  return jst.toISOString().split('T')[0];
+}
+
+/**
+ * オンライン対戦の制限をチェック
+ * @returns {{ allowed: boolean, status: string, remainingDays?: number, remaining?: number }}
+ */
+export async function checkOnlinePlayLimit() {
+  const userId = getCurrentUserId();
+  if (!userId) return { allowed: false, status: 'no_user' };
+
+  // 1. プレミアム確認
+  const { data: premium } = await supabase
+    .from('users_premiums')
+    .select('is_premium')
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  if (premium?.is_premium) {
+    return { allowed: true, status: 'premium' };
+  }
+
+  // 2. プレイヤー情報取得
+  const { data: player } = await supabase
+    .from('players')
+    .select('first_played_at, last_online_play_date, daily_online_plays_count')
+    .eq('id', userId)
+    .maybeSingle();
+
+  // 3. 初回プレイ記録
+  const now = new Date();
+  let firstPlayedAt = player?.first_played_at;
+  if (!firstPlayedAt) {
+    firstPlayedAt = now.toISOString();
+    await supabase
+      .from('players')
+      .update({ first_played_at: firstPlayedAt })
+      .eq('id', userId);
+  }
+
+  // 4. お試し期間チェック（3日間）
+  const daysSinceFirst = (now - new Date(firstPlayedAt)) / (24 * 60 * 60 * 1000);
+  if (daysSinceFirst < 3) {
+    const remainingDays = Math.ceil(3 - daysSinceFirst);
+    return { allowed: true, status: 'trial', remainingDays };
+  }
+
+  // 5. 日次制限チェック
+  const today = getJSTDate();
+  const playedToday = player?.last_online_play_date === today;
+  const count = playedToday ? (player?.daily_online_plays_count || 0) : 0;
+
+  if (count >= 1) {
+    return { allowed: false, status: 'limit_reached' };
+  }
+
+  return { allowed: true, status: 'free', remaining: 1 - count };
+}
+
+/**
+ * オンライン対戦の日次カウントを更新
+ */
+export async function incrementOnlinePlayCount() {
+  const userId = getCurrentUserId();
+  if (!userId) return;
+
+  const today = getJSTDate();
+
+  const { data: player } = await supabase
+    .from('players')
+    .select('last_online_play_date, daily_online_plays_count')
+    .eq('id', userId)
+    .single();
+
+  const playedToday = player?.last_online_play_date === today;
+  const newCount = playedToday ? (player?.daily_online_plays_count || 0) + 1 : 1;
+
+  await supabase
+    .from('players')
+    .update({
+      last_online_play_date: today,
+      daily_online_plays_count: newCount
+    })
+    .eq('id', userId);
+}
+
 // プレイヤーID生成（ブラウザごとにユニーク）- 後方互換性のため残す
 export function getPlayerId() {
   // 匿名サインイン後はcurrentUser.idを返す

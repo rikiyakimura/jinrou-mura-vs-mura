@@ -4,7 +4,7 @@
 
 import { G, cur, who } from '../state.js';
 import { RULES } from '../constants.js';
-import { getPlayerName, setPlayerName, getCurrentUserId, ensureSignedIn } from '../online/supabase.js';
+import { getPlayerName, setPlayerName, getCurrentUserId, ensureSignedIn, checkOnlinePlayLimit, incrementOnlinePlayCount } from '../online/supabase.js';
 import { showStatsPopup } from './statsPopup.js';
 import {
   createRoom,
@@ -71,6 +71,7 @@ export function showTitle() {
     <div class="title-sub-btns">
       <button class="stats-btn" onclick="window._showMyStats()">成績</button>
       <button class="stats-btn" onclick="window._showRules()">遊び方</button>
+      <button class="stats-btn" onclick="window._showSupport()">支援する</button>
     </div>
   </div>`;
 }
@@ -167,7 +168,7 @@ export function restartGame() {
 /**
  * オンラインメニューを表示
  */
-export function showOnlineMenu() {
+export async function showOnlineMenu() {
   onlineScreen = 'menu';
   selectedMode = 'online';
   const el = document.getElementById('veil');
@@ -175,8 +176,31 @@ export function showOnlineMenu() {
   el.classList.add('menu-screen');
   const savedName = getPlayerName();
 
+  // 一旦ローディング表示
+  el.innerHTML = `<div class="inner"><div class="loading">確認中...</div></div>`;
+
+  // サインイン確認
+  await ensureSignedIn();
+
+  // 制限チェック
+  const limit = await checkOnlinePlayLimit();
+
+  // 状態に応じたメッセージ
+  let statusHtml = '';
+  if (limit.status === 'premium') {
+    statusHtml = '<div class="online-status premium">支援済み（回数無制限）</div>';
+  } else if (limit.status === 'trial') {
+    statusHtml = `<div class="online-status trial">お試し期間中（残り${limit.remainingDays}日）</div>`;
+  } else if (limit.status === 'free') {
+    statusHtml = `<div class="online-status free">本日の残り: ${limit.remaining}回</div>`;
+  } else if (limit.status === 'limit_reached') {
+    showLimitReached();
+    return;
+  }
+
   el.innerHTML = `<div class="inner online-menu">
     <div class="title-sm">オンライン対戦</div>
+    ${statusHtml}
     <div class="name-input">
       <label>あなたの名前</label>
       <input type="text" id="player-name" value="${savedName}" placeholder="ニックネーム" maxlength="10" oninput="window._savePlayerName(this.value)" onchange="window._savePlayerName(this.value)" onblur="window._savePlayerName(this.value)">
@@ -188,6 +212,96 @@ export function showOnlineMenu() {
     </div>
     <button class="back" onclick="window._showTitle()">← 戻る</button>
   </div>`;
+}
+
+/**
+ * 制限到達画面を表示
+ */
+export function showLimitReached() {
+  onlineScreen = 'limit';
+  const el = document.getElementById('veil');
+  el.classList.remove('title-screen');
+  el.classList.add('menu-screen');
+
+  el.innerHTML = `<div class="inner online-menu limit-reached">
+    <div class="title-sm">本日の対戦は終了しました</div>
+    <p class="limit-desc">無料版は1日1回までプレイできます</p>
+    <div class="online-btns">
+      <button class="big primary" onclick="window._showSupport()">支援して無制限にする</button>
+      <button class="big" onclick="window._selectMode('cpu')">CPU対戦で練習する</button>
+    </div>
+    <button class="back" onclick="window._showTitle()">← 閉じる</button>
+  </div>`;
+}
+
+/**
+ * 支援画面を表示
+ */
+export function showSupport() {
+  onlineScreen = 'support';
+  const el = document.getElementById('veil');
+  el.classList.remove('title-screen');
+  el.classList.add('menu-screen');
+
+  el.innerHTML = `<div class="inner support-screen">
+    <div class="title-sm">人狼村vs村を支援する</div>
+    <p class="support-desc">支援いただくと、オンライン対戦が<br>回数無制限でプレイできるようになります</p>
+    <div class="support-amount">
+      <label>支援金額</label>
+      <div class="amount-input">
+        <input type="number" id="support-amount" value="100" min="100" step="100">
+        <span>円（100円以上）</span>
+      </div>
+    </div>
+    <div class="support-notice">
+      <div class="notice-title">ご確認ください</div>
+      <ul>
+        <li>これは開発支援であり、商品購入ではありません</li>
+        <li>端末やブラウザが変わると特典が引き継がれない場合があります</li>
+        <li>支援という性質上、返金には対応しておりません</li>
+      </ul>
+    </div>
+    <div class="support-agree">
+      <label>
+        <input type="checkbox" id="support-agree">
+        <span>上記内容に同意する</span>
+      </label>
+    </div>
+    <div class="modebtns">
+      <button class="primary big" id="support-btn" onclick="window._doSupport()" disabled>支援する</button>
+    </div>
+    <button class="back" onclick="window._backFromSupport()">← 戻る</button>
+  </div>`;
+
+  // 同意チェックボックスの監視
+  const agreeEl = document.getElementById('support-agree');
+  const btnEl = document.getElementById('support-btn');
+  agreeEl.addEventListener('change', () => {
+    btnEl.disabled = !agreeEl.checked;
+  });
+}
+
+/**
+ * 支援処理を実行
+ */
+export async function doSupport() {
+  const amount = parseInt(document.getElementById('support-amount')?.value || '100', 10);
+  if (amount < 100) {
+    alert('100円以上を入力してください');
+    return;
+  }
+
+  // TODO: Stripe決済処理
+  // 今は仮実装としてアラートを表示
+  alert('Stripe決済は準備中です。金額: ' + amount + '円');
+}
+
+/**
+ * 支援画面から戻る
+ */
+export function backFromSupport() {
+  // 制限画面から来た場合はタイトルへ、それ以外はタイトルへ
+  showTitle();
 }
 
 /**
@@ -255,6 +369,15 @@ export async function showCreateRoom() {
   const user = await ensureSignedIn();
   console.log('[showCreateRoom] Signed in as:', user?.id);
 
+  // 制限チェック
+  const limit = await checkOnlinePlayLimit();
+  if (!limit.allowed) {
+    showLimitReached();
+    return;
+  }
+
+  const isPremium = limit.status === 'premium';
+
   const { room, error } = await createRoom(playerName, { ...TITLE_OPT });
 
   if (error) {
@@ -274,6 +397,10 @@ export async function showCreateRoom() {
       // 両方のユーザーIDが揃った → ゲーム開始
       cleanupOnlineSubscriptions();
       console.log('[v2] Starting game - both IDs present');
+      // 日次カウントをインクリメント（プレミアム以外、ゲーム開始時）
+      if (!isPremium) {
+        await incrementOnlinePlayCount();
+      }
       startOnlineGameAsHost(updatedRoom, { ...TITLE_OPT });
       hideVeil(_render);
     } else {
@@ -341,12 +468,24 @@ export async function doJoinRoom() {
   const user = await ensureSignedIn();
   console.log('[doJoinRoom] Signed in as:', user?.id);
 
+  // 制限チェック
+  const limit = await checkOnlinePlayLimit();
+  if (!limit.allowed) {
+    showLimitReached();
+    return;
+  }
+
   const { room, error } = await joinRoom(code, playerName);
 
   if (error) {
     errorEl.textContent = error;
     errorEl.style.display = 'block';
     return;
+  }
+
+  // 日次カウントをインクリメント（プレミアム以外、ゲーム開始時）
+  if (limit.status !== 'premium') {
+    await incrementOnlinePlayCount();
   }
 
   // ゲーム開始
@@ -369,6 +508,15 @@ export async function startMatchmaking() {
   // サインイン完了を待つ
   await ensureSignedIn();
 
+  // 制限チェック
+  const limit = await checkOnlinePlayLimit();
+  if (!limit.allowed) {
+    showLimitReached();
+    return;
+  }
+
+  const isPremium = limit.status === 'premium';
+
   const { queueId, room, matched, error, isHost } = await joinMatchmakingQueue(playerName, { ...TITLE_OPT });
 
   if (error) {
@@ -382,6 +530,10 @@ export async function startMatchmaking() {
   if (matched && room) {
     // 即座にマッチ → ゲーム開始
     currentRoom = room;
+    // 日次カウントをインクリメント（プレミアム以外、ゲーム開始時）
+    if (!isPremium) {
+      await incrementOnlinePlayCount();
+    }
     if (isHost) {
       await startOnlineGameAsHost(room, { ...TITLE_OPT });
     } else {
@@ -397,6 +549,10 @@ export async function startMatchmaking() {
     // マッチ成功（両方のユーザーIDが揃っているはず）
     cleanupOnlineSubscriptions();
     currentRoom = room;
+    // 日次カウントをインクリメント（プレミアム以外、ゲーム開始時）
+    if (!isPremium) {
+      await incrementOnlinePlayCount();
+    }
     // キューに登録した側はホスト
     await startOnlineGameAsHost(currentRoom, { ...TITLE_OPT });
     hideVeil(_render);
