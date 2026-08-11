@@ -263,7 +263,7 @@ function setupSync() {
   subscribeToEmotes(roomId, myPlayerId, onEmoteReceived);
 
   // プレゼンス（相手のオンライン状態）を監視
-  subscribeToPresence(roomId, myPlayerId, onOpponentLeave);
+  subscribeToPresence(roomId, myPlayerId, onPresenceChange);
 }
 
 /**
@@ -276,17 +276,30 @@ function onEmoteReceived(emote) {
 }
 
 /**
- * 相手が切断した時
+ * 相手のプレゼンス状態が変化した時
+ * @param {boolean} opponentPresent - 相手がオンラインかどうか
  */
-function onOpponentLeave() {
-  // 切断タイマーをキャンセル（あれば）
-  if (disconnectTimerId) {
-    clearTimeout(disconnectTimerId);
-    disconnectTimerId = null;
-  }
-  // タイムアウト処理を呼び出し（勝利扱い）
-  if (_onTimeout) {
-    _onTimeout();
+function onPresenceChange(opponentPresent) {
+  if (opponentPresent) {
+    // 相手がオンライン → タイマーをキャンセル
+    if (disconnectTimerId) {
+      clearTimeout(disconnectTimerId);
+      disconnectTimerId = null;
+    }
+    if (_showOnlineWaiting && onlineState.waitingForOpponent) {
+      _showOnlineWaiting('相手の操作を待っています...', 'normal');
+    }
+  } else {
+    // 相手がオフライン → タイマーを開始（既に実行中なら何もしない）
+    if (disconnectTimerId) return;
+
+    if (_showOnlineWaiting) {
+      _showOnlineWaiting(`接続が切れました。${DISCONNECT_TIMEOUT_SEC}秒以内に再接続しない場合、勝利となります。`, 'error');
+    }
+    disconnectTimerId = setTimeout(() => {
+      disconnectTimerId = null;
+      if (_onTimeout) _onTimeout();
+    }, DISCONNECT_TIMEOUT_SEC * 1000);
   }
 }
 

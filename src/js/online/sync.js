@@ -159,9 +159,9 @@ export function subscribeToEmotes(roomId, myPlayerId, onEmote) {
  * プレゼンス（オンライン状態）を監視
  * @param {string} roomId - ルームID
  * @param {number} myPlayerId - 自分のプレイヤーID（1 or 2）
- * @param {function} onOpponentLeave - 相手が切断した時のコールバック
+ * @param {function} onPresenceChange - プレゼンス状態変化時のコールバック (opponentPresent: boolean) => void
  */
-export function subscribeToPresence(roomId, myPlayerId, onOpponentLeave) {
+export function subscribeToPresence(roomId, myPlayerId, onPresenceChange) {
   presenceChannel = supabase.channel(`presence:${roomId}`, {
     config: {
       presence: {
@@ -171,12 +171,14 @@ export function subscribeToPresence(roomId, myPlayerId, onOpponentLeave) {
   });
 
   presenceChannel
-    .on('presence', { event: 'leave' }, ({ leftPresences }) => {
-      // 相手が離脱した場合
-      for (const presence of leftPresences) {
-        if (presence.player_id !== myPlayerId && onOpponentLeave) {
-          onOpponentLeave();
-        }
+    .on('presence', { event: 'sync' }, () => {
+      // 実際のプレゼンス状態を確認（leaveイベントは誤検知があるためsyncで状態を見る）
+      const state = presenceChannel.presenceState();
+      const opponentPresent = Object.values(state).flat().some(
+        p => p.player_id !== myPlayerId
+      );
+      if (onPresenceChange) {
+        onPresenceChange(opponentPresent);
       }
     })
     .subscribe(async (status) => {
