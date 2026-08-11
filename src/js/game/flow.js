@@ -179,7 +179,10 @@ export function confirmNight() {
 export function endOfNight() {
   const config = getConfig();
   resolveNight();
-  if (G.done) return;
+  if (G.done) {
+    advance();  // 餓死でゲーム終了した場合もUIを更新
+    return;
+  }
   if (G.day < config.DAYS) startDay();
   advance();
 }
