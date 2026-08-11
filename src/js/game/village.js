@@ -50,6 +50,7 @@ export function mkVillage(id, names, isCPU, opt) {
     people,
     permit: false,
     fed: false,
+    hungryStreak: 0,
     explorer: null,
     route: [],
     sharpenStart: null,

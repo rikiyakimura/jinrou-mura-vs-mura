@@ -120,7 +120,7 @@ export function runCPU(c, v) {
     const plain = liv.filter(p => p.role === 'villager' || p.role === 'dog');
     let sendWolf = false;
     if (v.memo.length && w.alive) {
-      const safe = v.fed || G.day < getConfig().DAYS;
+      const safe = (v.hungryStreak || 0) < 2;
       sendWolf = Math.random() < (safe ? 0.5 : 0.12);
     }
     let pick;

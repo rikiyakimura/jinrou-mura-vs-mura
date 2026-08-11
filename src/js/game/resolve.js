@@ -193,7 +193,7 @@ export function resolveNight() {
     if (!t || !t.alive) return null;
     if (def.protectTarget === t.id) return { ok: false, t, why: 'guard' };
     if (t.role === 'wolf') return { ok: false, t, why: 'wolf' };
-    t.alive = false; att.fed = true; return { ok: true, t };
+    t.alive = false; att.fed = true; att.hungryStreak = 0; return { ok: true, t };
   };
 
   const rA = strike(A, B), rB = strike(B, A);
@@ -253,7 +253,34 @@ export function resolveNight() {
     });
   });
 
+  // 連続飢餓日数を更新（襲撃成功時は既に0にリセット済み）
+  if (!rA || !rA.ok) A.hungryStreak = (A.hungryStreak || 0) + 1;
+  if (!rB || !rB.ok) B.hungryStreak = (B.hungryStreak || 0) + 1;
+
   G.publicLog.push({ day: G.day, a: rB && rB.ok ? rB.t.name : null, b: rA && rA.ok ? rA.t.name : null });
+
+  // 3日連続で食べられなかったら即敗北
+  const aStarved = (A.hungryStreak || 0) >= 3;
+  const bStarved = (B.hungryStreak || 0) >= 3;
+
+  if (aStarved || bStarved) {
+    if (aStarved) {
+      const w = wolfOf(A);
+      w.alive = false;
+      log(A, `人狼${w.name}は3日連続で食べられず、飢えて死んだ。`, 'kill');
+      log(B, `相手の人狼${w.name}は3日連続で食べられず、飢えて死んだ。`, 'kill');
+    }
+    if (bStarved) {
+      const w = wolfOf(B);
+      w.alive = false;
+      log(B, `人狼${w.name}は3日連続で食べられず、飢えて死んだ。`, 'kill');
+      log(A, `相手の人狼${w.name}は3日連続で食べられず、飢えて死んだ。`, 'kill');
+    }
+    // 即座にゲーム終了（両者餓死ならdraw、片方のみなら相手の勝ち）
+    G.instantWin = (aStarved && bStarved) ? 'draw' : (aStarved ? 2 : 1);
+    finish();
+    return;
+  }
 }
 
 // reveal適用
@@ -284,13 +311,6 @@ export function applyReveal(v) {
 
 // ゲーム終了
 export function finish(hideVeil) {
-  [1, 2].forEach(p => {
-    const v = G.V[p], w = wolfOf(v);
-    if (w.alive && !v.fed && !G.instantWin) {
-      w.alive = false;
-      log(v, `自村の人狼${w.name}は一度も食べられず、飢えて死んだ。`, 'kill');
-    }
-  });
   [1, 2].forEach(p => applyReveal(G.V[p]));
   G.done = true;
   G.idx = G.sched.length - 1;

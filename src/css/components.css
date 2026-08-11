@@ -38,6 +38,8 @@ button.quit:hover:not(:disabled){background:var(--indigo-lift);color:var(--kinar
 .notice.quiet{border-color:var(--indigo-edge);background:#1C2230;color:var(--kinari-dim)}
 .notice.quiet b{color:var(--kinari)}
 .notice .where{display:block;margin-top:4px;font-size:12.5px;color:var(--kinari-faint)}
+.notice.warning{border-color:#c33;background:rgba(200,50,50,0.15);color:#f0a0a0}
+.notice.warning b{color:#ff6666}
 
 .ticks{display:flex;gap:4px;margin:10px 0 12px;font-family:var(--gothic);font-size:11px}
 .tick{flex:1 1 0;min-width:0;text-align:center;padding:6px 2px;border:1px solid var(--indigo-edge);border-radius:2px;color:var(--kinari-faint);overflow:hidden}

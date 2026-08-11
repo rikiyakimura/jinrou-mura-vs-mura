@@ -181,6 +181,12 @@ export function renderPanel() {
   }
 
   if (c.ph === 'explorer') {
+    // 餓死寸前の警告
+    let hungerWarning = '';
+    if ((v.hungryStreak || 0) >= 2) {
+      const wolf = wolfOf(v);
+      hungerWarning = `<div class="notice warning"><b>人狼${wolf.name}が餓死寸前だ。</b>今日、相手の村人を襲えないと死んでしまう。</div>`;
+    }
     let med = '';
     if (v.mediumResult) {
       med = `<div class="notice"><b>${v.mediumResult}</b></div>`;
@@ -200,6 +206,7 @@ export function renderPanel() {
       ${extra ? `<p class="dim small">${extra.replace(/<\/?p>/g, '')}</p>` : ''}
     ` : '';
     el.innerHTML = H(`${G.day}日目・昼　探索者を選ぶ`, `
+      ${hungerWarning}
       ${med}
       <p class="lead">相手の村へ送る探索者を1人選ぶ。<b>互いに伏せて選ぶ</b>ので、相手が誰を出すかはまだ分からない。
         <button class="mini" onclick="G._explorerHelp=!G._explorerHelp;window._render()">${G._explorerHelp ? '閉じる' : '？'}</button>
