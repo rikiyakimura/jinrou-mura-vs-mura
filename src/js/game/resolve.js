@@ -207,10 +207,9 @@ export function resolveNight() {
     }
     if (theirs) {
       if (theirs.ok) log(v, `${theirs.t.name}が襲撃された。${theirs.t.name}は死んだ。`, 'kill');
-      else if (theirs.why === 'wolf') log(v, `${theirs.t.name}が襲撃された。${theirs.t.name}は人狼なので襲撃を逃れた。`);
-      else log(v, `${theirs.t.name}が襲撃された。${theirs.t.name}は護衛に守られた。`);
+      else log(v, `相手の襲撃は失敗したようだ。`, 'none');
     } else {
-      log(v, `襲撃は無かったようだ。`, 'none');
+      log(v, `相手の襲撃は失敗したようだ。`, 'none');
     }
   };
 
@@ -245,7 +244,7 @@ export function resolveNight() {
     if (e.mediumFound) got.push('霊媒の札');
     v.reveal.push({
       day: G.day, hasNight: true, wolfAct: wolfActOf(e),
-      failWhy: (r && !r.ok) ? r.why : null, failTarget: (r && !r.ok) ? r.t.name : null,
+      failWhy: r ? (r.ok ? null : r.why) : 'none', failTarget: r ? (r.ok ? null : r.t.name) : null,
       protect: (e.protectTarget !== null && e.protectTarget !== undefined) ? e.people[e.protectTarget].name : null,
       heardMad: heardMad, dogHeardMad: (heardMad && vExpRole === 'dog'),
       foeGot: got,
@@ -298,8 +297,9 @@ export function applyReveal(v) {
       if (r.foeGot && r.foeGot.length) add('相手はこの日、' + r.foeGot.join('と') + 'を取っていた。');
       return;
     }
-    if (r.failWhy === 'guard') add(`${r.failTarget}への襲撃は、護衛に守られて失敗していた。`);
-    if (r.failWhy === 'wolf') add(`${r.failTarget}は相手の人狼だった。あの襲撃は空振りだった。`);
+    if (r.failWhy === 'none') add('相手はこの夜、襲撃しなかった。');
+    else if (r.failWhy === 'guard') add(`${r.failTarget}への襲撃は、護衛に守られて失敗していた。`);
+    else if (r.failWhy === 'wolf') add(`${r.failTarget}は相手の人狼だった。あの襲撃は空振りだった。`);
     add(r.protect ? `相手は${r.protect}を護衛していた。` : `相手はこの夜、誰も護衛していなかった。`);
     if (r.heardMad) {
       if (r.dogHeardMad) add('相手の狂人の爪研ぎを、あなたは犬飼いで聞き分けていた。');
