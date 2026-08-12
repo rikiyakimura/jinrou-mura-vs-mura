@@ -1,5 +1,5 @@
 *{box-sizing:border-box}
-html,body{margin:0;padding:0}
+html,body{margin:0;padding:0;overscroll-behavior:none}
 body{background:var(--indigo-deep);color:var(--kinari);font-family:var(--gothic);font-size:15px;line-height:1.75;-webkit-font-smoothing:antialiased}
 .wrap{max-width:1240px;margin:0 auto;padding:24px 20px 80px}
 
