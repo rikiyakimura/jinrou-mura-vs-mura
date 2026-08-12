@@ -102,6 +102,13 @@ let setupActionsFetched = false;  // place/pitアクションを取得済みか
 let disconnectTimerId = null;
 const DISCONNECT_TIMEOUT_SEC = 15;
 
+// タブ/ブラウザを閉じる時の警告
+function beforeUnloadHandler(e) {
+  e.preventDefault();
+  e.returnValue = '';  // Chrome用
+  return '';  // 他ブラウザ用
+}
+
 /**
  * コールバック設定
  */
@@ -179,6 +186,9 @@ export async function startOnlineGameAsHost(room, opt) {
   setupSync();
   setupActionsFetched = false;
 
+  // タブを閉じる時の警告を有効化
+  window.addEventListener('beforeunload', beforeUnloadHandler);
+
   // 最初の日の初期化
   startOnlineDay();
 
@@ -237,6 +247,9 @@ export async function startOnlineGameAsGuest(room) {
   // 同期を開始
   setupSync();
   setupActionsFetched = false;
+
+  // タブを閉じる時の警告を有効化
+  window.addEventListener('beforeunload', beforeUnloadHandler);
 
   // 最初の日の初期化（アイテム位置をローカルで生成）
   startOnlineDay();
@@ -861,6 +874,8 @@ export function endOnlineGame() {
     clearTimeout(disconnectTimerId);
     disconnectTimerId = null;
   }
+  // タブを閉じる時の警告を解除
+  window.removeEventListener('beforeunload', beforeUnloadHandler);
   onlineState = {
     roomId: null,
     myPlayerId: null,
