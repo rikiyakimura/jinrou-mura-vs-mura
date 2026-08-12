@@ -4,7 +4,7 @@
 
 import { G, cur, who } from '../state.js';
 import { RULES } from '../constants.js';
-import { getPlayerName, setPlayerName, getCurrentUserId, ensureSignedIn, checkOnlinePlayLimit, incrementOnlinePlayCount } from '../online/supabase.js';
+import { getPlayerName, setPlayerName, getCurrentUserId, ensureSignedIn, checkOnlinePlayLimit, incrementOnlinePlayCount, getSupportInfo } from '../online/supabase.js';
 import { showStatsPopup } from './statsPopup.js';
 import {
   createRoom,
@@ -237,19 +237,26 @@ export function showLimitReached() {
 /**
  * 支援画面を表示
  */
-export function showSupport() {
+export async function showSupport() {
   onlineScreen = 'support';
   const el = document.getElementById('veil');
   el.classList.remove('title-screen');
   el.classList.add('menu-screen');
 
+  // 累計金額を取得
+  const { isPremium, totalAmount } = await getSupportInfo();
+  const totalHtml = totalAmount > 0
+    ? `<div class="support-total">これまでの累計: ${totalAmount.toLocaleString()}円</div>`
+    : '';
+
   el.innerHTML = `<div class="inner support-screen">
     <div class="title-sm">人狼村vs村を支援する</div>
+    ${totalHtml}
     <p class="support-desc">支援いただくと、オンライン対戦が<br>回数無制限でプレイできるようになります</p>
     <div class="support-amount">
       <label>支援金額</label>
       <div class="amount-input">
-        <input type="number" id="support-amount" value="100" min="100" step="100">
+        <input type="number" id="support-amount" value="300" min="100" step="100">
         <span>円（100円以上）</span>
       </div>
     </div>

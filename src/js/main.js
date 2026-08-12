@@ -30,7 +30,7 @@ import { initItemClickHandlers } from './ui/itemModal.js';
 
 // オンライン
 import { submitOnlineAction, setOnlineFlowCallbacks, advanceOnline, surrenderOnline, endOnlineGame, sendEmote, canSendEmote, markPlayerLeft, startProcessing, endProcessing } from './online/onlineFlow.js';
-import { setPlayerName, getCurrentUserId, ensureSignedIn, updateStats, getPlayerName, recordOpponentDisconnect } from './online/supabase.js';
+import { setPlayerName, getCurrentUserId, ensureSignedIn, updateStats, getPlayerName, recordOpponentDisconnect, getSupportInfo } from './online/supabase.js';
 import { showStatsPopup } from './ui/statsPopup.js';
 
 // プリロード
@@ -748,10 +748,17 @@ const supportResult = urlParams.get('support');
 if (supportResult === 'success') {
   // URLパラメータを削除
   window.history.replaceState({}, '', window.location.pathname);
-  // 少し遅延してアラート表示（タイトル画面表示後）
-  setTimeout(() => {
-    alert('ご支援ありがとうございます！オンライン対戦が無制限になりました。');
-  }, 500);
+  // 少し遅延して状態確認（Webhookの処理完了を待つ）
+  setTimeout(async () => {
+    await ensureSignedIn();
+    const { isPremium, totalAmount } = await getSupportInfo();
+    if (isPremium) {
+      alert(`ご支援ありがとうございます！\n累計${totalAmount.toLocaleString()}円のご支援をいただきました。\nオンライン対戦が無制限になりました。`);
+    } else {
+      // Webhookがまだ処理されていない可能性
+      alert('ご支援ありがとうございます！\n反映までしばらくお待ちください。\n反映されない場合はページを再読み込みしてください。');
+    }
+  }, 1500);
 } else if (supportResult === 'cancel') {
   window.history.replaceState({}, '', window.location.pathname);
 }

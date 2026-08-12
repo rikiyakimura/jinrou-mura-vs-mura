@@ -318,6 +318,26 @@ export async function incrementOnlinePlayCount() {
     .eq('id', userId);
 }
 
+/**
+ * 支援情報を取得
+ * @returns {{ isPremium: boolean, totalAmount: number }}
+ */
+export async function getSupportInfo() {
+  const userId = getCurrentUserId();
+  if (!userId) return { isPremium: false, totalAmount: 0 };
+
+  const { data } = await supabase
+    .from('users_premiums')
+    .select('is_premium, total_amount')
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  return {
+    isPremium: data?.is_premium || false,
+    totalAmount: data?.total_amount || 0
+  };
+}
+
 // プレイヤーID生成（ブラウザごとにユニーク）- 後方互換性のため残す
 export function getPlayerId() {
   // 匿名サインイン後はcurrentUser.idを返す

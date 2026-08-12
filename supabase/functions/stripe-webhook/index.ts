@@ -76,15 +76,24 @@ Deno.serve(async (req) => {
         Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
       )
 
-      // users_premiumsテーブルを更新
+      // 既存の累計金額を取得
+      const { data: existing } = await supabaseAdmin
+        .from('users_premiums')
+        .select('total_amount')
+        .eq('user_id', userId)
+        .maybeSingle()
+
+      const currentTotal = existing?.total_amount || 0
+
+      // users_premiumsテーブルを更新（累計金額に加算）
       const { error } = await supabaseAdmin
         .from('users_premiums')
         .upsert({
           user_id: userId,
           is_premium: true,
           purchased_at: new Date().toISOString(),
-          amount: amount,
-          transaction_id: session.id,
+          total_amount: currentTotal + amount,
+          last_transaction_id: session.id,
           payment_provider: 'stripe'
         })
 
