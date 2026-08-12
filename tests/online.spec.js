@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-const BASE_URL = 'https://jinrou-tau.vercel.app';
+const BASE_URL = 'https://jinrou-mura-vs-mura.vercel.app';
 
 test('オンライン対戦: ルーム作成と参加', async ({ browser }) => {
   // 2つのブラウザコンテキストを作成（ホストとゲスト）

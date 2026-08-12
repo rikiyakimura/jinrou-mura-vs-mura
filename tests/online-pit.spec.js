@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-const BASE_URL = 'https://jinrou-tau.vercel.app';
+const BASE_URL = 'https://jinrou-mura-vs-mura.vercel.app';
 
 test('オンライン対戦: 落とし穴テスト', async ({ browser }) => {
   test.setTimeout(120000);  // 2分のタイムアウト

@@ -40,8 +40,8 @@ Deno.serve(async (req) => {
         'line_items[0][price_data][unit_amount]': String(amount),
         'line_items[0][quantity]': '1',
         'metadata[user_id]': user_id,
-        'success_url': 'https://jinrou-tau.vercel.app/?support=success',
-        'cancel_url': 'https://jinrou-tau.vercel.app/?support=cancel',
+        'success_url': 'https://jinrou-mura-vs-mura.vercel.app/?support=success',
+        'cancel_url': 'https://jinrou-mura-vs-mura.vercel.app/?support=cancel',
       }),
     })
 

@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-const BASE_URL = 'https://jinrou-tau.vercel.app';
+const BASE_URL = 'https://jinrou-mura-vs-mura.vercel.app';
 
 test('オフライン: CPU対戦後リマッチ', async ({ page }) => {
   await page.goto(BASE_URL);
