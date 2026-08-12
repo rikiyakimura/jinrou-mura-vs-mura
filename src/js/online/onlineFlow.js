@@ -49,6 +49,7 @@ let onlineState = {
   pendingAction: null,
   waitingForOpponent: false,
   waitingForRestart: false,
+  presenceInitialized: false,  // プレゼンス初期化完了フラグ
   processingAction: false  // 非同期処理中フラグ（連打防止）
 };
 
@@ -281,7 +282,12 @@ function onEmoteReceived(emote) {
  */
 function onPresenceChange(opponentPresent) {
   if (opponentPresent) {
-    // 相手がオンライン → タイマーをキャンセル
+    // 相手がオンライン → プレゼンス初期化完了をマーク
+    if (!onlineState.presenceInitialized) {
+      console.log('[presence] initialized: opponent detected');
+      onlineState.presenceInitialized = true;
+    }
+    // タイマーをキャンセル
     if (disconnectTimerId) {
       clearTimeout(disconnectTimerId);
       disconnectTimerId = null;
@@ -290,7 +296,14 @@ function onPresenceChange(opponentPresent) {
       _showOnlineWaiting('相手の操作を待っています...', 'normal');
     }
   } else {
-    // 相手がオフライン → タイマーを開始（既に実行中なら何もしない）
+    // 相手がオフライン
+    // プレゼンス初期化前の false は無視（race condition 対策）
+    if (!onlineState.presenceInitialized) {
+      console.log('[presence] ignoring false disconnect before initialization');
+      return;
+    }
+
+    // タイマーを開始（既に実行中なら何もしない）
     if (disconnectTimerId) return;
 
     if (_showOnlineWaiting) {
@@ -859,6 +872,7 @@ export function endOnlineGame() {
     pendingAction: null,
     waitingForOpponent: false,
     waitingForRestart: false,
+    presenceInitialized: false,
     processingAction: false
   };
 }
