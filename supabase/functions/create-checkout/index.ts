@@ -34,7 +34,7 @@ Deno.serve(async (req) => {
       },
       body: new URLSearchParams({
         'mode': 'payment',
-        'payment_method_types[0]': 'card',
+        'managed_payments[enabled]': 'false',
         'line_items[0][price_data][currency]': 'jpy',
         'line_items[0][price_data][product_data][name]': '人狼村vs村 開発支援',
         'line_items[0][price_data][unit_amount]': String(amount),
