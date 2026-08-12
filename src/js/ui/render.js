@@ -150,7 +150,7 @@ export function render() {
     (pub
       ? `<span class="turnbadge pub">${G.mode === 'pvp' ? '1P・2P とも観覧可' : '結果'}</span>`
       : (M.explorer !== null && guardAway(M) ? `<span style="color:var(--akane-glow)">護衛は探索中</span>` : '') +
-      `<span>狼の食事 ${M.fed ? '済' : 'まだ'}</span>` +
+      `<span>狼餓死まで <b>${3 - (M.hungryStreak || 0)}</b>日</span>` +
       (G.mode === 'cpu' ? '' : (G.mode === 'online' ? '' : `<span class="turnbadge p${w}">${w}P の手番</span>`)) +
       itemLine);
 

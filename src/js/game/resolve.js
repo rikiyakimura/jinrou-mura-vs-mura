@@ -276,8 +276,18 @@ export function resolveNight() {
       log(B, `人狼${w.name}は3日連続で食べられず、飢えて死んだ。`, 'kill');
       log(A, `相手の人狼${w.name}は3日連続で食べられず、飢えて死んだ。`, 'kill');
     }
-    // 即座にゲーム終了（両者餓死ならdraw、片方のみなら相手の勝ち）
-    G.instantWin = (aStarved && bStarved) ? 'draw' : (aStarved ? 2 : 1);
+    // 即座にゲーム終了
+    if (aStarved && bStarved) {
+      // 両者餓死 → 村人の残り人数で勝敗
+      const aliveA = alive(A).length;
+      const aliveB = alive(B).length;
+      log(A, `両村の人狼が餓死した。生存者数で勝敗を決める。`, 'info');
+      log(B, `両村の人狼が餓死した。生存者数で勝敗を決める。`, 'info');
+      G.instantWin = aliveA > aliveB ? 1 : (aliveB > aliveA ? 2 : 'draw');
+    } else {
+      // 片方のみ餓死 → 相手の勝ち
+      G.instantWin = aStarved ? 2 : 1;
+    }
     finish();
     return;
   }
