@@ -82,12 +82,12 @@
 .support-screen button.back{display:block;width:100%;text-align:center;color:var(--kinari-faint)}
 
 .share-screen{text-align:center;max-width:400px}
-.share-screen .title-sm{margin-bottom:16px}
-.share-section{margin-bottom:16px}
-.share-label{font-size:14px;color:var(--kinari-faint);margin-bottom:6px}
-.share-url{display:flex;gap:8px;margin-bottom:8px}
+.share-screen .title-sm{margin-bottom:12px}
+.share-section{margin-bottom:12px}
+.share-label{font-size:14px;color:var(--kinari-faint);margin-bottom:4px}
+.share-url{display:flex;gap:8px;margin-bottom:6px}
 .share-url input{flex:1;padding:8px 10px;font-size:13px;border:1px solid #4a4a4a;border-radius:4px;background:#fff;color:#333}
 .share-url button{padding:8px 14px;font-size:13px;background:var(--kuchiba);color:#fff;border:none;border-radius:4px;cursor:pointer;white-space:nowrap}
 .share-url button:hover{background:var(--kuchiba-dark)}
-.qr-code{width:140px;height:140px;border-radius:8px;background:#fff;padding:6px}
-.share-screen button.back{display:block;width:100%;text-align:center;color:var(--kinari-faint);margin-top:4px}
+.qr-code{width:120px;height:120px;border-radius:8px;background:#fff;padding:4px}
+.share-screen button.back{display:block;width:100%;text-align:center;color:var(--kinari-faint);margin-top:0}
