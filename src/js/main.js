@@ -21,6 +21,7 @@ import {
   showTitle, selectMode, showOptions, toggleOpt, pick, startGame,
   showVeilIfNeeded, hideVeil, setVeilCallbacks,
   showOnlineMenu, showOnlineOptions, toggleOptOnline, showCreateRoom, showJoinRoom, doJoinRoom,
+  showJoinByUrl, doJoinByUrl, cancelJoinByUrl,
   startMatchmaking, cancelRoom, cancelMatchmakingAction, showOnlineWaiting,
   restartGame, showRulesPopup, hideRulesPopup,
   showSupport, doSupport, backFromSupport, showLimitReached,
@@ -572,6 +573,8 @@ window._toggleOptOnline = (...args) => { playSE('casual'); toggleOptOnline(...ar
 window._showCreateRoom = showCreateRoom;
 window._showJoinRoom = () => { playSE('casual'); showJoinRoom(); };
 window._joinRoom = doJoinRoom;
+window._joinByUrl = doJoinByUrl;
+window._cancelJoinByUrl = () => { playSE('casual'); cancelJoinByUrl(); };
 window._startMatchmaking = startMatchmaking;
 window._cancelRoom = () => { playSE('casual'); cancelRoom(); };
 window._cancelMatchmaking = () => { playSE('casual'); cancelMatchmakingAction(); };
@@ -766,7 +769,14 @@ if (supportResult === 'success') {
   window.history.replaceState({}, '', window.location.pathname);
 }
 
-showTitle();
+// URLパラメータでルーム参加をチェック
+const urlParams = new URLSearchParams(window.location.search);
+const roomCodeFromUrl = urlParams.get('room');
+if (roomCodeFromUrl) {
+  showJoinByUrl(roomCodeFromUrl);
+} else {
+  showTitle();
+}
 playTrack('title');
 
 // 背景・アイテム画像を即座にプリロード開始

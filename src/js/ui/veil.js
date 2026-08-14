@@ -507,10 +507,14 @@ export async function showCreateRoom() {
     }
   });
 
+  const roomUrl = `https://jinrou-mura-vs-mura.vercel.app/?room=${room.room_code}`;
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(roomUrl)}`;
+
   el.innerHTML = `<div class="inner room-created">
     <div class="title-sm">ルームを作成しました</div>
     <div class="room-code">${room.room_code}</div>
-    <p>このコードを相手に伝えてください。<br>相手が参加するとゲームが始まります。</p>
+    <img src="${qrUrl}" class="room-qr" alt="ルームQRコード">
+    <p>コードを伝えるか、QRをスキャンしてもらってください。<br>相手が参加するとゲームが始まります。</p>
     <div class="waiting-indicator">
       <div class="spinner"></div>
       <span>相手の参加を待っています...</span>
@@ -591,6 +595,98 @@ export async function doJoinRoom() {
   currentRoom = room;
   await startOnlineGameAsGuest(room);
   hideVeil(_render);
+}
+
+/**
+ * URLパラメータからルームに参加する画面
+ */
+export function showJoinByUrl(roomCode) {
+  onlineScreen = 'join-url';
+  const el = document.getElementById('veil');
+  el.style.display = 'flex';
+  el.classList.remove('title-screen');
+  el.classList.add('menu-screen');
+  document.body.style.overflow = 'hidden';
+
+  const savedName = getPlayerName();
+
+  el.innerHTML = `<div class="inner join-room">
+    <div class="title-sm">ルームに参加</div>
+    <div class="room-code-display">
+      <label>ルームコード</label>
+      <div class="code-value">${roomCode.toUpperCase()}</div>
+    </div>
+    <div class="name-input">
+      <label>あなたの名前</label>
+      <input type="text" id="player-name-url" placeholder="名前を入力" value="${savedName}" maxlength="10">
+    </div>
+    <button class="primary big" onclick="window._joinByUrl('${roomCode.toUpperCase()}')">参加する</button>
+    <div id="join-url-error" class="error" style="display:none"></div>
+    <button class="back" onclick="window._cancelJoinByUrl()">← キャンセル</button>
+  </div>`;
+
+  // 入力欄にフォーカス
+  setTimeout(() => {
+    document.getElementById('player-name-url')?.focus();
+  }, 100);
+}
+
+/**
+ * URLパラメータからルームに参加
+ */
+export async function doJoinByUrl(roomCode) {
+  const nameInput = document.getElementById('player-name-url');
+  const playerName = nameInput?.value?.trim() || '名無し';
+  setPlayerName(playerName);
+
+  const errorEl = document.getElementById('join-url-error');
+
+  // サインイン完了を待つ
+  const user = await ensureSignedIn();
+
+  // 制限チェック
+  const limit = await checkOnlinePlayLimit();
+  if (!limit.allowed) {
+    clearUrlParams();
+    showLimitReached();
+    return;
+  }
+
+  const { room, error } = await joinRoom(roomCode.toUpperCase(), playerName);
+
+  if (error) {
+    errorEl.textContent = error;
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  // 日次カウントをインクリメント（プレミアム以外、ゲーム開始時）
+  if (limit.status !== 'premium') {
+    await incrementOnlinePlayCount();
+  }
+
+  // URLパラメータをクリア
+  clearUrlParams();
+
+  // ゲーム開始
+  currentRoom = room;
+  await startOnlineGameAsGuest(room);
+  hideVeil(_render);
+}
+
+/**
+ * URL参加をキャンセル
+ */
+export function cancelJoinByUrl() {
+  clearUrlParams();
+  showTitle();
+}
+
+/**
+ * URLパラメータをクリア
+ */
+function clearUrlParams() {
+  window.history.replaceState({}, '', window.location.pathname);
 }
 
 /**
