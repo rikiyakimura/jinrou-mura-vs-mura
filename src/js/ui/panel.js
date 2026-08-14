@@ -399,6 +399,11 @@ export function renderPanel() {
   }
 
   if (c.ph === 'morning') {
+    // 夜明けSE（1日1回）
+    if (G._wolfHowlPlayed !== G.day) {
+      G._wolfHowlPlayed = G.day;
+      playSE('wolf_howl');
+    }
     const r = G.publicLog.find(x => x.day === G.day) || {};
     const myId = G.myPlayerId || 1;
     const oppId = myId === 1 ? 2 : 1;
@@ -439,7 +444,6 @@ export function renderPanel() {
       }, 2000);
       // SE + シェイク
       playSE('heavy_punch');
-      playSE('wolf_howl');
       const scrollY = window.scrollY;
       const wrap = document.querySelector('.wrap');
       wrap.style.position = 'fixed';
