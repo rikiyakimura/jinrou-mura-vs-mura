@@ -73,7 +73,7 @@ export function showTitle() {
       <button class="stats-btn" onclick="window._showRules()">遊び方</button>
       <button class="stats-btn" onclick="window._showSupport()">支援する</button>
     </div>
-    <button class="back" onclick="window._showShare()">友達に教える</button>
+    <button class="stats-btn" onclick="window._showShare()">友達に教える</button>
   </div>`;
 }
 
