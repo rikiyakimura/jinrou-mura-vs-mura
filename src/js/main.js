@@ -769,8 +769,7 @@ if (supportResult === 'success') {
   window.history.replaceState({}, '', window.location.pathname);
 }
 
-// URLパラメータでルーム参加をチェック
-const urlParams = new URLSearchParams(window.location.search);
+// URLパラメータでルーム参加をチェック（urlParamsは既に上で定義済み）
 const roomCodeFromUrl = urlParams.get('room');
 if (roomCodeFromUrl) {
   showJoinByUrl(roomCodeFromUrl);
