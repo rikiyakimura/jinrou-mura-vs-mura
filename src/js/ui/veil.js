@@ -2,6 +2,7 @@
  * ベール画面（タイトル、ホットシート、オンライン）
  */
 
+import QRCode from 'qrcode';
 import { G, cur, who } from '../state.js';
 import { RULES } from '../constants.js';
 import { getPlayerName, setPlayerName, getCurrentUserId, ensureSignedIn, checkOnlinePlayLimit, incrementOnlinePlayCount, getSupportInfo } from '../online/supabase.js';
@@ -508,12 +509,11 @@ export async function showCreateRoom() {
   });
 
   const roomUrl = `https://jinrou-mura-vs-mura.vercel.app/?room=${room.room_code}`;
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(roomUrl)}`;
 
   el.innerHTML = `<div class="inner room-created">
     <div class="title-sm">ルームを作成しました</div>
     <div class="room-code">${room.room_code}</div>
-    <img src="${qrUrl}" class="room-qr" alt="ルームQRコード">
+    <canvas id="room-qr-canvas" class="room-qr"></canvas>
     <p>コードを伝えるか、QRをスキャンしてもらってください。<br>相手が参加するとゲームが始まります。</p>
     <div class="waiting-indicator">
       <div class="spinner"></div>
@@ -521,6 +521,10 @@ export async function showCreateRoom() {
     </div>
     <button class="back" onclick="window._cancelRoom()">キャンセル</button>
   </div>`;
+
+  // QRコード生成
+  const canvas = document.getElementById('room-qr-canvas');
+  QRCode.toCanvas(canvas, roomUrl, { width: 150, margin: 1 });
 }
 
 /**
