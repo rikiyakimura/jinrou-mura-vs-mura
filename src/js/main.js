@@ -23,7 +23,8 @@ import {
   showOnlineMenu, showOnlineOptions, toggleOptOnline, showCreateRoom, showJoinRoom, doJoinRoom,
   startMatchmaking, cancelRoom, cancelMatchmakingAction, showOnlineWaiting,
   restartGame, showRulesPopup, hideRulesPopup,
-  showSupport, doSupport, backFromSupport, showLimitReached
+  showSupport, doSupport, backFromSupport, showLimitReached,
+  showShare, copyUrl
 } from './ui/veil.js';
 import { toggleLedger, openLedger, closeLedger, initLedgerSwipe, renderLedger } from './ui/ledger.js';
 import { initItemClickHandlers } from './ui/itemModal.js';
@@ -577,6 +578,8 @@ window._cancelMatchmaking = () => { playSE('casual'); cancelMatchmakingAction();
 window._showSupport = () => { playSE('casual'); showSupport(); };
 window._doSupport = doSupport;
 window._backFromSupport = () => { playSE('casual'); backFromSupport(); };
+window._showShare = () => { playSE('casual'); showShare(); };
+window._copyUrl = copyUrl;
 window._confirmPit = confirmPit;
 window._chooseExplorer = chooseExplorer;
 window._confirmRoute = confirmRoute;

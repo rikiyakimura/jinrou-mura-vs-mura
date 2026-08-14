@@ -73,6 +73,7 @@ export function showTitle() {
       <button class="stats-btn" onclick="window._showRules()">遊び方</button>
       <button class="stats-btn" onclick="window._showSupport()">支援する</button>
     </div>
+    <button class="back" onclick="window._showShare()">友達に教える</button>
   </div>`;
 }
 
@@ -349,6 +350,57 @@ export async function doSupport() {
 export function backFromSupport() {
   // 制限画面から来た場合はタイトルへ、それ以外はタイトルへ
   showTitle();
+}
+
+/**
+ * 友達に教えるページを表示
+ */
+export function showShare() {
+  const el = document.getElementById('veil');
+  el.classList.remove('title-screen');
+  el.classList.add('menu-screen');
+
+  const gameUrl = 'https://jinrou.vercel.app';
+  const youtubeUrl = 'https://www.youtube.com/@jinrou-mura-vs-mura';
+
+  el.innerHTML = `<div class="inner share-screen">
+    <div class="title-sm">友達に教える</div>
+
+    <div class="share-section">
+      <p class="share-label">ゲームURL</p>
+      <div class="share-url">
+        <input type="text" id="game-url" readonly value="${gameUrl}">
+        <button onclick="window._copyUrl('game-url')">コピー</button>
+      </div>
+      <img src="/QR/gameQR.svg" class="qr-code" alt="ゲームQRコード">
+    </div>
+
+    <div class="share-section">
+      <p class="share-label">YouTubeチャンネル</p>
+      <div class="share-url">
+        <input type="text" id="youtube-url" readonly value="${youtubeUrl}">
+        <button onclick="window._copyUrl('youtube-url')">コピー</button>
+      </div>
+      <img src="/QR/youtubeQR.svg" class="qr-code" alt="YouTubeQRコード">
+    </div>
+
+    <button class="back" onclick="window._showTitle()">← 戻る</button>
+  </div>`;
+}
+
+/**
+ * URLをコピー
+ */
+export function copyUrl(inputId) {
+  const input = document.getElementById(inputId);
+  if (input) {
+    navigator.clipboard.writeText(input.value).then(() => {
+      const btn = input.nextElementSibling;
+      const orig = btn.textContent;
+      btn.textContent = 'コピーしました';
+      setTimeout(() => { btn.textContent = orig; }, 1500);
+    });
+  }
 }
 
 /**
