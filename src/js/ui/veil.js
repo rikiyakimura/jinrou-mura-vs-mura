@@ -360,7 +360,7 @@ export function showShare() {
   el.classList.remove('title-screen');
   el.classList.add('menu-screen');
 
-  const gameUrl = 'https://jinrou.vercel.app';
+  const gameUrl = 'https://jinrou-mura-vs-mura.vercel.app/';
   const youtubeUrl = 'https://www.youtube.com/@jinrou-mura-vs-mura';
 
   el.innerHTML = `<div class="inner share-screen">
