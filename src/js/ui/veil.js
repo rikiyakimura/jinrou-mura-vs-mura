@@ -46,6 +46,17 @@ export function setVeilCallbacks({ newGame, render }) {
 }
 
 /**
+ * QRコード拡大モーダルを表示
+ */
+function showQrModal(src) {
+  const modal = document.createElement('div');
+  modal.className = 'qr-modal';
+  modal.innerHTML = `<img src="${src}" alt="QRコード">`;
+  modal.addEventListener('click', () => modal.remove());
+  document.body.appendChild(modal);
+}
+
+/**
  * タイトル画面を表示（モード選択のみ）
  */
 export function showTitle() {
@@ -373,7 +384,7 @@ export function showShare() {
         <input type="text" id="game-url" readonly value="${gameUrl}">
         <button onclick="window._copyUrl('game-url')">コピー</button>
       </div>
-      <img src="/QR/gameQR.svg" class="qr-code" alt="ゲームQRコード">
+      <img id="game-qr" src="/QR/gameQR.svg" class="qr-code" alt="ゲームQRコード">
     </div>
 
     <div class="share-section">
@@ -382,11 +393,15 @@ export function showShare() {
         <input type="text" id="youtube-url" readonly value="${youtubeUrl}">
         <button onclick="window._copyUrl('youtube-url')">コピー</button>
       </div>
-      <img src="/QR/youtubeQR.svg" class="qr-code" alt="YouTubeQRコード">
+      <img id="youtube-qr" src="/QR/youtubeQR.svg" class="qr-code" alt="YouTubeQRコード">
     </div>
 
     <button class="back" onclick="window._showTitle()">← 戻る</button>
   </div>`;
+
+  // QRコードのクリックで拡大表示
+  document.getElementById('game-qr').addEventListener('click', (e) => showQrModal(e.target.src));
+  document.getElementById('youtube-qr').addEventListener('click', (e) => showQrModal(e.target.src));
 }
 
 /**
@@ -525,6 +540,8 @@ export async function showCreateRoom() {
   // QRコード生成
   const canvas = document.getElementById('room-qr-canvas');
   QRCode.toCanvas(canvas, roomUrl, { width: 150, margin: 1 });
+  canvas.style.cursor = 'pointer';
+  canvas.addEventListener('click', () => showQrModal(canvas.toDataURL()));
 }
 
 /**
