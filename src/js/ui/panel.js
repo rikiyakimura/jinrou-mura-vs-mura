@@ -360,7 +360,7 @@ export function renderPanel() {
           : `<div class="notice quiet"><b>犬は人狼の爪の音を捉えなかった。</b>相手が研がなかったか、居合わせなかったか。<span class="where">回った家：${where}</span></div>`;
       } else {
         b += v.heardToday
-          ? `<div class="notice"><b>探索の途中、どこかで爪を研ぐ音を聞いた。</b>ただし狂人の贋物かもしれない。今日${v.people[v.explorer].name}が入った家のどれかで鳴った。<span class="where">回った家：${where}</span></div>`
+          ? `<div class="notice"><b>探索の途中、どこかで爪を研ぐ音を聞いた。</b>${G.opt?.madmanDog ? 'ただし狂人の贋物かもしれない。' : ''}今日${v.people[v.explorer].name}が入った家のどれかで鳴った。<span class="where">回った家：${where}</span></div>`
           : `<div class="notice quiet"><b>探索の途中、怪しい音はなかった。</b>相手が研がなかったか、居合わせなかったかは分からない。<span class="where">回った家：${where}</span></div>`;
       }
     }
