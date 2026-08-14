@@ -967,6 +967,14 @@ export async function restartOnlineGame(renderCallback) {
   G.totalHandoffs = countHandoffs(G.sched);
   setupActionsFetched = false;
 
+  // onlineState のフラグをリセット
+  onlineState.waitingForOpponent = false;
+  onlineState.processingAction = false;
+  onlineState.presenceInitialized = false;
+  expectedIdxAfterTrigger = null;
+  stopReadyPolling();
+  clearTimeoutTimer();
+
   // DBに新しいゲーム状態を保存
   await updateGameState(onlineState.roomId, {
     game_data: newG,
