@@ -96,25 +96,35 @@ export function setRoute(playerId, route) {
     }
 
     const h = route[i];
-    if (h === G.permitHouse[playerId] && !got.permit) {
+    // アイテム取得判定（配列対応）
+    const permitHouses = G.permitHouse[playerId];
+    const isPermitHouse = Array.isArray(permitHouses) ? permitHouses.includes(h) : permitHouses === h;
+    if (isPermitHouse && !got.permit) {
       held.permit = true;
       got.permit = true;
+      got.permitFoundHouse = h;
     }
-    if (G.madHouse[playerId] && h === G.madHouse[playerId] && !got.mad) {
+    const madHouses = G.madHouse[playerId];
+    const isMadHouse = madHouses && (Array.isArray(madHouses) ? madHouses.includes(h) : madHouses === h);
+    if (isMadHouse && !got.mad) {
       held.mad = true;
       got.mad = true;
+      got.madFoundHouse = h;
     }
-    if (G.mediumHouse[playerId] && h === G.mediumHouse[playerId] && !got.medium) {
+    const mediumHouses = G.mediumHouse[playerId];
+    const isMediumHouse = mediumHouses && (Array.isArray(mediumHouses) ? mediumHouses.includes(h) : mediumHouses === h);
+    if (isMediumHouse && !got.medium) {
       held.medium = true;
       got.medium = true;
+      got.mediumFoundHouse = h;
     }
   }
 
   v.permit = held.permit;
-  v.permitFound = held.permit ? G.permitHouse[playerId] : null;
+  v.permitFound = held.permit ? got.permitFoundHouse : null;
   v.madClaw = held.mad;
-  v.madClawFound = held.mad ? G.madHouse[playerId] : null;
-  v.mediumFound = held.medium;
+  v.madClawFound = held.mad ? got.madFoundHouse : null;
+  v.mediumFound = held.medium ? got.mediumFoundHouse : null;
   v.gotPermit = got.permit;
   v.gotClaw = got.mad;
   v.gotMedium = got.medium;

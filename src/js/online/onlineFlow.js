@@ -606,7 +606,7 @@ export function startOnlineDay() {
     v.madClaw = false;
     v.madClawFound = null;
     v.madStart = null;
-    v.mediumFound = false;
+    v.mediumFound = null;
     v.gotPermit = false;
     v.gotClaw = false;
     v.gotMedium = false;
@@ -621,11 +621,20 @@ export function startOnlineDay() {
   const HOUSES = config.HOUSES;
 
   [1, 2].forEach(p => {
-    const ph = shuf(HOUSES)[0];
-    G.permitHouse[p] = ph;
-    const pool = shuf(HOUSES.filter(h => h !== ph));
-    G.madHouse[p] = (G.opt.madmanDog && G.day <= 2) ? pool[0] : null;
-    G.mediumHouse[p] = (G.opt.medium && G.day <= 2) ? (pool[1] !== undefined ? pool[1] : pool[0]) : null;
+    const isLarge = G.opt.large;
+    const shuffled = shuf([...HOUSES]);
+
+    if (isLarge) {
+      // 9軒: 各アイテム2箇所に配置
+      G.permitHouse[p] = [shuffled[0], shuffled[1]];
+      G.madHouse[p] = G.opt.madmanDog ? [shuffled[2], shuffled[3]] : null;
+      G.mediumHouse[p] = G.opt.medium ? [shuffled[4], shuffled[5]] : null;
+    } else {
+      // 5軒: 従来通り1箇所
+      G.permitHouse[p] = shuffled[0];
+      G.madHouse[p] = G.opt.madmanDog ? shuffled[1] : null;
+      G.mediumHouse[p] = G.opt.medium ? shuffled[2] : null;
+    }
   });
 }
 

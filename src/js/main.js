@@ -228,7 +228,7 @@ function pickRoute(h) {
     if (had.length) {
       v.permit = false; v.permitFound = null;
       v.madClaw = false; v.madClawFound = null;
-      v.mediumFound = false;
+      v.mediumFound = null;
       v.notice = '<b>落とし穴に落ちた。</b>' + houseName(o, prev) + 'から' + houseName(o, h) + 'へ抜ける道に仕掛けてあり、' + had.join('・') + 'を落としてしまった。';
       log(v, houseName(o, prev) + '〜' + houseName(o, h) + 'の道の落とし穴に落ち、' + had.join('・') + 'を落とした。', 'kill');
     } else {
@@ -237,14 +237,21 @@ function pickRoute(h) {
     }
   }
 
-  // アイテム取得
-  if (h === G.permitHouse[v.id] && !v.gotPermit) {
+  // アイテム取得（配列対応）
+  const permitHouses = G.permitHouse[v.id];
+  const isPermitHouse = Array.isArray(permitHouses) ? permitHouses.includes(h) : permitHouses === h;
+  const madHouses = G.madHouse[v.id];
+  const isMadHouse = madHouses && (Array.isArray(madHouses) ? madHouses.includes(h) : madHouses === h);
+  const mediumHouses = G.mediumHouse[v.id];
+  const isMediumHouse = mediumHouses && (Array.isArray(mediumHouses) ? mediumHouses.includes(h) : mediumHouses === h);
+
+  if (isPermitHouse && !v.gotPermit) {
     v.permit = true; v.permitFound = h; v.gotPermit = true;
     v.notice = `<img src="/item/goeitodoke.webp" class="item-icon"><b>護衛届を手に入れた。</b>${houseName(opp(), h)}のタンスの中にあった。今夜、村人1人を守れる。`;
     log(v, `${houseName(opp(), h)}で護衛届を手に入れた。`);
     playSE('item');
   }
-  else if (h === G.madHouse[v.id] && !v.gotClaw) {
+  else if (isMadHouse && !v.gotClaw) {
     v.madClaw = true; v.madClawFound = h; v.gotClaw = true;
     const mad = madmanOf(v);
     const usable = mad && mad.alive && v.explorer !== mad.id;
@@ -256,8 +263,8 @@ function pickRoute(h) {
     else log(v, houseName(opp(), h) + 'で狂人の爪を取ったが、' + madReason + 'ため使えなかった。');
     playSE('item');
   }
-  else if (h === G.mediumHouse[v.id] && !v.gotMedium) {
-    v.mediumFound = true; v.gotMedium = true;
+  else if (isMediumHouse && !v.gotMedium) {
+    v.mediumFound = h; v.gotMedium = true;
     const med = mediumOf(v);
     const usable = med && med.alive && v.explorer !== med.id;
     const medReason = !med ? '' : (!med.alive ? '霊媒師はすでにいない' : (v.explorer === med.id ? '霊媒師は探索に出て眠っている' : ''));

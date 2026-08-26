@@ -67,7 +67,7 @@ export function mkVillage(id, names, isCPU, opt) {
     madClaw: false,
     madClawFound: null,
     madStart: null,
-    mediumFound: false,
+    mediumFound: null,
     mediumResult: null,
     pitEdge: [],
     pitSeen: [],

@@ -272,9 +272,9 @@ export function render() {
     omniscient: pub ? revealAll : false,
     showExplorer: !pub && ['route', 'ticks', 'night'].includes(c.ph),
     itemHouses: pub ? null : {
-      permit: M.gotPermit ? G.permitHouse[M.id] : null,
-      claw: M.gotClaw ? G.madHouse[M.id] : null,
-      medium: M.gotMedium ? G.mediumHouse[M.id] : null
+      permit: M.permitFound || null,
+      claw: M.madClawFound || null,
+      medium: M.mediumFound || null
     },
     tokens: foeTokens,
     routePath: myRoutePath,
