@@ -2,8 +2,32 @@
  * 村の生成
  */
 
-import { shuf } from '../utils.js';
+import { shuf, rnd } from '../utils.js';
 import { getConfig } from '../constants.js';
+
+// CPUパーソナリティ
+const PERSONALITY_NAMES = ['aggressive', 'cautious', 'analytical', 'chaotic'];
+
+/**
+ * CPUメモリを初期化
+ */
+function initCPUMemory(config) {
+  const personality = rnd(PERSONALITY_NAMES);
+  // 狼確率マップを初期化（全家屋均等）
+  const wolfProbability = {};
+  const prob = 1 / config.HOUSES.length;
+  config.HOUSES.forEach(h => { wolfProbability[h] = prob; });
+
+  return {
+    personality,
+    opponentRoutes: [],
+    opponentExplorers: [],
+    wolfProbability,
+    roleInference: {},
+    soundReports: [],
+    attackResults: []
+  };
+}
 
 /**
  * 役職の配列を生成
@@ -74,6 +98,7 @@ export function mkVillage(id, names, isCPU, opt) {
     gotPermit: false,
     gotClaw: false,
     gotMedium: false,
-    suspicion: {}
+    suspicion: {},
+    cpuMemory: isCPU ? initCPUMemory(config) : null
   };
 }

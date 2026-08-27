@@ -119,6 +119,32 @@ export const SPOIL = 2;
 export const EXPOSE = 3;
 export const DAYS = 3;
 
+// CPU AIパラメータ（モード別）
+export const AI_PARAMS = {
+  classic: {
+    tourProbability: 0.42,
+    stake2Probability: 0.70,
+    explorerSuspicionDecrease: 0.8,
+    explorerTargetBonus: 1.6,
+    randomFactor: 2.2,
+    sharpenBaseProb: 0.80,
+    minSoundReportsForTarget: 1,
+    wolfSendSafe: 0.50,
+    wolfSendHungry: 0.12
+  },
+  large: {
+    tourProbability: 0.55,
+    stake2Probability: 0.50,
+    explorerSuspicionDecrease: 0.5,
+    explorerTargetBonus: 1.2,
+    randomFactor: 2.8,
+    sharpenBaseProb: 0.65,
+    minSoundReportsForTarget: 2,
+    wolfSendSafe: 0.35,
+    wolfSendHungry: 0.20
+  }
+};
+
 export const NAMES = [
   '佐吉', '源蔵', '卯之助', '六助', '甚平', '与市', '平次', '権三', '伊助',
   '民江', 'きく', 'さと', 'とめ', 'つる', 'うめ', 'しの', 'かね', 'ふじ'
