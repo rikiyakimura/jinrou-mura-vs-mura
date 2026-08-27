@@ -55,6 +55,7 @@ const ROLE_ORDER = { wolf: 0, guard: 1, madman: 2, dog: 3, medium: 4, villager: 
  * @returns {object} 村オブジェクト
  */
 export function mkVillage(id, names, isCPU, opt) {
+  const config = getConfig();
   const roles = rolesFor(opt);
   const people = names.map((n, i) => ({
     id: i,
