@@ -338,12 +338,13 @@ function cpuPlace(v, config) {
 }
 
 /**
- * CPUの落とし穴配置を決定
+ * CPUの落とし穴配置を決定（アーキタイプ別戦略）
  */
 function cpuPlacePit(v, o, config) {
-  const { EDGE_KEYS, PITS } = config;
+  const { EDGE_KEYS, PITS, ADJ } = config;
   const w = wolfOf(v);
   const mem = v.cpuMemory;
+  const archParams = getArchetypeParams(v);
 
   // 相手のアイテム位置を取得
   const oppItemHouses = [];
@@ -365,21 +366,57 @@ function cpuPlacePit(v, o, config) {
     const [a, b] = edge.split('-');
     let score = 0;
 
-    // 中央接続（高トラフィック）
-    if (a === 'c' || b === 'c') score += 1.5;
+    // === アーキタイプ別戦略 ===
 
-    // 狼防御
-    if (a === w.house || b === w.house) score += 1.0;
+    // Defender: 狼防御を最優先
+    if (archParams.guardProtection) {
+      if (a === w.house || b === w.house) score += 2.0;
+      if (a === 'c' || b === 'c') score += 1.0;
+    }
+    // Hunter: 相手のアイテム妨害を優先（攻撃的）
+    else if (archParams.stake3Preference > 0.7) {
+      if (oppItemHouses.includes(a) || oppItemHouses.includes(b)) score += 2.0;
+      if (a === 'c' || b === 'c') score += 1.5;
+      // 狼の位置は隠す（狼から離れた場所）
+      if (a !== w.house && b !== w.house) score += 0.5;
+    }
+    // Analyst: パターン分析重視
+    else if (archParams.randomFactor < 1) {
+      if (a === 'c' || b === 'c') score += 1.5;
+      // 相手の過去ルートから頻度計算（重み増）
+      if (mem && mem.opponentRoutes) {
+        mem.opponentRoutes.forEach(rec => {
+          for (let i = 0; i < rec.route.length - 1; i++) {
+            if (edgeKey(rec.route[i], rec.route[i + 1]) === edge) {
+              score += 1.0; // 通常より高い
+            }
+          }
+        });
+      }
+    }
+    // Gambler: ランダム重視
+    else if (archParams.randomFactor > 2) {
+      score += Math.random() * 3.0;
+    }
+    // Opportunist/デフォルト: バランス
+    else {
+      if (a === 'c' || b === 'c') score += 1.5;
+      if (oppItemHouses.includes(a) || oppItemHouses.includes(b)) score += 1.2;
+      // 狼防御は控えめ（位置バレ防止）
+      if (a === w.house || b === w.house) score += 0.3;
+    }
 
-    // 相手のアイテムの家からの辺を狙う
-    if (oppItemHouses.includes(a) || oppItemHouses.includes(b)) score += 1.2;
+    // 共通: 相手のアイテム位置
+    if (!archParams.guardProtection && !archParams.stake3Preference) {
+      if (oppItemHouses.includes(a) || oppItemHouses.includes(b)) score += 1.0;
+    }
 
-    // 相手の過去ルートから頻度計算
-    if (mem && mem.opponentRoutes) {
+    // 共通: 相手の過去ルート（Analyst以外）
+    if (archParams.randomFactor >= 1 && mem && mem.opponentRoutes) {
       mem.opponentRoutes.forEach(rec => {
         for (let i = 0; i < rec.route.length - 1; i++) {
           if (edgeKey(rec.route[i], rec.route[i + 1]) === edge) {
-            score += 0.6;
+            score += 0.5;
           }
         }
       });
