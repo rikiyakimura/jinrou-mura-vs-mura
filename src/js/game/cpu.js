@@ -206,6 +206,12 @@ function cpuSharpen(v, o, tick) {
   const aiParams = getAIParams();
   const config = getConfig();
   const archParams = getArchetypeParams(v);
+  const hungryStreak = v.hungryStreak || 0;
+
+  // === 餓死防止: hungryStreak=2なら必ず爪を研ぐ ===
+  if (hungryStreak >= 2) {
+    return true;
+  }
 
   let aggressiveness = archParams.aggressiveness;
 
@@ -222,15 +228,25 @@ function cpuSharpen(v, o, tick) {
     }
   }
 
+  // hungryStreak=1なら攻撃性を上げる
+  if (hungryStreak === 1) {
+    aggressiveness = Math.max(aggressiveness, 1.2);
+  }
+
   let prob = aiParams.sharpenBaseProb * aggressiveness;
 
-  // 飢餓ボーナス
-  prob += (v.hungryStreak || 0) * 0.15;
+  // 飢餓ボーナス（段階的に増加）
+  prob += hungryStreak * 0.25;
 
   // 日数プレッシャー（終盤ほど攻撃的）
   prob += (G.day / config.DAYS) * 0.15;
 
-  return Math.random() < Math.min(0.95, prob);
+  // 最終日は必ず攻撃（引き分け回避）
+  if (G.day >= config.DAYS) {
+    prob = Math.max(prob, 0.9);
+  }
+
+  return Math.random() < Math.min(0.98, prob);
 }
 
 /**
