@@ -66,9 +66,14 @@ export function newGame(mode, opt) {
   if (opt.madmanDog) extra.push('狂人＋犬飼い');
   if (opt.medium) extra.push('霊媒師');
 
-  document.getElementById('modeline').textContent =
-    (mode === 'cpu' ? '対CPU' : '1台を交代で使う2人対戦 ／ ホットシート') +
-    (extra.length ? '　／　' + extra.join('・') : '');
+  if (typeof document !== 'undefined') {
+    const modeline = document.getElementById('modeline');
+    if (modeline) {
+      modeline.textContent =
+        (mode === 'cpu' ? '対CPU' : '1台を交代で使う2人対戦 ／ ホットシート') +
+        (extra.length ? '　／　' + extra.join('・') : '');
+    }
+  }
 
   startDay();
   sync();

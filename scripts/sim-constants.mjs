@@ -1,4 +1,6 @@
-// 盤面と定数
+/**
+ * シミュレーション用の定数（RULES以外をre-export）
+ */
 
 // プリセット定義
 export const PRESETS = {
@@ -52,14 +54,10 @@ export const PRESETS = {
       bl: [17, 82], bm: [50, 82], br: [83, 82]
     },
     EDGES: [
-      // 外周（8本）
       ['tl', 'tm'], ['tm', 'tr'], ['tr', 'mr'], ['mr', 'br'],
       ['br', 'bm'], ['bm', 'bl'], ['bl', 'ml'], ['ml', 'tl'],
-      // 内部縦横（4本）
       ['tm', 'c'], ['c', 'bm'], ['ml', 'c'], ['c', 'mr'],
-      // 角から中央への斜め（4本）
       ['tl', 'c'], ['tr', 'c'], ['bl', 'c'], ['br', 'c'],
-      // 辺同士の斜め（4本）
       ['tm', 'ml'], ['tm', 'mr'], ['bm', 'ml'], ['bm', 'mr']
     ],
     DAYS: 5,
@@ -69,13 +67,10 @@ export const PRESETS = {
   }
 };
 
-// 現在のアクティブな設定
 let activePreset = 'classic';
 
-// edgeKeyユーティリティ関数
 export const edgeKey = (a, b) => [a, b].sort().join('-');
 
-// 動的設定を取得
 export function getConfig() {
   const preset = PRESETS[activePreset];
   return {
@@ -84,19 +79,16 @@ export function getConfig() {
   };
 }
 
-// プリセットを切り替え
 export function setPreset(name) {
   if (PRESETS[name]) {
     activePreset = name;
   }
 }
 
-// 現在のプリセット名を取得
 export function getPreset() {
   return activePreset;
 }
 
-// 後方互換性のため、既存のexportを維持（classicプリセットの値）
 export const HOUSES = PRESETS.classic.HOUSES;
 export const HLABEL = PRESETS.classic.HLABEL;
 export const ADJ = PRESETS.classic.ADJ;
@@ -119,7 +111,6 @@ export const SPOIL = 2;
 export const EXPOSE = 3;
 export const DAYS = 3;
 
-// CPU AIパラメータ（モード別）
 export const AI_PARAMS = {
   classic: {
     tourProbability: 0.42,
@@ -159,7 +150,5 @@ export const NAME_TO_KEY = {
   'しの': 'shino', 'かね': 'kane', 'ふじ': 'fuji'
 };
 
-// ルール要約（src/data/rules.json から読み込み）
-// Vite/ブラウザ環境では静的インポート、Node.jsシミュレーションでは空配列
-import rulesData from '../data/rules.json';
-export const RULES = rulesData;
+// シミュレーションではRULESは不要
+export const RULES = [];

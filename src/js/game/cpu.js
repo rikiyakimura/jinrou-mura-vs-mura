@@ -8,13 +8,72 @@ import { rnd, shuf, other } from '../utils.js';
 import { placeVillagers, placePit, selectExplorer, setRoute, setSharpenTiming, setMadSharpenTiming, setAttackTarget, setProtectTarget } from '../actions.js';
 import { resolveDay, overlapFull, SPOIL, canAttack, canProtect, madSharpenTicks } from './resolve.js';
 
-// パーソナリティ定義
-const PERSONALITIES = {
-  aggressive: { wolfMult: 1.3, sharpenMult: 1.1, randomMult: 0.6, routePref: 'stake' },
-  cautious:   { wolfMult: 0.7, sharpenMult: 0.85, randomMult: 1.0, routePref: 'tour' },
-  analytical: { wolfMult: 1.0, sharpenMult: 1.0, randomMult: 0.5, routePref: 'pattern' },
-  chaotic:    { wolfMult: 0.9, sharpenMult: 0.9, randomMult: 1.8, routePref: 'random' }
+// アーキタイプ定義（シミュレーションで最適化済み）
+const ARCHETYPES = {
+  hunter: {
+    name: 'Hunter（狩人）',
+    wolfExplorerProb: 0.5,
+    stake3Preference: 0.8,
+    sharpenTiming: 'early',
+    aggressiveness: 1.3,
+    permitPriority: 1.0,
+    guardProtection: false,
+    randomFactor: 1.0
+  },
+  defender: {
+    name: 'Defender（守護者）',
+    wolfExplorerProb: 0.15,
+    stake3Preference: 0.3,
+    sharpenTiming: 'late',
+    aggressiveness: 0.85,
+    permitPriority: 2.0,
+    guardProtection: true,
+    randomFactor: 1.0
+  },
+  analyst: {
+    name: 'Analyst（分析者）',
+    wolfExplorerProb: 0.3,
+    stake3Preference: 0.5,
+    sharpenTiming: 'calculated',
+    aggressiveness: 1.0,
+    permitPriority: 1.2,
+    guardProtection: false,
+    randomFactor: 0.8
+  },
+  gambler: {
+    name: 'Gambler（賭博師）',
+    wolfExplorerProb: 0.4,
+    stake3Preference: 0.5,
+    sharpenTiming: 'random',
+    aggressiveness: 1.1,
+    permitPriority: 1.0,
+    guardProtection: false,
+    randomFactor: 2.5,
+    madClawUsage: 'deceptive'
+  },
+  opportunist: {
+    name: 'Opportunist（日和見）',
+    wolfExplorerProb: 0.3,
+    stake3Preference: 0.5,
+    sharpenTiming: 'adaptive',
+    aggressiveness: 1.0,
+    permitPriority: 1.2,
+    guardProtection: false,
+    randomFactor: 1.0,
+    adaptiveMode: true,
+    aggressiveThreshold: -1,
+    defensiveThreshold: 2,
+    wolfConfidenceThreshold: 0.5
+  }
 };
+
+/**
+ * アーキタイプパラメータを取得
+ */
+function getArchetypeParams(v) {
+  const archName = v.cpuMemory?.archetype || 'analyst';
+  return ARCHETYPES[archName] || ARCHETYPES.analyst;
+}
 
 /**
  * AIパラメータを取得
@@ -144,12 +203,26 @@ function stake3(t) {
  * 爪研ぎを始めるか判断（プレイヤーのルートは見ない）
  */
 function cpuSharpen(v, o, tick) {
-  const params = getAIParams();
+  const aiParams = getAIParams();
   const config = getConfig();
-  const mem = v.cpuMemory;
-  const pers = mem ? PERSONALITIES[mem.personality] : PERSONALITIES.analytical;
+  const archParams = getArchetypeParams(v);
 
-  let prob = params.sharpenBaseProb * pers.sharpenMult;
+  let aggressiveness = archParams.aggressiveness;
+
+  // Opportunist: 状況に応じて攻撃性を調整
+  if (archParams.adaptiveMode) {
+    const mySurvivors = alive(v).length;
+    const oppSurvivors = alive(o).length;
+    const diff = mySurvivors - oppSurvivors;
+
+    if (diff <= (archParams.aggressiveThreshold || -1)) {
+      aggressiveness = 1.4; // 劣勢 → より攻撃的に
+    } else if (diff >= (archParams.defensiveThreshold || 1)) {
+      aggressiveness = 0.7; // 優勢 → より守備的に
+    }
+  }
+
+  let prob = aiParams.sharpenBaseProb * aggressiveness;
 
   // 飢餓ボーナス
   prob += (v.hungryStreak || 0) * 0.15;
@@ -161,19 +234,41 @@ function cpuSharpen(v, o, tick) {
 }
 
 /**
+ * 爪研ぎ開始ティックを決定
+ */
+function cpuSelectSharpenTick(v, o) {
+  const archParams = getArchetypeParams(v);
+  const timing = archParams.sharpenTiming;
+
+  if (timing === 'early') return 1;
+  if (timing === 'late') return 3;
+  if (timing === 'random') return 1 + Math.floor(Math.random() * 3);
+  if (timing === 'adaptive') {
+    // Opportunist: 状況に応じて変える
+    const mySurvivors = alive(v).length;
+    const oppSurvivors = alive(o).length;
+    if (mySurvivors < oppSurvivors) return 1; // 劣勢 → 早めに確定
+    if (mySurvivors > oppSurvivors) return 3; // 優勢 → 様子見
+    return 2;
+  }
+  // calculated: デフォルトは中間
+  return 2;
+}
+
+/**
  * CPUの襲撃先選択
  */
 function cpuPickAttack(v, o) {
   const targets = alive(o);
   if (!targets.length) return null;
 
-  const params = getAIParams();
+  const aiParams = getAIParams();
+  const archParams = getArchetypeParams(v);
   const mem = v.cpuMemory;
-  const pers = mem ? PERSONALITIES[mem.personality] : PERSONALITIES.analytical;
   const susp = v.suspicion || {};
 
-  // ランダム選択（パーソナリティで調整）
-  if (Math.random() < 0.3 * pers.randomMult) {
+  // ランダム選択（アーキタイプで調整）
+  if (Math.random() < 0.15 * archParams.randomFactor) {
     return rnd(targets).id;
   }
 
@@ -185,7 +280,7 @@ function cpuPickAttack(v, o) {
     score += (1 - suspVal) * 2.0;
 
     // 探索者ボーナス
-    if (o.explorer === p.id) score += params.explorerTargetBonus;
+    if (o.explorer === p.id) score += aiParams.explorerTargetBonus;
 
     // 過去に探索者だった人は非狼の可能性高い
     if (mem && mem.opponentExplorers) {
@@ -193,8 +288,14 @@ function cpuPickAttack(v, o) {
       score += expCount * 0.5;
     }
 
+    // 護衛は殺せない可能性が高い
+    if (p.role === 'guard' && o.permit) score -= 0.5;
+
+    // 狂人は殺しても相手は困らない
+    if (p.role === 'madman') score -= 0.3;
+
     // ランダム
-    score += Math.random() * params.randomFactor * pers.randomMult;
+    score += Math.random() * aiParams.randomFactor * (archParams.randomFactor / 2);
 
     return { p, score };
   });
@@ -222,13 +323,12 @@ function cpuUpdateSuspicion(v, foe) {
  */
 function cpuPlace(v, config) {
   const { HOUSES, ADJ } = config;
-  const mem = v.cpuMemory;
-  const pers = mem ? PERSONALITIES[mem.personality] : PERSONALITIES.analytical;
+  const archParams = getArchetypeParams(v);
 
   // 狼配置：隣接数でスコアリング（逃走経路確保）
   const scored = HOUSES.map(h => ({
     house: h,
-    score: ADJ[h].length + Math.random() * (pers.randomMult > 1 ? 2 : 0.5)
+    score: ADJ[h].length + Math.random() * (archParams.randomFactor > 1.5 ? 2 : 0.5)
   }));
   scored.sort((a, b) => b.score - a.score);
 
@@ -245,6 +345,21 @@ function cpuPlacePit(v, o, config) {
   const w = wolfOf(v);
   const mem = v.cpuMemory;
 
+  // 相手のアイテム位置を取得
+  const oppItemHouses = [];
+  if (G.permitHouse && G.permitHouse[o.id]) {
+    const h = G.permitHouse[o.id];
+    oppItemHouses.push(...(Array.isArray(h) ? h : [h]));
+  }
+  if (G.madHouse && G.madHouse[o.id]) {
+    const h = G.madHouse[o.id];
+    oppItemHouses.push(...(Array.isArray(h) ? h : [h]));
+  }
+  if (G.mediumHouse && G.mediumHouse[o.id]) {
+    const h = G.mediumHouse[o.id];
+    oppItemHouses.push(...(Array.isArray(h) ? h : [h]));
+  }
+
   // 辺のスコアリング
   const edgeScores = EDGE_KEYS.map(edge => {
     const [a, b] = edge.split('-');
@@ -255,6 +370,9 @@ function cpuPlacePit(v, o, config) {
 
     // 狼防御
     if (a === w.house || b === w.house) score += 1.0;
+
+    // 相手のアイテムの家からの辺を狙う
+    if (oppItemHouses.includes(a) || oppItemHouses.includes(b)) score += 1.2;
 
     // 相手の過去ルートから頻度計算
     if (mem && mem.opponentRoutes) {
@@ -279,55 +397,75 @@ function cpuPlacePit(v, o, config) {
  * CPUの探索者選択
  */
 function cpuSelectExplorer(v, o) {
-  const params = getAIParams();
-  const config = getConfig();
+  const aiParams = getAIParams();
+  const archParams = getArchetypeParams(v);
   const mem = v.cpuMemory;
-  const pers = mem ? PERSONALITIES[mem.personality] : PERSONALITIES.analytical;
   const w = wolfOf(v);
   const dog = dogOf(v);
+  const g = guardOf(v);
   const liv = alive(v);
 
-  // 基準確率（モード別）
-  const safe = (v.hungryStreak || 0) < 2;
-  let baseProb = safe ? params.wolfSendSafe : params.wolfSendHungry;
+  // 狼を送る確率（アーキタイプ基準）
+  let wolfProb = archParams.wolfExplorerProb || 0.3;
 
-  // パーソナリティ調整
-  baseProb *= pers.wolfMult;
+  // Gambler: 日によって変える
+  if (archParams.randomFactor > 2) {
+    wolfProb = G.day <= 2 ? archParams.wolfExplorerProb : 0.1;
+  }
 
-  // 日数調整（後半ほど攻撃的に）
-  const dayFactor = 1 + (G.day - 1) * 0.1;
-  baseProb *= dayFactor;
+  // Opportunist: 狼位置に高確信があれば狼を送る
+  if (archParams.adaptiveMode && mem && mem.wolfProbability) {
+    const topProb = Math.max(...Object.values(mem.wolfProbability));
+    const threshold = archParams.wolfConfidenceThreshold || 0.4;
+    if (topProb >= threshold && v.memo.length >= 2) {
+      wolfProb = 0.7; // 高確信 → 狼を送って即勝利狙い
+    }
+  }
 
   // 情報がなければ狼を送らない
-  if (!v.memo.length) baseProb = 0;
+  if (!v.memo.length) wolfProb = 0;
 
   // 狼を送るか判定
-  let sendWolf = false;
-  if (w.alive && Math.random() < baseProb) {
-    sendWolf = true;
+  if (w.alive && Math.random() < wolfProb) {
     v._sendWolf = true;
     return w.id;
   }
+  v._sendWolf = false;
 
-  // 犬飼いを送る（狂人検出用）
-  if (dog && dog.alive && v.memo.length && Math.random() < 0.4) {
-    v._sendWolf = false;
-    return dog.id;
+  // 犬飼いを送る判断: 相手が狂人の爪を取った可能性がある時
+  if (dog && dog.alive && G.opt?.madmanDog) {
+    const madHouses = G.madHouse?.[o.id];
+    const oppRoutes = mem?.opponentRoutes || [];
+    let oppMightHaveClaw = false;
+    if (madHouses) {
+      const madArr = Array.isArray(madHouses) ? madHouses : [madHouses];
+      oppMightHaveClaw = oppRoutes.some(r => r.route?.some(h => madArr.includes(h)));
+    }
+    const dogProb = oppMightHaveClaw ? 0.7 : 0.3;
+    if (Math.random() < dogProb) {
+      return dog.id;
+    }
   }
 
+  // Defender: 護衛を探索に出さない
+  const candidates = liv.filter(p => {
+    if (archParams.guardProtection && p.role === 'guard') return false;
+    if (p.role === 'wolf') return false;
+    return true;
+  });
+
   // 一般村人を送る
-  const plain = liv.filter(p => p.role === 'villager' || p.role === 'dog');
-  v._sendWolf = false;
-  return (plain.length ? rnd(plain) : rnd(liv)).id;
+  const plain = candidates.filter(p => p.role === 'villager' || p.role === 'dog');
+  return (plain.length ? rnd(plain) : rnd(candidates.length ? candidates : liv)).id;
 }
 
 /**
  * CPUのルート選択
  */
 function cpuSelectRoute(v, o, config) {
-  const params = getAIParams();
+  const aiParams = getAIParams();
+  const archParams = getArchetypeParams(v);
   const mem = v.cpuMemory;
-  const pers = mem ? PERSONALITIES[mem.personality] : PERSONALITIES.analytical;
   const { HOUSES } = config;
 
   // ターゲット家屋を確率順に取得（狼確率マップから）
@@ -342,14 +480,41 @@ function cpuSelectRoute(v, o, config) {
     targets = v.memo.length ? v.memo.slice(0, 3) : [rnd(HOUSES)];
   }
 
+  // アイテム位置を収集
+  const itemHouses = [];
+
+  // 護衛届の家（まだ持っていなければ）
+  if (!v.permit && G.permitHouse?.[v.id]) {
+    const h = G.permitHouse[v.id];
+    const houses = Array.isArray(h) ? h : [h];
+    itemHouses.push(...houses);
+    // Defender: 護衛届を最優先
+    if (archParams.permitPriority > 1) {
+      targets = [...houses, ...targets.filter(t => !houses.includes(t))].slice(0, 3);
+    }
+  }
+
+  // 狂人の爪（Day1-2で価値あり）
+  if (G.opt?.madmanDog && G.day <= 2 && G.madHouse?.[v.id]) {
+    const h = G.madHouse[v.id];
+    itemHouses.push(...(Array.isArray(h) ? h : [h]));
+  }
+
+  // 霊媒の札（攻撃予定があれば価値あり）
+  if (G.opt?.medium && v.sharpenStart !== null && G.mediumHouse?.[v.id]) {
+    const h = G.mediumHouse[v.id];
+    itemHouses.push(...(Array.isArray(h) ? h : [h]));
+  }
+
   // 候補ルート生成
   const candidates = [];
 
   // 張り込み系
   targets.forEach(t => {
     candidates.push({ route: stake2(t), type: 'stake2', score: 0 });
-    if (v._sendWolf) {
-      candidates.push({ route: stake3(t), type: 'stake3', score: 0 });
+    // Hunter/狼送り: stake3を追加
+    if (v._sendWolf || archParams.stake3Preference > 0.5) {
+      candidates.push({ route: stake3(t), type: 'stake3', score: archParams.stake3Preference || 0 });
     }
   });
 
@@ -360,21 +525,22 @@ function cpuSelectRoute(v, o, config) {
 
   // スコアリング
   candidates.forEach(c => {
-    // ターゲットカバー率
+    // 狼確率の高い家を通るルートにボーナス
     targets.forEach((t, idx) => {
       if (c.route.includes(t)) c.score += (3 - idx) * 0.5;
     });
 
-    // パーソナリティ傾向
-    if (pers.routePref === 'stake' && c.type.startsWith('stake')) c.score += 1;
-    if (pers.routePref === 'tour' && c.type === 'tour') c.score += 1;
+    // アイテムの家を通るルートにボーナス
+    itemHouses.forEach(h => {
+      if (c.route.includes(h)) c.score += 0.8;
+    });
 
     // 落とし穴回避
     const pitHits = countPitHits(c.route, o.pitSeen || []);
     c.score -= pitHits * 5;
 
     // ランダム要素
-    c.score += Math.random() * params.randomFactor * pers.randomMult;
+    c.score += Math.random() * (archParams.randomFactor || 1);
   });
 
   // 最高スコアのルートを選択
@@ -386,15 +552,13 @@ function cpuSelectRoute(v, o, config) {
  * CPUの護衛選択
  */
 function cpuPickProtect(v, o) {
-  const params = getAIParams();
-  const mem = v.cpuMemory;
-  const pers = mem ? PERSONALITIES[mem.personality] : PERSONALITIES.analytical;
+  const archParams = getArchetypeParams(v);
 
   const guard = alive(v).filter(p => p.role !== 'guard' && p.role !== 'wolf');
   if (!guard.length) return null;
 
-  // ランダム選択（パーソナリティで調整）
-  if (Math.random() < 0.3 * pers.randomMult) {
+  // ランダム選択（アーキタイプで調整）
+  if (Math.random() < 0.15 * archParams.randomFactor) {
     return rnd(guard).id;
   }
 
@@ -448,26 +612,31 @@ export function runCPU(c, v) {
 
   if (c.ph === 'ticks') {
     const w = wolfOf(v);
-    if (w.alive && v.explorer !== w.id) {
-      for (let k = 1; k <= TICKS - SHARPEN + 1; k++) {
-        if (cpuSharpen(v, o, k)) {
-          setSharpenTiming(v.id, k);
-          break;
-        }
-      }
+    const archParams = getArchetypeParams(v);
+
+    if (w.alive && v.explorer !== w.id && cpuSharpen(v, o, 1)) {
+      const tick = cpuSelectSharpenTick(v, o);
+      setSharpenTiming(v.id, tick);
     }
 
     // 狂人の爪
     if (madActive(v)) {
       const m = v.people.find(p => p.role === 'madman');
-      let best = null, bestScore = -1;
-      for (let k = 1; k <= TICKS - SHARPEN + 1; k++) {
-        let sc = [0, 1, 2].map(i => k + i).filter(t => t <= TICKS).filter(t => o.route[t - 1] === m.house).length;
-        if (v.sharpenStart !== null && k === v.sharpenStart) sc += 0.5;
-        if (sc > bestScore) { bestScore = sc; best = k; }
+      // Gambler: 狂人を別タイミングで鳴らす（欺瞞的）
+      if (archParams.madClawUsage === 'deceptive' && v.sharpenStart !== null) {
+        const madTick = v.sharpenStart === 1 ? 3 : 1;
+        setMadSharpenTiming(v.id, madTick);
+      } else {
+        // 通常: 狼と同タイミングまたは最適タイミング
+        let best = null, bestScore = -1;
+        for (let k = 1; k <= TICKS - SHARPEN + 1; k++) {
+          let sc = [0, 1, 2].map(i => k + i).filter(t => t <= TICKS).filter(t => o.route[t - 1] === m.house).length;
+          if (v.sharpenStart !== null && k === v.sharpenStart) sc += 0.5;
+          if (sc > bestScore) { bestScore = sc; best = k; }
+        }
+        const madStart = (bestScore >= 1) ? best : (v.sharpenStart !== null ? v.sharpenStart : best);
+        setMadSharpenTiming(v.id, madStart);
       }
-      const madStart = (bestScore >= 1) ? best : (v.sharpenStart !== null ? v.sharpenStart : best);
-      setMadSharpenTiming(v.id, madStart);
     }
 
     G.tickIdx = TICKS;

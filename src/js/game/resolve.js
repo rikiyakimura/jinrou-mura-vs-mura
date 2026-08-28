@@ -4,7 +4,13 @@
 
 import { G, wolfOf, guardOf, mediumOf, madActive, log, logRoute, houseName, alive } from '../state.js';
 import { TICKS, SHARPEN, SPOIL as SPOIL_CONST, EXPOSE, ROLE_LABEL, getConfig, getPreset } from '../constants.js';
-import { updateStats } from '../online/supabase.js';
+
+// シミュレーションモード用：updateStatsをオプショナルに
+let updateStats = () => {};
+// ブラウザ環境でのみsupabaseをインポート（シミュレーション時は完全にスキップ）
+if (typeof window !== 'undefined' && typeof window.document !== 'undefined' && window.document.createElement) {
+  import('../online/supabase.js').then(m => { updateStats = m.updateStats; }).catch(() => {});
+}
 
 // SPOILをエクスポート
 export const SPOIL = SPOIL_CONST;

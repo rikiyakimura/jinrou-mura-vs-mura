@@ -5,21 +5,41 @@
 import { shuf, rnd } from '../utils.js';
 import { getConfig } from '../constants.js';
 
-// CPUパーソナリティ
-const PERSONALITY_NAMES = ['aggressive', 'cautious', 'analytical', 'chaotic'];
+// アーキタイプ定義と重み
+const ARCHETYPES = {
+  analyst:     { weight: 0.30, name: 'Analyst（分析者）' },
+  defender:    { weight: 0.25, name: 'Defender（守護者）' },
+  hunter:      { weight: 0.20, name: 'Hunter（狩人）' },
+  opportunist: { weight: 0.15, name: 'Opportunist（日和見）' },
+  gambler:     { weight: 0.10, name: 'Gambler（賭博師）' }
+};
+
+/**
+ * 重み付きランダム選択でアーキタイプを選ぶ
+ */
+function selectArchetype() {
+  const entries = Object.entries(ARCHETYPES);
+  const totalWeight = entries.reduce((sum, [, v]) => sum + v.weight, 0);
+  let r = Math.random() * totalWeight;
+  for (const [name, data] of entries) {
+    r -= data.weight;
+    if (r <= 0) return name;
+  }
+  return 'analyst'; // フォールバック
+}
 
 /**
  * CPUメモリを初期化
  */
 function initCPUMemory(config) {
-  const personality = rnd(PERSONALITY_NAMES);
+  const archetype = selectArchetype();
   // 狼確率マップを初期化（全家屋均等）
   const wolfProbability = {};
   const prob = 1 / config.HOUSES.length;
   config.HOUSES.forEach(h => { wolfProbability[h] = prob; });
 
   return {
-    personality,
+    archetype,
     opponentRoutes: [],
     opponentExplorers: [],
     wolfProbability,

@@ -1,6 +1,7 @@
 {
   "name": "jinrou-mura-vs-mura",
   "version": "0.1.0",
+  "type": "module",
   "description": "人狼 村vs村 - 1対1対戦型人狼ゲーム",
   "main": "index.js",
   "scripts": {
