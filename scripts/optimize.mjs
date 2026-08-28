@@ -320,10 +320,16 @@ function cpuSharpen(v, o) {
   const config = getConfig();
   const baseProb = AI_PARAMS[getPreset()].sharpenBaseProb;
   const hungryStreak = v.hungryStreak || 0;
+  const isLargeMode = config.HOUSES.length > 5;
 
-  // === 餓死防止: hungryStreak=2なら必ず爪を研ぐ ===
+  // === 餓死防止 ===
+  // hungryStreak=2なら必ず爪を研ぐ
   if (hungryStreak >= 2) {
     return true;
+  }
+  // 9軒モードでhungryStreak=1なら高確率で研ぐ
+  if (isLargeMode && hungryStreak === 1) {
+    if (Math.random() < 0.9) return true;
   }
 
   let aggressiveness = params.aggressiveness;
@@ -338,23 +344,29 @@ function cpuSharpen(v, o) {
       // 劣勢 → より攻撃的に
       aggressiveness = 1.4;
     } else if (diff >= (params.defensiveThreshold || 1)) {
-      // 優勢 → より守備的に
-      aggressiveness = 0.7;
+      // 優勢でも餓死リスクがあれば攻撃的に
+      aggressiveness = hungryStreak > 0 ? 1.0 : 0.7;
     }
   }
 
   // hungryStreak=1なら攻撃性を上げる
   if (hungryStreak === 1) {
-    aggressiveness = Math.max(aggressiveness, 1.2);
+    aggressiveness = Math.max(aggressiveness, 1.3);
   }
 
   let prob = baseProb * aggressiveness;
+
+  // 9軒モードは基本確率が低いので補正
+  if (isLargeMode) {
+    prob += 0.15;
+  }
+
   prob += hungryStreak * 0.25;
   prob += (G.day / config.DAYS) * 0.15;
 
   // 最終日は必ず攻撃
   if (G.day >= config.DAYS) {
-    prob = Math.max(prob, 0.9);
+    prob = Math.max(prob, 0.95);
   }
 
   return Math.random() < Math.min(0.98, prob);
@@ -362,21 +374,48 @@ function cpuSharpen(v, o) {
 
 function cpuSelectSharpenTick(v, o, params) {
   const timing = params.sharpenTiming;
+  const hungryStreak = v.hungryStreak || 0;
+  const mem = v.cpuMemory;
+  const w = wolfOf(v);
+
+  // === 餓死回避モード ===
+  if (hungryStreak >= 1 && mem && mem.opponentRoutes && mem.opponentRoutes.length > 0) {
+    const wolfHouse = w.house;
+    const riskScores = [0, 0, 0];
+
+    mem.opponentRoutes.forEach(rec => {
+      const route = rec.route || [];
+      for (let startTick = 1; startTick <= 3; startTick++) {
+        let overlapCount = 0;
+        for (let i = 0; i < 3; i++) {
+          const tick = startTick + i;
+          if (tick <= TICKS && route[tick - 1] === wolfHouse) {
+            overlapCount++;
+          }
+        }
+        if (overlapCount >= 2) riskScores[startTick - 1] += 2;
+        else if (overlapCount >= 1) riskScores[startTick - 1] += 0.5;
+      }
+    });
+
+    let bestTick = 1, minRisk = riskScores[0];
+    for (let i = 1; i < 3; i++) {
+      if (riskScores[i] < minRisk) { minRisk = riskScores[i]; bestTick = i + 1; }
+    }
+    if (hungryStreak >= 2 || Math.random() < 0.7) return bestTick;
+  }
+
+  // 通常タイミング
   if (timing === 'early') return 1;
   if (timing === 'late') return 3;
   if (timing === 'random') return 1 + Math.floor(Math.random() * 3);
   if (timing === 'adaptive') {
-    // Opportunist: 状況に応じて変える
     const mySurvivors = alive(v).length;
     const oppSurvivors = alive(o).length;
-    if (mySurvivors < oppSurvivors) {
-      return 1; // 劣勢 → 早めに確定
-    } else if (mySurvivors > oppSurvivors) {
-      return 3; // 優勢 → 様子見
-    }
+    if (mySurvivors < oppSurvivors) return 1;
+    if (mySurvivors > oppSurvivors) return 3;
     return 2;
   }
-  // calculated: デフォルトは中間
   return 2;
 }
 

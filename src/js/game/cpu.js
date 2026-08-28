@@ -207,10 +207,16 @@ function cpuSharpen(v, o, tick) {
   const config = getConfig();
   const archParams = getArchetypeParams(v);
   const hungryStreak = v.hungryStreak || 0;
+  const isLargeMode = config.HOUSES.length > 5;
 
-  // === 餓死防止: hungryStreak=2なら必ず爪を研ぐ ===
+  // === 餓死防止 ===
+  // hungryStreak=2なら必ず爪を研ぐ
   if (hungryStreak >= 2) {
     return true;
+  }
+  // 9軒モードでhungryStreak=1なら高確率で研ぐ
+  if (isLargeMode && hungryStreak === 1) {
+    if (Math.random() < 0.9) return true;
   }
 
   let aggressiveness = archParams.aggressiveness;
@@ -224,16 +230,22 @@ function cpuSharpen(v, o, tick) {
     if (diff <= (archParams.aggressiveThreshold || -1)) {
       aggressiveness = 1.4; // 劣勢 → より攻撃的に
     } else if (diff >= (archParams.defensiveThreshold || 1)) {
-      aggressiveness = 0.7; // 優勢 → より守備的に
+      // 優勢でも餓死リスクがあれば攻撃的に
+      aggressiveness = hungryStreak > 0 ? 1.0 : 0.7;
     }
   }
 
   // hungryStreak=1なら攻撃性を上げる
   if (hungryStreak === 1) {
-    aggressiveness = Math.max(aggressiveness, 1.2);
+    aggressiveness = Math.max(aggressiveness, 1.3);
   }
 
   let prob = aiParams.sharpenBaseProb * aggressiveness;
+
+  // 9軒モードは基本確率が低いので補正
+  if (isLargeMode) {
+    prob += 0.15;
+  }
 
   // 飢餓ボーナス（段階的に増加）
   prob += hungryStreak * 0.25;
@@ -243,7 +255,7 @@ function cpuSharpen(v, o, tick) {
 
   // 最終日は必ず攻撃（引き分け回避）
   if (G.day >= config.DAYS) {
-    prob = Math.max(prob, 0.9);
+    prob = Math.max(prob, 0.95);
   }
 
   return Math.random() < Math.min(0.98, prob);
@@ -255,7 +267,56 @@ function cpuSharpen(v, o, tick) {
 function cpuSelectSharpenTick(v, o) {
   const archParams = getArchetypeParams(v);
   const timing = archParams.sharpenTiming;
+  const hungryStreak = v.hungryStreak || 0;
+  const mem = v.cpuMemory;
+  const w = wolfOf(v);
 
+  // === 餓死回避モード: 相手の過去ルートを分析して最適タイミングを選ぶ ===
+  if (hungryStreak >= 1 && mem && mem.opponentRoutes && mem.opponentRoutes.length > 0) {
+    const wolfHouse = w.house;
+
+    // 各開始ティック(1,2,3)での重複リスクを計算
+    // 開始ティックkなら、tick k, k+1, k+2 で爪を研ぐ
+    const riskScores = [0, 0, 0]; // index 0=tick1, 1=tick2, 2=tick3
+
+    mem.opponentRoutes.forEach(rec => {
+      const route = rec.route || [];
+      for (let startTick = 1; startTick <= 3; startTick++) {
+        let overlapCount = 0;
+        // この開始ティックでの3ティック分をチェック
+        for (let i = 0; i < 3; i++) {
+          const tick = startTick + i;
+          if (tick <= TICKS && route[tick - 1] === wolfHouse) {
+            overlapCount++;
+          }
+        }
+        // 2以上の重複はspoiledになるリスク
+        if (overlapCount >= 2) {
+          riskScores[startTick - 1] += 2;
+        } else if (overlapCount >= 1) {
+          riskScores[startTick - 1] += 0.5;
+        }
+      }
+    });
+
+    // 最もリスクの低いタイミングを選ぶ
+    let bestTick = 1;
+    let minRisk = riskScores[0];
+    for (let i = 1; i < 3; i++) {
+      if (riskScores[i] < minRisk) {
+        minRisk = riskScores[i];
+        bestTick = i + 1;
+      }
+    }
+
+    // hungryStreak=2なら確実に最適タイミングを使う
+    // hungryStreak=1なら50%で最適タイミング、50%でアーキタイプデフォルト
+    if (hungryStreak >= 2 || Math.random() < 0.7) {
+      return bestTick;
+    }
+  }
+
+  // 通常のアーキタイプ別タイミング
   if (timing === 'early') return 1;
   if (timing === 'late') return 3;
   if (timing === 'random') return 1 + Math.floor(Math.random() * 3);
